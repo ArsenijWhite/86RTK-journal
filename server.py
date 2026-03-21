@@ -5,8 +5,6 @@ import os
 import tempfile
 from mutagen.id3 import ID3
 from mutagen.mp3 import MP3
-from PIL import Image
-import io
 import base64
 import logging
 
@@ -48,39 +46,42 @@ def get_music():
     
     logger.info(f"Fetching music from channel: {channel}")
     
-    # Используем forwardMessage для получения сообщений из канала
-    # Сначала проверяем, что бот имеет доступ к каналу
     try:
-        # Получаем информацию о канале
-        chat_url = f"https://api.telegram.org/bot{BOT_TOKEN}/getChat"
-        chat_response = requests.get(chat_url, params={"chat_id": channel}, timeout=30)
-        chat_data = chat_response.json()
-        
-        if not chat_data.get('ok'):
-            logger.error(f"Cannot access channel: {chat_data}")
-            return jsonify({"error": "Cannot access channel. Make sure bot is admin."}), 400
-        
-        # Получаем последние сообщения через forward (альтернативный метод)
-        # Для простоты используем getUpdates с правильным chat_id
-        updates_url = f"https://api.telegram.org/bot{BOT_TOKEN}/getUpdates"
-        updates_response = requests.get(updates_url, timeout=30)
-        updates_data = updates_response.json()
+        # Получаем последние сообщения из канала через getUpdates
+        url = f"https://api.telegram.org/bot{BOT_TOKEN}/getUpdates"
+        response = requests.get(url, timeout=30)
+        data = response.json()
         
         tracks = []
         
-        if updates_data.get('ok'):
-            for update in updates_data.get('result', []):
-                message = update.get('channel_post', update.get('message', {}))
+        if data.get('ok'):
+            logger.info(f"Got {len(data['result'])} updates")
+            
+            for update in data['result']:
+                # Проверяем оба типа: channel_post и message
+                message = update.get('channel_post') or update.get('message')
                 
-                # Проверяем, что сообщение из нашего канала
+                if not message:
+                    continue
+                
+                # Получаем информацию о чате
                 chat = message.get('chat', {})
                 chat_id = str(chat.get('id', ''))
                 chat_username = chat.get('username', '')
                 
-                # Сравниваем с запрошенным каналом
-                if channel == chat_username or channel == chat_id:
+                # Проверяем, что сообщение из нашего канала
+                is_our_channel = False
+                if channel.startswith('@'):
+                    is_our_channel = chat_username == channel[1:] or chat_username == channel
+                else:
+                    is_our_channel = chat_id == channel or str(chat_id) == channel
+                
+                if is_our_channel:
+                    # Ищем аудио
                     audio = message.get('audio')
                     if audio:
+                        logger.info(f"Found audio: {audio.get('title', 'Unknown')}")
+                        
                         # Получаем ссылку на аудио
                         file_info = requests.get(
                             f"https://api.telegram.org/bot{BOT_TOKEN}/getFile?file_id={audio['file_id']}",
@@ -103,15 +104,18 @@ def get_music():
                                 "duration": audio.get('duration')
                             })
         
-        logger.info(f"Found {len(tracks)} tracks")
+        logger.info(f"Total tracks found: {len(tracks)}")
         
         if len(tracks) == 0:
-            return jsonify({"tracks": [], "message": "No audio files found. Send new audio to channel."})
+            return jsonify({
+                "tracks": [], 
+                "message": "No audio files found. Make sure:\n1. Bot is admin in channel\n2. Send NEW audio after adding bot\n3. Audio files are in MP3 format"
+            })
         
         return jsonify({"tracks": tracks})
     
     except Exception as e:
-        logger.error(f"Error in get_music: {e}")
+        logger.error(f"Error: {e}")
         return jsonify({"error": str(e)}), 500
 
 @app.route('/health', methods=['GET'])
@@ -120,7 +124,7 @@ def health():
 
 @app.route('/')
 def index():
-    return "Music Player API with ID3 cover extraction is running!"
+    return "Music Player API v2.0 - Ready to receive music from channel!"
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 10000))
