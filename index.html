@@ -300,32 +300,30 @@
             }
         }
         
-        // Демо-треки для тестирования
-        function getDemoTracks() {
-            return [
-                {
-                    id: 1,
-                    title: "Midnight Dreams",
-                    artist: "Luna Wave",
-                    url: "https://example.com/song1.mp3",
-                    cover: "https://via.placeholder.com/200/667eea/ffffff?text=🎵"
-                },
-                {
-                    id: 2,
-                    title: "Electric Heart",
-                    artist: "Neon Pulse",
-                    url: "https://example.com/song2.mp3",
-                    cover: "https://via.placeholder.com/200/764ba2/ffffff?text=🎵"
-                },
-                {
-                    id: 3,
-                    title: "Silent Echo",
-                    artist: "Deep Flow",
-                    url: "https://example.com/song3.mp3",
-                    cover: "https://via.placeholder.com/200/f093fb/ffffff?text=🎵"
-                }
-            ];
-        }
+        // Демо-треки для тестирования (работающие ссылки)
+const demoPlaylist = [
+    {
+        id: 1,
+        title: "Test Track 1",
+        artist: "Demo Artist",
+        url: "https://actions.google.com/sound?title=Test+Track+1&url=https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+        cover: ""
+    },
+    {
+        id: 2,
+        title: "Test Track 2",
+        artist: "Demo Artist",
+        url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
+        cover: ""
+    },
+    {
+        id: 3,
+        title: "Test Track 3",
+        artist: "Demo Artist",
+        url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
+        cover: ""
+    }
+];
         
         // Отрисовка плейлиста
         function renderPlaylist() {
