@@ -5,12 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Music Player</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
@@ -18,22 +13,16 @@
             padding: 20px;
             color: white;
         }
-
-        .container {
-            max-width: 400px;
-            margin: 0 auto;
-        }
-
+        .container { max-width: 400px; margin: 0 auto; }
         .now-playing {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255,255,255,0.1);
             backdrop-filter: blur(10px);
             border-radius: 30px;
             padding: 30px 20px;
             margin-bottom: 30px;
             text-align: center;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
         }
-
         .album-art {
             width: 200px;
             height: 200px;
@@ -43,47 +32,19 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            font-size: 64px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
-
-        .album-art .placeholder {
-            font-size: 48px;
-        }
-
-        .track-title {
-            font-size: 24px;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-
-        .track-artist {
-            font-size: 16px;
-            opacity: 0.8;
-            margin-bottom: 20px;
-        }
-
-        audio {
-            width: 100%;
-            border-radius: 30px;
-            margin-top: 10px;
-        }
-
+        .track-title { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+        .track-artist { font-size: 16px; opacity: 0.8; margin-bottom: 20px; }
+        audio { width: 100%; border-radius: 30px; margin-top: 10px; }
         .playlist {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255,255,255,0.1);
             backdrop-filter: blur(10px);
             border-radius: 20px;
             padding: 20px;
         }
-
-        .playlist-title {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
+        .playlist-title { font-size: 18px; font-weight: 600; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.2); }
         .track-item {
             display: flex;
             align-items: center;
@@ -94,47 +55,27 @@
             transition: all 0.3s;
             margin-bottom: 8px;
         }
-
-        .track-item:hover {
-            background: rgba(255, 255, 255, 0.15);
-        }
-
-        .track-item.active {
-            background: rgba(255, 255, 255, 0.25);
-        }
-
+        .track-item:hover { background: rgba(255,255,255,0.15); }
+        .track-item.active { background: rgba(255,255,255,0.25); }
         .track-thumb {
             width: 50px;
             height: 50px;
             border-radius: 10px;
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            background: rgba(255,255,255,0.2);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
+            font-size: 28px;
         }
-
-        .track-info {
-            flex: 1;
-        }
-
-        .track-name {
-            font-weight: 600;
-            margin-bottom: 4px;
-        }
-
-        .track-artist-mini {
-            font-size: 12px;
-            opacity: 0.7;
-        }
-
+        .track-info { flex: 1; }
+        .track-name { font-weight: 600; margin-bottom: 4px; }
+        .track-artist-mini { font-size: 12px; opacity: 0.7; }
         .settings-section {
             margin-top: 20px;
             padding: 15px;
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255,255,255,0.1);
             border-radius: 15px;
         }
-
         .settings-input {
             width: 100%;
             padding: 10px;
@@ -143,9 +84,8 @@
             margin-top: 8px;
             font-size: 14px;
         }
-
         .save-btn {
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(255,255,255,0.2);
             border: none;
             padding: 10px 20px;
             border-radius: 20px;
@@ -154,38 +94,32 @@
             margin-top: 10px;
             font-size: 14px;
         }
-
-        .play-btn {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            padding: 8px 16px;
-            border-radius: 20px;
-            color: white;
-            cursor: pointer;
-            margin-top: 5px;
+        .info-note {
             font-size: 12px;
+            opacity: 0.6;
+            margin-top: 10px;
+            text-align: center;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="now-playing">
-            <div class="album-art" id="albumArt">
-                <div class="placeholder">🎵</div>
-            </div>
+            <div class="album-art" id="albumArt">🎵</div>
             <div class="track-title" id="trackTitle">Выберите трек</div>
             <div class="track-artist" id="trackArtist">Нажмите на трек в списке</div>
             <audio id="audioPlayer" controls preload="auto"></audio>
         </div>
 
         <div class="playlist">
-            <div class="playlist-title">🎧 Плейлист</div>
+            <div class="playlist-title">🎧 Плейлист (тестовые треки)</div>
             <div id="playlistContainer"></div>
             
             <div class="settings-section">
-                <div style="font-size: 14px; opacity: 0.9;">⚙️ Настройки</div>
-                <input type="text" id="channelId" class="settings-input" placeholder="ID канала (опционально)">
+                <div style="font-size: 14px; opacity: 0.9;">⚙️ Настройки канала</div>
+                <input type="text" id="channelId" class="settings-input" placeholder="@username или ID канала">
                 <button class="save-btn" onclick="saveChannel()">Сохранить</button>
+                <div class="info-note">💡 Для работы с вашим каналом нужен бэкенд-сервер. Сейчас демо-режим.</div>
             </div>
         </div>
     </div>
@@ -198,42 +132,42 @@
         
         let currentTrack = null;
         
-        // Гарантированно рабочие треки (короткие, бесплатные, без CORS)
+        // Гарантированно работающие тестовые треки (с сайта soundhelix.com)
         const playlist = [
             {
                 id: 1,
-                title: "Calm Piano",
-                artist: "Piano Music",
-                url: "https://cdn.pixabay.com/download/audio/2022/05/27/audio_1c3c0f8f9a.mp3?filename=calm-piano-13576.mp3",
-                thumb: "🎹"
-            },
-            {
-                id: 2,
-                title: "Soft Guitar",
-                artist: "Guitar Music",
-                url: "https://cdn.pixabay.com/download/audio/2022/03/10/audio_bb61c4f3c7.mp3?filename=soft-guitar-10402.mp3",
+                title: "Test Track 1",
+                artist: "SoundHelix Demo",
+                url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
                 thumb: "🎸"
             },
             {
+                id: 2,
+                title: "Test Track 2",
+                artist: "SoundHelix Demo",
+                url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
+                thumb: "🎹"
+            },
+            {
                 id: 3,
-                title: "Relaxing Nature",
-                artist: "Nature Sounds",
-                url: "https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0f1c8e6a3.mp3?filename=relaxing-nature-6893.mp3",
-                thumb: "🌿"
+                title: "Test Track 3",
+                artist: "SoundHelix Demo",
+                url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
+                thumb: "🎻"
             },
             {
                 id: 4,
-                title: "Meditation",
-                artist: "Meditation Music",
-                url: "https://cdn.pixabay.com/download/audio/2022/06/25/audio_2f9e3a7b1d.mp3?filename=meditation-14119.mp3",
-                thumb: "🧘"
+                title: "Test Track 4",
+                artist: "SoundHelix Demo",
+                url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3",
+                thumb: "🥁"
             },
             {
                 id: 5,
-                title: "Dreamy Ambient",
-                artist: "Ambient Music",
-                url: "https://cdn.pixabay.com/download/audio/2022/05/16/audio_8f2a6c4e1b.mp3?filename=dreamy-ambient-12457.mp3",
-                thumb: "✨"
+                title: "Test Track 5",
+                artist: "SoundHelix Demo",
+                url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3",
+                thumb: "🎷"
             }
         ];
         
@@ -243,8 +177,8 @@
                 <div class="track-item" onclick="playTrack(${index})">
                     <div class="track-thumb">${track.thumb}</div>
                     <div class="track-info">
-                        <div class="track-name">${track.title}</div>
-                        <div class="track-artist-mini">${track.artist}</div>
+                        <div class="track-name">${escapeHtml(track.title)}</div>
+                        <div class="track-artist-mini">${escapeHtml(track.artist)}</div>
                     </div>
                 </div>
             `).join('');
@@ -258,17 +192,18 @@
             
             document.getElementById('trackTitle').textContent = track.title;
             document.getElementById('trackArtist').textContent = track.artist;
-            document.getElementById('albumArt').innerHTML = `<div class="placeholder">${track.thumb}</div>`;
+            document.getElementById('albumArt').innerHTML = track.thumb;
             
             const audio = document.getElementById('audioPlayer');
             audio.src = track.url;
             audio.load();
-            
-            // Показываем уведомление
-            tg.showPopup({
-                title: track.title,
-                message: `Сейчас играет: ${track.title} - ${track.artist}\nНажмите ▶️ для воспроизведения`,
-                buttons: [{type: 'ok'}]
+            audio.play().catch(e => {
+                console.log("Автовоспроизведение заблокировано, нажмите ▶️");
+                tg.showPopup({
+                    title: track.title,
+                    message: "Нажмите кнопку ▶️ для воспроизведения",
+                    buttons: [{type: 'ok'}]
+                });
             });
             
             // Подсветка активного трека
@@ -287,7 +222,7 @@
                 localStorage.setItem('music_channel', channel);
                 tg.showPopup({
                     title: 'Сохранено',
-                    message: `Канал ${channel} сохранен`,
+                    message: `Канал ${channel} сохранен (демо-режим)`,
                     buttons: [{type: 'ok'}]
                 });
             }
@@ -300,18 +235,23 @@
             }
         }
         
-        // Запуск
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
         renderPlaylist();
         loadSettings();
         
-        // Автовоспроизведение первого трека (не автоматически, а подсказка)
+        // Приветственное сообщение
         setTimeout(() => {
             tg.showPopup({
-                title: "Добро пожаловать!",
+                title: "🎵 Музыкальный плеер",
                 message: "Нажмите на любой трек, затем ▶️ для воспроизведения",
                 buttons: [{type: 'ok'}]
             });
-        }, 1000);
+        }, 500);
     </script>
 </body>
 </html>
