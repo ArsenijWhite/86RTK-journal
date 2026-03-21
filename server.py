@@ -3,6 +3,10 @@ from flask_cors import CORS
 import requests
 import os
 import logging
+import threading
+import time
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
+from telegram.ext import Application, CommandHandler, ContextTypes
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -11,9 +15,35 @@ app = Flask(__name__)
 CORS(app)
 
 BOT_TOKEN = "8514929224:AAEmcYywI2h6nwgrBbCIX26G8W1sgEf1fCM"
+WEB_APP_URL = "https://69bf112b865a3feaf14825ff--tranquil-raindrop-8d62ec.netlify.app/"  # Ваш плеер
 
-# Хранилище последних обновлений
+# Хранилище последних обновлений из канала
 last_updates = []
+
+# ============ ЧАСТЬ 1: ОБРАБОТКА КОМАНД БОТА ============
+
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Отправляет кнопку для открытия мини-приложения"""
+    keyboard = [[
+        InlineKeyboardButton("🎵 Открыть плеер", web_app=WebAppInfo(url=WEB_APP_URL))
+    ]]
+    await update.message.reply_text(
+        "🎧 Музыкальный плеер\nНажмите кнопку:",
+        reply_markup=InlineKeyboardMarkup(keyboard)
+    )
+
+def run_bot():
+    """Запускает Telegram бота в отдельном потоке"""
+    try:
+        application = Application.builder().token(BOT_TOKEN).build()
+        application.add_handler(CommandHandler("start", start))
+        
+        logger.info("🤖 Telegram бот запущен!")
+        application.run_polling(allowed_updates=Update.ALL_TYPES)
+    except Exception as e:
+        logger.error(f"Bot error: {e}")
+
+# ============ ЧАСТЬ 2: ПОЛУЧЕНИЕ МУЗЫКИ ИЗ КАНАЛА ============
 
 def get_cover_url(audio_data):
     """Получает URL обложки из thumbnail"""
@@ -25,7 +55,6 @@ def get_cover_url(audio_data):
                 f"https://api.telegram.org/bot{BOT_TOKEN}/getFile?file_id={file_id}",
                 timeout=30
             ).json()
-            
             if file_info.get('ok'):
                 file_path = file_info['result']['file_path']
                 return f"https://api.telegram.org/file/bot{BOT_TOKEN}/{file_path}"
@@ -34,7 +63,7 @@ def get_cover_url(audio_data):
     return None
 
 def poll_updates():
-    """Постоянно получает обновления от Telegram"""
+    """Постоянно получает обновления из канала"""
     global last_updates
     offset = 0
     
@@ -55,15 +84,12 @@ def poll_updates():
                         if len(last_updates) > 100:
                             last_updates = last_updates[-100:]
                         
-                        # Логируем
                         msg = update.get('message') or update.get('channel_post')
                         if msg and msg.get('audio'):
                             logger.info(f"🎵 New audio: {msg['audio'].get('title', 'Unknown')}")
             
         except Exception as e:
             logger.error(f"Polling error: {e}")
-        
-        import time
         time.sleep(1)
 
 @app.route('/get_music', methods=['GET'])
@@ -86,7 +112,6 @@ def get_music():
         chat_id = str(chat.get('id', ''))
         chat_username = chat.get('username', '')
         
-        # Проверяем, что сообщение из нашего канала
         is_our_channel = False
         if channel.startswith('@'):
             is_our_channel = chat_username == channel[1:] or chat_username == channel
@@ -96,7 +121,6 @@ def get_music():
         if is_our_channel:
             audio = message.get('audio')
             if audio:
-                # Получаем ссылку на аудио
                 file_info = requests.get(
                     f"https://api.telegram.org/bot{BOT_TOKEN}/getFile?file_id={audio['file_id']}",
                     timeout=30
@@ -104,8 +128,6 @@ def get_music():
                 
                 if file_info.get('ok'):
                     audio_url = f"https://api.telegram.org/file/bot{BOT_TOKEN}/{file_info['result']['file_path']}"
-                    
-                    # Получаем обложку из thumbnail
                     cover_url = get_cover_url(audio)
                     
                     tracks.append({
@@ -126,14 +148,20 @@ def health():
 
 @app.route('/')
 def index():
-    return "Music Player API v3.0 - Working with thumbnails!"
+    return "Music Player Bot v2.0 - Ready!"
 
-# Запускаем polling
-import threading
-polling_thread = threading.Thread(target=poll_updates, daemon=True)
-polling_thread.start()
+# ============ ЗАПУСК ============
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 10000))
-    logger.info("Starting server...")
+    
+    # Запускаем polling для получения музыки из канала
+    polling_thread = threading.Thread(target=poll_updates, daemon=True)
+    polling_thread.start()
+    
+    # Запускаем Telegram бота в отдельном потоке
+    bot_thread = threading.Thread(target=run_bot, daemon=True)
+    bot_thread.start()
+    
+    logger.info("🚀 Starting Flask server...")
     app.run(host='0.0.0.0', port=port)
