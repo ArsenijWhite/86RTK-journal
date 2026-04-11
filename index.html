@@ -17,74 +17,85 @@
 
         html, body {
             background-color: var(--bg) !important;
-            margin: 0; padding: 0; min-height: 100vh;
+            margin: 0; padding: 0;
             font-family: 'Manrope', sans-serif;
             color: var(--text);
-            overflow: hidden;
+            /* Разрешаем скролл */
+            overflow-y: auto; 
             -webkit-font-smoothing: antialiased;
         }
 
-        /* --- СТИЛЬНЫЙ ЛОАДЕР --- */
+        body { padding: 20px; box-sizing: border-box; min-height: 100vh; }
+
+        /* --- НЕОНОВЫЙ ЛОАДЕР --- */
         #loader {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            background: var(--bg); z-index: 1000; transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            background: var(--bg); z-index: 1000; 
+            transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.8s;
         }
 
-        .loader-content { display: flex; flex-direction: column; align-items: center; }
-
-        /* Анимация текста "Загрузка" (эффект дыхания и мерцания) */
         .loader-text {
             font-size: 11px; font-weight: 800; color: var(--accent);
-            text-transform: uppercase; letter-spacing: 0.4em;
-            margin-bottom: 24px; position: relative;
+            text-transform: uppercase; letter-spacing: 0.5em;
+            margin-bottom: 30px; 
             animation: textBreath 3s infinite ease-in-out;
-            opacity: 0.8;
+            /* Свечение текста */
+            text-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
         }
 
-        @keyframes textBreath {
-            0%, 100% { opacity: 0.3; transform: scale(0.98); filter: blur(1px); }
-            50% { opacity: 1; transform: scale(1); filter: blur(0px); }
-        }
-
-        /* Стильная полоска */
         .progress-wrapper {
-            width: 180px; height: 2px; background: rgba(255, 255, 255, 0.03);
-            border-radius: 4px; overflow: hidden; position: relative;
-            box-shadow: 0 0 20px rgba(0,0,0,0.2);
+            width: 200px; height: 3px; background: rgba(255, 255, 255, 0.03);
+            border-radius: 10px; overflow: visible; position: relative;
         }
 
         .progress-line {
             width: 80px; height: 100%; background: var(--accent);
-            border-radius: 4px; position: absolute;
-            /* Медленная, плавная анимация (3 секунды) */
+            border-radius: 10px; position: absolute;
             animation: slowSlide 3s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
-            box-shadow: 0 0 15px var(--accent), 0 0 5px white;
+            /* МНОГОСЛОЙНЫЙ НЕОН */
+            box-shadow: 
+                0 0 8px #fff,
+                0 0 15px var(--accent),
+                0 0 30px var(--accent),
+                0 0 45px rgba(16, 185, 129, 0.3);
+            filter: blur(0.5px);
         }
 
         @keyframes slowSlide {
-            0% { transform: translateX(-100px); }
-            50% { transform: translateX(200px); }
-            100% { transform: translateX(-100px); }
+            0% { left: -100px; }
+            50% { left: 220px; }
+            100% { left: -100px; }
+        }
+
+        @keyframes textBreath {
+            0%, 100% { opacity: 0.3; transform: scale(0.95); }
+            50% { opacity: 1; transform: scale(1); }
         }
 
         /* --- КОНТЕНТ --- */
-        #main-content { opacity: 0; filter: blur(10px); transform: scale(0.98); transition: all 0.8s cubic-bezier(0.22, 1, 0.36, 1); }
-        #main-content.visible { opacity: 1; filter: blur(0px); transform: scale(1); }
+        #main-content { 
+            opacity: 0; transform: translateY(20px); 
+            transition: all 0.8s cubic-bezier(0.22, 1, 0.36, 1); 
+            display: none; /* Скрыт до загрузки */
+        }
+        #main-content.visible { opacity: 1; transform: translateY(0); display: block; }
 
-        .header-title { font-size: 28px; font-weight: 800; margin-bottom: 24px; letter-spacing: -0.04em; padding: 20px 20px 0; }
+        .header-title { font-size: 28px; font-weight: 800; margin-bottom: 24px; letter-spacing: -0.04em; }
+
         #search {
-            width: calc(100% - 40px); margin: 0 20px 24px; border: none; padding: 18px 22px; 
+            width: 100%; border: none; padding: 18px 22px; 
             border-radius: 20px; background: rgba(255, 255, 255, 0.08); color: #fff;
-            font-size: 16px; outline: none; box-sizing: border-box;
+            font-size: 16px; outline: none; box-sizing: border-box; margin-bottom: 25px;
         }
 
         .card {
-            background: var(--card); border-radius: 30px; padding: 24px; margin: 0 20px 18px;
+            background: var(--card); border-radius: 30px; padding: 24px; margin-bottom: 20px;
             border: 1px solid rgba(255, 255, 255, 0.05); box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            cursor: pointer;
         }
 
-        .student-header { display: flex; justify-content: space-between; align-items: center; }
+        .student-header { display: flex; justify-content: space-between; align-items: center; pointer-events: none; }
         .score-pill { font-size: 13px; font-weight: 800; padding: 6px 14px; border-radius: 12px; }
 
         .m-high { background: #065f46; color: #a7f3d0; }
@@ -93,25 +104,28 @@
         .m-low  { background: #7f1d1d; color: #fecaca; }
 
         .subs-container { display: none; margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 20px; }
-        .subs-container.open { display: block; animation: slideIn 0.5s ease; }
+        .subs-container.open { display: block; animation: slideIn 0.4s ease; }
 
-        @keyframes slideIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
-        * { -webkit-tap-highlight-color: transparent; user-select: none; }
+        .sub-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.03); }
+
+        .marks-container { display: none; flex-wrap: wrap; gap: 8px; margin-top: 10px; padding: 10px; background: rgba(0,0,0,0.1); border-radius: 12px; }
+        .marks-container.open { display: flex; }
+        .mark-pill { width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; border-radius: 10px; font-size: 14px; font-weight: 800; }
+
+        @keyframes slideIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        * { -webkit-tap-highlight-color: transparent; }
     </style>
 </head>
 <body>
 
-    <!-- Лоадер -->
     <div id="loader">
-        <div class="loader-content">
-            <div class="loader-text" id="status-text">Загрузка</div>
-            <div class="progress-wrapper">
-                <div class="progress-line" id="p-line"></div>
-            </div>
+        <div class="loader-text">Загрузка</div>
+        <div class="progress-wrapper">
+            <div class="progress-line"></div>
         </div>
     </div>
 
-    <!-- Контент -->
     <div id="main-content">
         <div class="header-title">Журнал</div>
         <input type="text" id="search" placeholder="Поиск фамилии...">
@@ -122,16 +136,9 @@
         const API_URL = 'https://script.google.com/macros/s/AKfycbxJjvvps-faFyjFwm8tED8OhYQFCLl6UwyRQfIJEGLLa9Hpq_cMVUIDB1LY-qLJgxrV/exec'; 
         const tg = window.Telegram?.WebApp;
 
-        function setupApp() {
-            if (tg) {
-                tg.ready(); tg.expand();
-                tg.headerColor = '#2d3735'; tg.backgroundColor = '#2d3735';
-                setTimeout(() => tg.expand(), 500);
-            }
-        }
-
         async function init() {
-            setupApp();
+            if (tg) { tg.ready(); tg.expand(); tg.headerColor = '#2d3735'; }
+            
             try {
                 const res = await fetch(API_URL);
                 const data = await res.json();
@@ -141,17 +148,14 @@
                 
                 setTimeout(() => {
                     loader.style.opacity = '0';
-                    setTimeout(() => {
-                        loader.style.display = 'none';
-                        main.style.display = 'block';
-                        setTimeout(() => main.classList.add('visible'), 50);
-                        render(data);
-                    }, 800);
+                    loader.style.visibility = 'hidden'; // Полностью убираем, чтобы не мешал кликам
+                    main.style.display = 'block';
+                    setTimeout(() => main.classList.add('visible'), 50);
+                    render(data);
                 }, 1000);
 
             } catch (e) {
-                document.getElementById('status-text').innerText = "Ошибка сети";
-                document.getElementById('p-line').style.background = "#f87171";
+                document.querySelector('.loader-text').innerText = "Ошибка";
             }
         }
 
@@ -169,16 +173,31 @@
             data.forEach(student => {
                 const card = document.createElement('div');
                 card.className = 'card';
-                card.onclick = () => card.querySelector('.subs-container').classList.toggle('open');
-                let subs = student.subjects.map(s => `
-                    <div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.03)">
-                        <span style="font-size:14px; color:var(--muted); font-weight:600;">${s.subject}</span>
-                        <span class="score-pill ${getStyle(s.avg)}">${s.avg}</span>
-                    </div>
-                `).join('');
+                
+                // Раскрытие студента
+                card.onclick = (e) => {
+                    const subs = card.querySelector('.subs-container');
+                    subs.classList.toggle('open');
+                };
+
+                let subs = student.subjects.map(s => {
+                    const marks = Array.isArray(s.marks) ? s.marks : [];
+                    const marksHtml = marks.map(m => `<div class="mark-pill ${getStyle(m)}">${m}</div>`).join('');
+                    
+                    return `
+                        <div class="sub-row-wrapper" onclick="event.stopPropagation(); this.querySelector('.marks-container').classList.toggle('open')">
+                            <div class="sub-row">
+                                <span class="sub-name" style="font-size:14px; color:var(--muted);">${s.subject}</span>
+                                <span class="score-pill ${getStyle(s.avg)}">${s.avg}</span>
+                            </div>
+                            <div class="marks-container">${marksHtml || 'Нет оценок'}</div>
+                        </div>
+                    `;
+                }).join('');
+
                 card.innerHTML = `
                     <div class="student-header">
-                        <span style="font-weight:700; font-size:20px; color:#fff;">${student.studentName}</span>
+                        <span class="student-name">${student.studentName}</span>
                         <div class="score-pill ${getStyle(student.totalAverage)}">${student.totalAverage}</div>
                     </div>
                     <div class="subs-container">${subs}</div>
@@ -190,7 +209,7 @@
         document.getElementById('search').oninput = (e) => {
             const val = e.target.value.toLowerCase().trim();
             document.querySelectorAll('.card').forEach(card => {
-                const name = card.querySelector('span').innerText.toLowerCase();
+                const name = card.querySelector('.student-name').innerText.toLowerCase();
                 card.style.display = name.includes(val) ? 'block' : 'none';
             });
         };
