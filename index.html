@@ -3,143 +3,122 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Журнал</title>
+    <title>Журнал Э-24</title>
     <script src="https://telegram.org"></script>
     <style>
-        /* Чистый CSS без внешних библиотек для стабильности */
-        :root {
-            --bg: #f0f2f5;
-            --card-bg: #ffffff;
-            --primary: #4a90e2;
-            --text-main: #2c3e50;
-            --text-secondary: #7f8c8d;
-            --accent: #673ab7;
-        }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { 
-            background-color: var(--bg); 
-            font-family: -apple-system, sans-serif; 
-            margin: 0; padding: 16px; color: var(--text-main);
-        }
-        .header { margin-bottom: 24px; text-align: center; }
-        .header h1 { margin: 0; font-size: 24px; font-weight: 800; color: var(--text-main); }
+        :root { --bg: #f8fafc; --card: #ffffff; --primary: #6366f1; }
+        body { background: var(--bg); font-family: -apple-system, system-ui, sans-serif; margin: 0; padding: 16px; color: #1e293b; }
         
-        .search-container { margin-bottom: 20px; }
-        #search {
-            width: 100%; padding: 14px 20px; border-radius: 15px;
-            border: none; background: var(--card-bg);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05); font-size: 16px; outline: none;
-        }
+        .search-box { width: 100%; padding: 14px; border-radius: 16px; border: 1px solid #e2e8f0; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); outline: none; box-sizing: border-box; font-size: 16px; }
+        
+        .card { background: var(--card); border-radius: 24px; padding: 20px; margin-bottom: 20px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); border: 1px solid #f1f5f9; }
+        .student-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; }
+        .student-name { margin: 0; font-size: 1.2rem; font-weight: 800; color: #0f172a; line-height: 1.2; }
+        
+        .total-badge { background: linear-gradient(135deg, #6366f1, #4f46e5); color: white; padding: 6px 14px; border-radius: 12px; font-weight: 900; font-size: 1.1rem; box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3); }
+        
+        .sub-row { border-bottom: 1px solid #f1f5f9; padding: 12px 0; }
+        .sub-row:last-child { border: none; }
+        .sub-main { display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .sub-name { font-size: 14px; font-weight: 600; color: #475569; flex: 1; padding-right: 10px; }
+        .sub-avg { background: #f1f5f9; color: #1e293b; padding: 4px 10px; border-radius: 8px; font-weight: 800; font-size: 13px; }
+        
+        /* Стили для маленьких цветных оценок */
+        .marks-container { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+        .mark-pill { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-weight: 800; font-size: 12px; }
+        
+        .m5 { background: #dcfce7; color: #166534; } /* Отлично */
+        .m4 { background: #dbeafe; color: #1e40af; } /* Хорошо */
+        .m3 { background: #fef9c3; color: #854d0e; } /* Удовл */
+        .m2 { background: #fee2e2; color: #991b1b; } /* Плохо */
+        .m-other { background: #f1f5f9; color: #475569; }
 
-        .student-card {
-            background: var(--card-bg); border-radius: 24px;
-            padding: 20px; margin-bottom: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-            animation: fadeIn 0.4s ease-out;
-        }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        .student-header { 
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 15px; border-bottom: 2px solid var(--bg); padding-bottom: 15px;
-        }
-        .name { font-size: 18px; font-weight: 700; margin: 0; color: var(--accent); }
-        .total-avg { text-align: center; background: var(--bg); padding: 5px 12px; border-radius: 12px; }
-        .total-avg span { display: block; font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--text-secondary); }
-        .total-avg b { font-size: 18px; color: var(--primary); }
-
-        .subject-item {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 10px 0; border-bottom: 1px solid #f9f9f9;
-        }
-        .subject-item:last-child { border: none; }
-        .subject-name { font-size: 14px; color: var(--text-main); flex: 1; padding-right: 10px; }
-        .subject-grade { 
-            font-weight: 700; font-size: 14px; background: #f8f9fa;
-            padding: 4px 10px; border-radius: 8px; min-width: 40px; text-align: center;
-        }
-
-        /* Цвета для баллов */
-        .grade-high { color: #27ae60; background: #eafaf1; }
-        .grade-mid { color: #f39c12; background: #fef5e7; }
-        .grade-low { color: #e74c3c; background: #fdedec; }
-
-        #loader { text-align: center; padding: 50px; color: var(--text-secondary); font-weight: 600; }
+        .sub-details { max-height: 0; overflow: hidden; transition: all 0.3s ease; opacity: 0; }
+        .sub-details.open { max-height: 200px; opacity: 1; padding-top: 5px; }
+        
+        #loader { text-align: center; padding: 40px; font-weight: bold; color: #6366f1; }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <h1> Группа Э-24 </h1>
-    </div>
-
-    <div class="search-container">
-        <input type="text" id="search" placeholder="Поиск фамилии...">
-    </div>
-
+    <input type="text" id="search" class="search-box" placeholder="Поиск по фамилии...">
+    
     <div id="app">
         <div id="loader">Загрузка данных...</div>
         <div id="content"></div>
     </div>
 
     <script>
-        const API_URL = 'https://script.google.com/macros/s/AKfycbya6kGZyxyf7CCzQ4PAYwaG08GIXYV5ggMh8wuh6sAnxQIS5c5gG6Dv0ewzJ5J1lOJG/exec';
-        let studentsData = [];
+        const API_URL = 'https://script.google.com/macros/s/AKfycbyhGdJ5IRYaJgdtQaru10vacfzBlagtPPmej1568xeelLeRMuBO70ytbJz4J7XQaXOV/exec';
+        let dataStore = [];
 
-        async function init() {
+        async function load() {
             try {
                 const res = await fetch(API_URL);
-                studentsData = await res.json();
+                dataStore = await res.json();
                 document.getElementById('loader').style.display = 'none';
-                render(studentsData);
+                render(dataStore);
             } catch (e) {
-                document.getElementById('loader').innerText = "Ошибка. Проверь API!";
+                document.getElementById('loader').innerText = "Ошибка загрузки данных.";
             }
         }
 
-        function getGradeClass(val) {
-            const n = parseFloat(val.replace(',', '.'));
-            if (n >= 8) return 'grade-high';
-            if (n >= 5) return 'grade-mid';
-            return 'grade-low';
+        function getMarkClass(mark) {
+            const m = parseInt(mark);
+            if (m >= 9 || m == 5) return 'm5';
+            if (m >= 7 || m == 4) return 'm4';
+            if (m >= 4 || m == 3) return 'm3';
+            if (m > 0) return 'm2';
+            return 'm-other';
         }
 
         function render(data) {
             const container = document.getElementById('content');
             container.innerHTML = '';
+            
             data.forEach(student => {
-                const subjectsHtml = student.subjects.map(s => `
-                    <div class="subject-item">
-                        <div class="subject-name">${s.subject}</div>
-                        <div class="subject-grade ${getGradeClass(s.avg)}">${s.avg || '—'}</div>
-                    </div>
-                `).join('');
+                const card = document.createElement('div');
+                card.className = 'card';
+                
+                const subsHtml = student.subjects.map(s => {
+                    const marksHtml = s.marks.map(m => `
+                        <div class="mark-pill ${getMarkClass(m)}">${m}</div>
+                    `).join('');
 
-                container.innerHTML += `
-                    <div class="student-card">
-                        <div class="student-header">
-                            <h2 class="name">${student.studentName}</h2>
-                            <div class="total-avg">
-                                <span>Средний</span>
-                                <b>${student.totalAverage}</b>
+                    return `
+                        <div class="sub-row">
+                            <div class="sub-main" onclick="this.nextElementSibling.classList.toggle('open')">
+                                <div class="sub-name">${s.subject}</div>
+                                <div class="sub-avg">${s.avg}</div>
+                            </div>
+                            <div class="sub-details">
+                                <div class="marks-container">${marksHtml || '<small>Оценок пока нет</small>'}</div>
                             </div>
                         </div>
-                        <div class="subjects-list">${subjectsHtml}</div>
+                    `;
+                }).join('');
+
+                card.innerHTML = `
+                    <div class="student-header">
+                        <h2 class="student-name">${student.studentName}</h2>
+                        <div class="total-badge">${student.totalAverage}</div>
                     </div>
+                    <div class="subs-list">${subsHtml}</div>
                 `;
+                container.appendChild(card);
             });
         }
 
         document.getElementById('search').oninput = (e) => {
             const val = e.target.value.toLowerCase();
-            render(studentsData.filter(s => s.studentName.toLowerCase().includes(val)));
+            render(dataStore.filter(s => s.studentName.toLowerCase().includes(val)));
         };
 
         if(window.Telegram?.WebApp) {
             window.Telegram.WebApp.expand();
             window.Telegram.WebApp.ready();
         }
-        init();
+        load();
     </script>
 </body>
 </html>
