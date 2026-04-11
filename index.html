@@ -25,7 +25,19 @@
         
         /* Стили для маленьких цветных оценок */
         .marks-container { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
-        .mark-pill { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-weight: 800; font-size: 12px; }
+                .mark-pill { 
+            min-width: 32px; /* Увеличили, чтобы влезало 10 */
+            height: 32px; 
+            display: inline-flex; /* Чтобы корректно тянулось */
+            align-items: center; 
+            justify-content: center; 
+            border-radius: 8px; 
+            font-size: 13px; 
+            font-weight: bold; 
+            color: white; 
+            padding: 0 4px; /* Добавили отступы по бокам */
+        }
+
         
         .m5 { background: #dcfce7; color: #166534; } /* Отлично */
         .m4 { background: #dbeafe; color: #1e40af; } /* Хорошо */
