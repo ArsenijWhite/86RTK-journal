@@ -1,380 +1,42 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Music Player</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            padding: 20px;
-            color: white;
-        }
-
-        .container {
-            max-width: 400px;
-            margin: 0 auto;
-        }
-
-        .now-playing {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 30px;
-            padding: 30px 20px;
-            margin-bottom: 30px;
-            text-align: center;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        }
-
-        .album-art {
-            width: 200px;
-            height: 200px;
-            margin: 0 auto 20px;
-            border-radius: 20px;
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        }
-
-        .album-art img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .album-art .placeholder {
-            font-size: 48px;
-        }
-
-        .track-title {
-            font-size: 24px;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-
-        .track-artist {
-            font-size: 16px;
-            opacity: 0.8;
-            margin-bottom: 20px;
-        }
-
-        audio {
-            width: 100%;
-            border-radius: 30px;
-            margin-top: 10px;
-        }
-
-        .playlist {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 20px;
-        }
-
-        .playlist-title {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .refresh-btn {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            padding: 5px 12px;
-            border-radius: 20px;
-            color: white;
-            cursor: pointer;
-            font-size: 12px;
-        }
-
-        .track-item {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            padding: 12px;
-            border-radius: 15px;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin-bottom: 8px;
-        }
-
-        .track-item:hover {
-            background: rgba(255, 255, 255, 0.15);
-        }
-
-        .track-item.active {
-            background: rgba(255, 255, 255, 0.25);
-        }
-
-        .track-thumb {
-            width: 50px;
-            height: 50px;
-            border-radius: 10px;
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            overflow: hidden;
-        }
-
-        .track-thumb img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .track-info {
-            flex: 1;
-        }
-
-        .track-name {
-            font-weight: 600;
-            margin-bottom: 4px;
-        }
-
-        .track-artist-mini {
-            font-size: 12px;
-            opacity: 0.7;
-        }
-
-        .settings-section {
-            margin-top: 20px;
-            padding: 15px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-        }
-
-        .settings-input {
-            width: 100%;
-            padding: 10px;
-            border-radius: 10px;
-            border: none;
-            margin-top: 8px;
-            font-size: 14px;
-        }
-
-        .save-btn {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            padding: 10px 20px;
-            border-radius: 20px;
-            color: white;
-            cursor: pointer;
-            margin-top: 10px;
-            font-size: 14px;
-        }
-
-        .info-note {
-            font-size: 11px;
-            opacity: 0.6;
-            margin-top: 10px;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 40px;
-            font-size: 14px;
-        }
-
-        .error-message {
-            background: rgba(255, 0, 0, 0.3);
-            padding: 10px;
-            border-radius: 10px;
-            margin-top: 10px;
-            font-size: 12px;
-            text-align: center;
-        }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мой Журнал</title>
+    <script src="https://tailwindcss.com"></script>
 </head>
-<body>
-    <div class="container">
-        <div class="now-playing">
-            <div class="album-art" id="albumArt">
-                <div class="placeholder">🎵</div>
-            </div>
-            <div class="track-title" id="trackTitle">Выберите трек</div>
-            <div class="track-artist" id="trackArtist">Нажмите на трек в списке</div>
-            <audio id="audioPlayer" controls preload="auto"></audio>
-            <div id="errorMsg" class="error-message" style="display: none;"></div>
-        </div>
-
-        <div class="playlist">
-            <div class="playlist-title">
-                🎧 Плейлист
-                <button class="refresh-btn" onclick="loadMusicFromChannel()">🔄 Обновить</button>
-            </div>
-            <div id="playlistContainer">
-                <div class="loading">🎵 Загрузка музыки...</div>
-            </div>
-            
-            <div class="settings-section">
-                <div style="font-size: 14px; opacity: 0.9;">⚙️ Настройки канала</div>
-                <input type="text" id="channelId" class="settings-input" placeholder="@username или ID канала">
-                <button class="save-btn" onclick="saveAndLoad()">Сохранить и загрузить</button>
-                <div class="info-note">
-                    💡 Добавьте бота в канал как администратора.<br>
-                    📀 MP3 файлы с встроенной обложкой (ID3 теги) будут показывать обложку.
-                </div>
-            </div>
-        </div>
+<body class="bg-gray-100 p-4">
+    <div id="app" class="max-w-md mx-auto">
+        <h1 class="text-2xl font-bold mb-4 text-center">Журнал Группы</h1>
+        <div id="loader" class="text-center">Загрузка оценок...</div>
+        <div id="content" class="space-y-4"></div>
     </div>
 
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
-        let tg = window.Telegram.WebApp;
-        tg.expand();
-        tg.ready();
-        
-        let currentTrack = null;
-        let playlist = [];
-        
-        // Замените на URL вашего бэкенда на Render
-        const API_URL = "https://music-player-u6no.onrender.com";
-        
-        async function loadMusicFromChannel() {
-            const channel = document.getElementById('channelId').value.trim();
-            if (!channel) {
-                tg.showPopup({
-                    title: "Ошибка",
-                    message: "Введите ID канала (например, @my_music)",
-                    buttons: [{type: 'ok'}]
-                });
-                return;
-            }
-            
-            const container = document.getElementById('playlistContainer');
-            container.innerHTML = '<div class="loading">🎵 Загрузка плейлиста...</div>';
-            
+        const API_URL = 'ВАШ_URL_ИЗ_ШАГА_1';
+
+        async function loadGrades() {
             try {
-                const response = await fetch(`${API_URL}?channel=${encodeURIComponent(channel)}`);
+                const response = await fetch(API_URL);
                 const data = await response.json();
-                
-                if (data.tracks && data.tracks.length > 0) {
-                    playlist = data.tracks;
-                    renderPlaylist();
-                    tg.showPopup({
-                        title: "Успех",
-                        message: `Загружено ${playlist.length} треков\nОбложки из ID3 тегов извлечены`,
-                        buttons: [{type: 'ok'}]
-                    });
-                } else {
-                    container.innerHTML = '<div class="loading">📭 Нет треков в канале\nДобавьте MP3 файлы с обложками</div>';
-                }
-            } catch (error) {
-                console.error("Ошибка:", error);
-                container.innerHTML = '<div class="loading">❌ Ошибка загрузки\nПроверьте ID канала и что бот добавлен в канал</div>';
-            }
-        }
-        
-        function renderPlaylist() {
-            const container = document.getElementById('playlistContainer');
-            if (!playlist.length) {
-                container.innerHTML = '<div class="loading">📭 Нет треков</div>';
-                return;
-            }
-            
-            container.innerHTML = playlist.map((track, index) => `
-                <div class="track-item" onclick="playTrack(${index})">
-                    <div class="track-thumb">
-                        ${track.cover ? `<img src="${track.cover}" alt="cover">` : '🎵'}
-                    </div>
-                    <div class="track-info">
-                        <div class="track-name">${escapeHtml(track.title)}</div>
-                        <div class="track-artist-mini">${escapeHtml(track.artist)}</div>
-                    </div>
-                </div>
-            `).join('');
-        }
-        
-        function playTrack(index) {
-            const track = playlist[index];
-            if (!track) return;
-            
-            currentTrack = track;
-            
-            document.getElementById('trackTitle').textContent = track.title;
-            document.getElementById('trackArtist').textContent = track.artist;
-            
-            const albumArt = document.getElementById('albumArt');
-            if (track.cover) {
-                albumArt.innerHTML = `<img src="${track.cover}" alt="${track.title}">`;
-            } else {
-                albumArt.innerHTML = '<div class="placeholder">🎵</div>';
-            }
-            
-            const audio = document.getElementById('audioPlayer');
-            const errorDiv = document.getElementById('errorMsg');
-            errorDiv.style.display = 'none';
-            
-            audio.src = track.url;
-            audio.load();
-            
-            audio.onerror = function() {
-                errorDiv.style.display = 'block';
-                errorDiv.innerHTML = `❌ Не удалось загрузить трек`;
-            };
-            
-            audio.oncanplay = function() {
-                errorDiv.style.display = 'none';
-                audio.play().catch(e => {
-                    tg.showPopup({
-                        title: track.title,
-                        message: "Нажмите ▶️ для воспроизведения",
-                        buttons: [{type: 'ok'}]
-                    });
+                const container = document.getElementById('content');
+                document.getElementById('loader').classList.add('hidden');
+
+                data.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = "bg-white p-4 rounded-xl shadow-sm border border-gray-200";
+                    card.innerHTML = `
+                        <h2 class="font-bold text-lg text-blue-600">${item.studentName}</h2>
+                        <p class="text-sm text-gray-500 text-right">Ср. балл: ${item.average[1] || '—'}</p>
+                    `;
+                    container.appendChild(card);
                 });
-            };
-            
-            // Подсветка активного трека
-            document.querySelectorAll('.track-item').forEach((item, i) => {
-                if (i === index) {
-                    item.classList.add('active');
-                } else {
-                    item.classList.remove('active');
-                }
-            });
-        }
-        
-        function saveAndLoad() {
-            const channel = document.getElementById('channelId').value.trim();
-            if (channel) {
-                localStorage.setItem('music_channel', channel);
-                loadMusicFromChannel();
+            } catch (e) {
+                document.getElementById('loader').innerText = "Ошибка загрузки";
             }
         }
-        
-        function loadSettings() {
-            const saved = localStorage.getItem('music_channel');
-            if (saved) {
-                document.getElementById('channelId').value = saved;
-                loadMusicFromChannel();
-            }
-        }
-        
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-        
-        loadSettings();
+        loadGrades();
     </script>
 </body>
 </html>
