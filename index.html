@@ -14,9 +14,8 @@
             --muted: #94a3b8;
         }
 
-        /* Применяем шрифт Apple ко всему приложению */
         * {
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", sans-serif;
             -webkit-font-smoothing: antialiased;
             -webkit-tap-highlight-color: transparent;
             user-select: none;
@@ -31,58 +30,38 @@
 
         body { padding: 20px; box-sizing: border-box; min-height: 100vh; }
 
-        /* --- НАСТОЯЩИЙ НЕОНОВЫЙ ЛОАДЕР --- */
+        /* --- НЕОНОВЫЙ ЛОАДЕР --- */
         #loader {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
             background: var(--bg); z-index: 1000; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
             transition: opacity 0.6s ease, visibility 0.6s;
         }
 
         .loader-text {
             font-size: 12px; font-weight: 600; color: var(--accent);
             text-transform: uppercase; letter-spacing: 0.3em;
-            margin-bottom: 30px; 
-            animation: textBreath 2s infinite ease-in-out;
-            /* Свечение текста */
+            margin-bottom: 30px; animation: textBreath 2s infinite ease-in-out;
             text-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
         }
 
         .progress-wrapper {
             width: 180px; height: 3px; background: rgba(255, 255, 255, 0.05);
-            border-radius: 10px; position: relative;
-            overflow: hidden;
+            border-radius: 10px; position: relative; overflow: hidden;
         }
 
         .progress-line {
             width: 80px; height: 100%; background: var(--accent);
             border-radius: 10px; position: absolute; left: -80px;
             animation: moveLine 2.2s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
-            /* ЭФФЕКТ НЕОНА */
-            box-shadow: 
-                0 0 5px #fff, 
-                0 0 10px var(--accent), 
-                0 0 20px var(--accent), 
-                0 0 30px rgba(16, 185, 129, 0.3);
+            box-shadow: 0 0 5px #fff, 0 0 10px var(--accent), 0 0 20px var(--accent);
         }
 
-        @keyframes moveLine {
-            0% { transform: translateX(0); }
-            50% { transform: translateX(260px); }
-            100% { transform: translateX(0); }
-        }
-
-        @keyframes textBreath {
-            0%, 100% { opacity: 0.4; }
-            50% { opacity: 1; }
-        }
+        @keyframes moveLine { 0% { transform: translateX(0); } 50% { transform: translateX(260px); } 100% { transform: translateX(0); } }
+        @keyframes textBreath { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
 
         /* --- КОНТЕНТ --- */
-        #main-content { 
-            opacity: 0; transform: translateY(10px); 
-            transition: all 0.6s ease-out; 
-            display: none;
-        }
+        #main-content { opacity: 0; transform: translateY(10px); transition: all 0.6s ease-out; display: none; }
         #main-content.visible { opacity: 1; transform: translateY(0); display: block; }
 
         .header-title { font-size: 26px; font-weight: 700; margin-bottom: 20px; letter-spacing: -0.02em; }
@@ -92,7 +71,6 @@
             border-radius: 16px; background: rgba(255, 255, 255, 0.08); color: #fff;
             font-size: 17px; outline: none; box-sizing: border-box; margin-bottom: 20px;
         }
-        #search::placeholder { color: var(--muted); }
 
         .card {
             background: var(--card); border-radius: 24px; padding: 20px; margin-bottom: 16px;
@@ -101,26 +79,31 @@
         }
 
         .student-header { display: flex; justify-content: space-between; align-items: center; pointer-events: none; }
-        .score-pill { font-size: 14px; font-weight: 700; padding: 6px 12px; border-radius: 10px; min-width: 34px; text-align: center; }
+        
+        /* Стили плашек (уменьшены для предметов) */
+        .score-pill { font-size: 13px; font-weight: 700; padding: 4px 10px; border-radius: 8px; min-width: 30px; text-align: center; }
+        .score-pill-large { font-size: 14px; font-weight: 700; padding: 6px 12px; border-radius: 10px; min-width: 34px; text-align: center; }
 
-        /* Цвета Apple Style */
-        .m-high { background: #34c759; color: #fff; }
-        .m-mid  { background: #007aff; color: #fff; }
-        .m-warn { background: #ff9500; color: #fff; }
-        .m-low  { background: #ff3b30; color: #fff; }
+        /* --- ЦВЕТОВАЯ ЛОГИКА --- */
+        .m-low  { background: #ff3b30; color: #fff; } 
+        .m-warn { background: #ffcc00; color: #000; } 
+        .m-high { background: #34c759; color: #fff; } 
+        .m-gold { 
+            background: linear-gradient(135deg, #ffd700, #ffae00); 
+            color: #000; box-shadow: 0 0 12px rgba(255, 215, 0, 0.4);
+            border: 0.5px solid rgba(255, 255, 255, 0.4);
+        }
 
-        .subs-container { display: none; margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px; }
+        .subs-container { display: none; margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px; }
         .subs-container.open { display: block; }
-
-        .sub-row { display: flex; justify-content: space-between; padding: 12px 0; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.03); }
-
-        .marks-container { display: none; flex-wrap: wrap; gap: 8px; margin-top: 12px; padding: 12px; background: rgba(0,0,0,0.15); border-radius: 14px; }
+        
+        .sub-row { display: flex; justify-content: space-between; padding: 10px 0; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.03); }
+        
+        .marks-container { display: none; flex-wrap: wrap; gap: 6px; margin-top: 10px; padding: 10px; background: rgba(0,0,0,0.15); border-radius: 12px; }
         .marks-container.open { display: flex; }
         
-        .mark-pill { 
-            width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; 
-            border-radius: 10px; font-size: 15px; font-weight: 700; 
-        }
+        /* Компактные плитки оценок */
+        .mark-pill { width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 13px; font-weight: 700; }
 
     </style>
 </head>
@@ -134,8 +117,8 @@
     </div>
 
     <div id="main-content">
-        <div class="header-title">Журнал группы</div>
-        <input type="text" id="search" placeholder="Поиск фамилии">
+        <div class="header-title">Журнал группы 86 РТК</div>
+        <input type="text" id="search" placeholder="Поиск">
         <div id="content"></div>
     </div>
 
@@ -145,16 +128,13 @@
 
         async function init() {
             if (tg) {
-                tg.ready();
-                tg.expand();
-                tg.headerColor = '#2d3735';
-                tg.backgroundColor = '#2d3735';
+                tg.ready(); tg.expand();
+                tg.headerColor = '#2d3735'; tg.backgroundColor = '#2d3735';
             }
             
             try {
                 const res = await fetch(API_URL);
                 const data = await res.json();
-                
                 const loader = document.getElementById('loader');
                 const main = document.getElementById('main-content');
                 
@@ -167,18 +147,16 @@
                         render(data);
                     }, 600);
                 }, 1000);
-
-            } catch (e) {
-                document.querySelector('.loader-text').innerText = "Ошибка загрузки";
-            }
+            } catch (e) { document.querySelector('.loader-text').innerText = "Ошибка загрузки"; }
         }
 
         function getStyle(m) {
             const v = parseFloat(String(m).replace(',', '.'));
-            if (v >= 9 || v === 5) return 'm-high';
-            if (v >= 7 || v === 4) return 'm-mid';
-            if (v >= 4 || v === 3) return 'm-warn';
-            return 'm-low';
+            if (v >= 10) return 'm-gold';
+            if (v >= 7)  return 'm-high';
+            if (v >= 4)  return 'm-warn';
+            if (v >= 1)  return 'm-low';
+            return '';
         }
 
         function render(data) {
@@ -187,30 +165,30 @@
             data.forEach(student => {
                 const card = document.createElement('div');
                 card.className = 'card';
-                card.onclick = () => card.querySelector('.subs-container').classList.toggle('open');
+                card.onclick = () => {
+                    if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+                    card.querySelector('.subs-container').classList.toggle('open');
+                };
 
                 let subs = student.subjects.map(s => {
                     const marks = Array.isArray(s.marks) ? s.marks : [];
                     const marksHtml = marks.map(m => `<div class="mark-pill ${getStyle(m)}">${m}</div>`).join('');
-                    
                     return `
                         <div onclick="event.stopPropagation(); this.querySelector('.marks-container').classList.toggle('open')">
                             <div class="sub-row">
-                                <span style="font-size:15px; opacity:0.8; font-weight:500;">${s.subject}</span>
+                                <span style="font-size:14px; opacity:0.8; font-weight:500;">${s.subject}</span>
                                 <span class="score-pill ${getStyle(s.avg)}">${s.avg}</span>
                             </div>
-                            <div class="marks-container">${marksHtml || '<small>Нет оценок</small>'}</div>
-                        </div>
-                    `;
+                            <div class="marks-container">${marksHtml || '<small style="font-size:11px; opacity:0.5">Нет оценок</small>'}</div>
+                        </div>`;
                 }).join('');
 
                 card.innerHTML = `
                     <div class="student-header">
-                        <span style="font-weight:700; font-size:19px">${student.studentName}</span>
-                        <div class="score-pill ${getStyle(student.totalAverage)}">${student.totalAverage}</div>
+                        <span style="font-weight:700; font-size:18px">${student.studentName}</span>
+                        <div class="score-pill-large ${getStyle(student.totalAverage)}">${student.totalAverage}</div>
                     </div>
-                    <div class="subs-container">${subs}</div>
-                `;
+                    <div class="subs-container">${subs}</div>`;
                 container.appendChild(card);
             });
         }
@@ -218,8 +196,7 @@
         document.getElementById('search').oninput = (e) => {
             const val = e.target.value.toLowerCase().trim();
             document.querySelectorAll('.card').forEach(card => {
-                const name = card.innerText.toLowerCase();
-                card.style.display = name.includes(val) ? 'block' : 'none';
+                card.style.display = card.innerText.toLowerCase().includes(val) ? 'block' : 'none';
             });
         };
 
