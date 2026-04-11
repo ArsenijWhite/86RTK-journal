@@ -1,6 +1,0 @@
-flask
-flask-cors
-requests
-mutagen
-Pillow
-python-telegram-bot
