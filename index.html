@@ -14,19 +14,24 @@
             --muted: #94a3b8;
         }
 
-        /* Возвращаем шрифт Apple */
+        /* Применяем шрифт Apple ко всему приложению */
+        * {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+
         html, body {
             background-color: var(--bg) !important;
             margin: 0; padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             color: var(--text);
             overflow-y: auto; 
-            -webkit-font-smoothing: antialiased;
         }
 
         body { padding: 20px; box-sizing: border-box; min-height: 100vh; }
 
-        /* --- ИСПРАВЛЕННЫЙ НЕОНОВЫЙ ЛОАДЕР --- */
+        /* --- НАСТОЯЩИЙ НЕОНОВЫЙ ЛОАДЕР --- */
         #loader {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -35,28 +40,35 @@
         }
 
         .loader-text {
-            font-size: 11px; font-weight: 700; color: var(--accent);
+            font-size: 12px; font-weight: 600; color: var(--accent);
             text-transform: uppercase; letter-spacing: 0.3em;
-            margin-bottom: 25px; 
+            margin-bottom: 30px; 
             animation: textBreath 2s infinite ease-in-out;
+            /* Свечение текста */
+            text-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
         }
 
         .progress-wrapper {
-            width: 160px; height: 3px; background: rgba(255, 255, 255, 0.05);
+            width: 180px; height: 3px; background: rgba(255, 255, 255, 0.05);
             border-radius: 10px; position: relative;
-            overflow: hidden; /* Чтобы полоска не выходила за границы */
+            overflow: hidden;
         }
 
         .progress-line {
             width: 80px; height: 100%; background: var(--accent);
             border-radius: 10px; position: absolute; left: -80px;
-            animation: moveLine 2.5s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
-            box-shadow: 0 0 15px var(--accent);
+            animation: moveLine 2.2s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+            /* ЭФФЕКТ НЕОНА */
+            box-shadow: 
+                0 0 5px #fff, 
+                0 0 10px var(--accent), 
+                0 0 20px var(--accent), 
+                0 0 30px rgba(16, 185, 129, 0.3);
         }
 
         @keyframes moveLine {
             0% { transform: translateX(0); }
-            50% { transform: translateX(240px); }
+            50% { transform: translateX(260px); }
             100% { transform: translateX(0); }
         }
 
@@ -73,44 +85,43 @@
         }
         #main-content.visible { opacity: 1; transform: translateY(0); display: block; }
 
-        .header-title { font-size: 26px; font-weight: 800; margin-bottom: 20px; letter-spacing: -0.02em; }
+        .header-title { font-size: 26px; font-weight: 700; margin-bottom: 20px; letter-spacing: -0.02em; }
 
         #search {
             width: 100%; border: none; padding: 16px 20px; 
             border-radius: 16px; background: rgba(255, 255, 255, 0.08); color: #fff;
-            font-size: 16px; outline: none; box-sizing: border-box; margin-bottom: 20px;
-            font-family: inherit;
+            font-size: 17px; outline: none; box-sizing: border-box; margin-bottom: 20px;
         }
+        #search::placeholder { color: var(--muted); }
 
         .card {
             background: var(--card); border-radius: 24px; padding: 20px; margin-bottom: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.05); box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            border: 1px solid rgba(255, 255, 255, 0.05); box-shadow: 0 10px 30px rgba(0,0,0,0.15);
             cursor: pointer;
         }
 
         .student-header { display: flex; justify-content: space-between; align-items: center; pointer-events: none; }
-        .score-pill { font-size: 13px; font-weight: 700; padding: 5px 12px; border-radius: 10px; min-width: 32px; text-align: center; }
+        .score-pill { font-size: 14px; font-weight: 700; padding: 6px 12px; border-radius: 10px; min-width: 34px; text-align: center; }
 
-        /* Системные цвета Apple-style */
-        .m-high { background: #248a3d; color: #fff; }
+        /* Цвета Apple Style */
+        .m-high { background: #34c759; color: #fff; }
         .m-mid  { background: #007aff; color: #fff; }
         .m-warn { background: #ff9500; color: #fff; }
         .m-low  { background: #ff3b30; color: #fff; }
 
-        .subs-container { display: none; margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 15px; }
+        .subs-container { display: none; margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px; }
         .subs-container.open { display: block; }
 
-        .sub-row { display: flex; justify-content: space-between; padding: 10px 0; align-items: center; }
+        .sub-row { display: flex; justify-content: space-between; padding: 12px 0; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.03); }
 
-        .marks-container { display: none; flex-wrap: wrap; gap: 8px; margin-top: 10px; padding: 10px; background: rgba(0,0,0,0.1); border-radius: 12px; }
+        .marks-container { display: none; flex-wrap: wrap; gap: 8px; margin-top: 12px; padding: 12px; background: rgba(0,0,0,0.15); border-radius: 14px; }
         .marks-container.open { display: flex; }
         
         .mark-pill { 
-            width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; 
-            border-radius: 9px; font-size: 14px; font-weight: 700; 
+            width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; 
+            border-radius: 10px; font-size: 15px; font-weight: 700; 
         }
 
-        * { -webkit-tap-highlight-color: transparent; }
     </style>
 </head>
 <body>
@@ -124,7 +135,7 @@
 
     <div id="main-content">
         <div class="header-title">Журнал группы</div>
-        <input type="text" id="search" placeholder="Поиск">
+        <input type="text" id="search" placeholder="Поиск фамилии">
         <div id="content"></div>
     </div>
 
@@ -133,7 +144,12 @@
         const tg = window.Telegram?.WebApp;
 
         async function init() {
-            if (tg) { tg.ready(); tg.expand(); tg.headerColor = '#2d3735'; }
+            if (tg) {
+                tg.ready();
+                tg.expand();
+                tg.headerColor = '#2d3735';
+                tg.backgroundColor = '#2d3735';
+            }
             
             try {
                 const res = await fetch(API_URL);
@@ -153,7 +169,7 @@
                 }, 1000);
 
             } catch (e) {
-                document.querySelector('.loader-text').innerText = "Ошибка данных";
+                document.querySelector('.loader-text').innerText = "Ошибка загрузки";
             }
         }
 
@@ -180,7 +196,7 @@
                     return `
                         <div onclick="event.stopPropagation(); this.querySelector('.marks-container').classList.toggle('open')">
                             <div class="sub-row">
-                                <span style="font-size:14px; opacity:0.7;">${s.subject}</span>
+                                <span style="font-size:15px; opacity:0.8; font-weight:500;">${s.subject}</span>
                                 <span class="score-pill ${getStyle(s.avg)}">${s.avg}</span>
                             </div>
                             <div class="marks-container">${marksHtml || '<small>Нет оценок</small>'}</div>
@@ -190,7 +206,7 @@
 
                 card.innerHTML = `
                     <div class="student-header">
-                        <span style="font-weight:700; font-size:18px">${student.studentName}</span>
+                        <span style="font-weight:700; font-size:19px">${student.studentName}</span>
                         <div class="score-pill ${getStyle(student.totalAverage)}">${student.totalAverage}</div>
                     </div>
                     <div class="subs-container">${subs}</div>
