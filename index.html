@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Журнал Э-24</title>
     <script src="https://telegram.org"></script>
-    <link href="https://googleapis.com" rel="stylesheet">
     <style>
         :root {
             --bg: #2d3735; 
@@ -15,105 +14,102 @@
             --muted: #94a3b8;
         }
 
+        /* Возвращаем шрифт Apple */
         html, body {
             background-color: var(--bg) !important;
             margin: 0; padding: 0;
-            font-family: 'Manrope', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             color: var(--text);
-            /* Разрешаем скролл */
             overflow-y: auto; 
             -webkit-font-smoothing: antialiased;
         }
 
         body { padding: 20px; box-sizing: border-box; min-height: 100vh; }
 
-        /* --- НЕОНОВЫЙ ЛОАДЕР --- */
+        /* --- ИСПРАВЛЕННЫЙ НЕОНОВЫЙ ЛОАДЕР --- */
         #loader {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             background: var(--bg); z-index: 1000; 
-            transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.8s;
+            transition: opacity 0.6s ease, visibility 0.6s;
         }
 
         .loader-text {
-            font-size: 11px; font-weight: 800; color: var(--accent);
-            text-transform: uppercase; letter-spacing: 0.5em;
-            margin-bottom: 30px; 
-            animation: textBreath 3s infinite ease-in-out;
-            /* Свечение текста */
-            text-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+            font-size: 11px; font-weight: 700; color: var(--accent);
+            text-transform: uppercase; letter-spacing: 0.3em;
+            margin-bottom: 25px; 
+            animation: textBreath 2s infinite ease-in-out;
         }
 
         .progress-wrapper {
-            width: 200px; height: 3px; background: rgba(255, 255, 255, 0.03);
-            border-radius: 10px; overflow: visible; position: relative;
+            width: 160px; height: 3px; background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px; position: relative;
+            overflow: hidden; /* Чтобы полоска не выходила за границы */
         }
 
         .progress-line {
             width: 80px; height: 100%; background: var(--accent);
-            border-radius: 10px; position: absolute;
-            animation: slowSlide 3s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
-            /* МНОГОСЛОЙНЫЙ НЕОН */
-            box-shadow: 
-                0 0 8px #fff,
-                0 0 15px var(--accent),
-                0 0 30px var(--accent),
-                0 0 45px rgba(16, 185, 129, 0.3);
-            filter: blur(0.5px);
+            border-radius: 10px; position: absolute; left: -80px;
+            animation: moveLine 2.5s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+            box-shadow: 0 0 15px var(--accent);
         }
 
-        @keyframes slowSlide {
-            0% { left: -100px; }
-            50% { left: 220px; }
-            100% { left: -100px; }
+        @keyframes moveLine {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(240px); }
+            100% { transform: translateX(0); }
         }
 
         @keyframes textBreath {
-            0%, 100% { opacity: 0.3; transform: scale(0.95); }
-            50% { opacity: 1; transform: scale(1); }
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 1; }
         }
 
         /* --- КОНТЕНТ --- */
         #main-content { 
-            opacity: 0; transform: translateY(20px); 
-            transition: all 0.8s cubic-bezier(0.22, 1, 0.36, 1); 
-            display: none; /* Скрыт до загрузки */
+            opacity: 0; transform: translateY(10px); 
+            transition: all 0.6s ease-out; 
+            display: none;
         }
         #main-content.visible { opacity: 1; transform: translateY(0); display: block; }
 
-        .header-title { font-size: 28px; font-weight: 800; margin-bottom: 24px; letter-spacing: -0.04em; }
+        .header-title { font-size: 26px; font-weight: 800; margin-bottom: 20px; letter-spacing: -0.02em; }
 
         #search {
-            width: 100%; border: none; padding: 18px 22px; 
-            border-radius: 20px; background: rgba(255, 255, 255, 0.08); color: #fff;
-            font-size: 16px; outline: none; box-sizing: border-box; margin-bottom: 25px;
+            width: 100%; border: none; padding: 16px 20px; 
+            border-radius: 16px; background: rgba(255, 255, 255, 0.08); color: #fff;
+            font-size: 16px; outline: none; box-sizing: border-box; margin-bottom: 20px;
+            font-family: inherit;
         }
 
         .card {
-            background: var(--card); border-radius: 30px; padding: 24px; margin-bottom: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.05); box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            background: var(--card); border-radius: 24px; padding: 20px; margin-bottom: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.05); box-shadow: 0 4px 15px rgba(0,0,0,0.15);
             cursor: pointer;
         }
 
         .student-header { display: flex; justify-content: space-between; align-items: center; pointer-events: none; }
-        .score-pill { font-size: 13px; font-weight: 800; padding: 6px 14px; border-radius: 12px; }
+        .score-pill { font-size: 13px; font-weight: 700; padding: 5px 12px; border-radius: 10px; min-width: 32px; text-align: center; }
 
-        .m-high { background: #065f46; color: #a7f3d0; }
-        .m-mid  { background: #1e3a8a; color: #bfdbfe; }
-        .m-warn { background: #78350f; color: #fef08a; }
-        .m-low  { background: #7f1d1d; color: #fecaca; }
+        /* Системные цвета Apple-style */
+        .m-high { background: #248a3d; color: #fff; }
+        .m-mid  { background: #007aff; color: #fff; }
+        .m-warn { background: #ff9500; color: #fff; }
+        .m-low  { background: #ff3b30; color: #fff; }
 
-        .subs-container { display: none; margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 20px; }
-        .subs-container.open { display: block; animation: slideIn 0.4s ease; }
+        .subs-container { display: none; margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 15px; }
+        .subs-container.open { display: block; }
 
-        .sub-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.03); }
+        .sub-row { display: flex; justify-content: space-between; padding: 10px 0; align-items: center; }
 
         .marks-container { display: none; flex-wrap: wrap; gap: 8px; margin-top: 10px; padding: 10px; background: rgba(0,0,0,0.1); border-radius: 12px; }
         .marks-container.open { display: flex; }
-        .mark-pill { width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; border-radius: 10px; font-size: 14px; font-weight: 800; }
-
-        @keyframes slideIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
         
+        .mark-pill { 
+            width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; 
+            border-radius: 9px; font-size: 14px; font-weight: 700; 
+        }
+
         * { -webkit-tap-highlight-color: transparent; }
     </style>
 </head>
@@ -127,8 +123,8 @@
     </div>
 
     <div id="main-content">
-        <div class="header-title">Журнал</div>
-        <input type="text" id="search" placeholder="Поиск фамилии...">
+        <div class="header-title">Журнал группы</div>
+        <input type="text" id="search" placeholder="Поиск">
         <div id="content"></div>
     </div>
 
@@ -148,14 +144,16 @@
                 
                 setTimeout(() => {
                     loader.style.opacity = '0';
-                    loader.style.visibility = 'hidden'; // Полностью убираем, чтобы не мешал кликам
-                    main.style.display = 'block';
-                    setTimeout(() => main.classList.add('visible'), 50);
-                    render(data);
+                    setTimeout(() => {
+                        loader.style.visibility = 'hidden';
+                        main.style.display = 'block';
+                        setTimeout(() => main.classList.add('visible'), 50);
+                        render(data);
+                    }, 600);
                 }, 1000);
 
             } catch (e) {
-                document.querySelector('.loader-text').innerText = "Ошибка";
+                document.querySelector('.loader-text').innerText = "Ошибка данных";
             }
         }
 
@@ -173,31 +171,26 @@
             data.forEach(student => {
                 const card = document.createElement('div');
                 card.className = 'card';
-                
-                // Раскрытие студента
-                card.onclick = (e) => {
-                    const subs = card.querySelector('.subs-container');
-                    subs.classList.toggle('open');
-                };
+                card.onclick = () => card.querySelector('.subs-container').classList.toggle('open');
 
                 let subs = student.subjects.map(s => {
                     const marks = Array.isArray(s.marks) ? s.marks : [];
                     const marksHtml = marks.map(m => `<div class="mark-pill ${getStyle(m)}">${m}</div>`).join('');
                     
                     return `
-                        <div class="sub-row-wrapper" onclick="event.stopPropagation(); this.querySelector('.marks-container').classList.toggle('open')">
+                        <div onclick="event.stopPropagation(); this.querySelector('.marks-container').classList.toggle('open')">
                             <div class="sub-row">
-                                <span class="sub-name" style="font-size:14px; color:var(--muted);">${s.subject}</span>
+                                <span style="font-size:14px; opacity:0.7;">${s.subject}</span>
                                 <span class="score-pill ${getStyle(s.avg)}">${s.avg}</span>
                             </div>
-                            <div class="marks-container">${marksHtml || 'Нет оценок'}</div>
+                            <div class="marks-container">${marksHtml || '<small>Нет оценок</small>'}</div>
                         </div>
                     `;
                 }).join('');
 
                 card.innerHTML = `
                     <div class="student-header">
-                        <span class="student-name">${student.studentName}</span>
+                        <span style="font-weight:700; font-size:18px">${student.studentName}</span>
                         <div class="score-pill ${getStyle(student.totalAverage)}">${student.totalAverage}</div>
                     </div>
                     <div class="subs-container">${subs}</div>
@@ -209,7 +202,7 @@
         document.getElementById('search').oninput = (e) => {
             const val = e.target.value.toLowerCase().trim();
             document.querySelectorAll('.card').forEach(card => {
-                const name = card.querySelector('.student-name').innerText.toLowerCase();
+                const name = card.innerText.toLowerCase();
                 card.style.display = name.includes(val) ? 'block' : 'none';
             });
         };
