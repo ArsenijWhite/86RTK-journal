@@ -5,19 +5,45 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Журнал Э-24</title>
     <script src="https://telegram.org"></script>
-    <style>
-        body { background: #f1f5f9; font-family: -apple-system, sans-serif; margin: 0; padding: 15px; color: #1e293b; }
-        .search-input { width: 100%; padding: 14px; border-radius: 15px; border: 1px solid #e2e8f0; margin-bottom: 20px; box-sizing: border-box; font-size: 16px; outline: none; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        
-        .card { background: white; border-radius: 24px; padding: 20px; margin-bottom: 20px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
-        .student-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #f1f5f9; }
-        .student-name { font-size: 18px; font-weight: 800; margin: 0; color: #0f172a; }
-        .total-badge { background: #6366f1; color: white; padding: 5px 12px; border-radius: 10px; font-weight: 900; font-size: 16px; }
+   <style>
+    /* Подключаем современный шрифт Inter */
+    @import url('https://googleapis.com');
 
-        .sub-row { padding: 12px 0; border-bottom: 1px solid #f8fafc; cursor: pointer; }
-        .sub-main { display: flex; justify-content: space-between; align-items: center; }
-        .sub-name { font-size: 14px; font-weight: 600; color: #475569; flex: 1; padding-right: 10px; }
-        .sub-avg { background: #f1f5f9; padding: 3px 10px; border-radius: 8px; font-weight: 800; font-size: 13px; }
+    body { 
+        background: #f8fafc; 
+        font-family: 'Inter', -apple-system, sans-serif; 
+        margin: 0; padding: 15px; color: #1e293b; 
+    }
+
+    /* ... остальные стили (search-input, card) остаются прежними ... */
+
+    .marks-container { 
+        display: none; flex-wrap: wrap; gap: 10px; 
+        margin-top: 12px; padding: 12px; 
+        background: #f1f5f9; border-radius: 16px; 
+    }
+    .marks-container.open { display: flex; }
+
+    /* ОБНОВЛЕННЫЕ КРАСИВЫЕ КРУЖКИ */
+    .mark-pill { 
+        width: 36px; height: 36px; /* Одинаковая ширина и высота для идеального круга */
+        display: flex; align-items: center; justify-content: center; 
+        border-radius: 11px; /* Стиль "Soft Square" или сделайте 50% для круга */
+        font-size: 15px; 
+        font-weight: 900; /* Очень жирный шрифт для четкости */
+        color: white;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.1); /* Легкая тень под цифрой */
+        box-shadow: inset 0 -2px 0 rgba(0,0,0,0.15), 0 4px 6px -1px rgba(0,0,0,0.1);
+        line-height: 1;
+    }
+    
+    /* Цвета с мягким градиентом */
+    .m-high { background: linear-gradient(135deg, #22c55e, #16a34a); } 
+    .m-mid  { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+    .m-warn { background: linear-gradient(135deg, #f59e0b, #d97706); } 
+    .m-low  { background: linear-gradient(135deg, #ef4444, #dc2626); }
+</style>
+
 
         /* ИСПРАВЛЕННЫЕ КРУЖКИ ДЛЯ 10 */
         .marks-container { display: none; flex-wrap: wrap; gap: 8px; margin-top: 10px; padding: 10px; background: #f8fafc; border-radius: 12px; }
