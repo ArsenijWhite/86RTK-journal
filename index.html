@@ -68,10 +68,16 @@
         const API_URL = 'https://script.google.com/macros/s/AKfycbya6kGZyxyf7CCzQ4PAYwaG08GIXYV5ggMh8wuh6sAnxQIS5c5gG6Dv0ewzJ5J1lOJG/exec';
         let studentsData = [];
 
-        // Инициализация Telegram Mini App
-        const tg = window.Telegram.WebApp;
-        tg.expand(); // Развернуть на весь экран
-        tg.ready();
+// Инициализация Telegram Mini App с проверкой
+const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+
+if (tg) {
+    tg.expand(); // Развернуть на весь экран
+    tg.ready();
+    console.log("Telegram WebApp инициализирован");
+} else {
+    console.warn("Приложение запущено вне Telegram или SDK не загружен");
+}
 
         async function init() {
             try {
