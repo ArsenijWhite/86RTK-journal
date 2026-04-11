@@ -5,85 +5,123 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Журнал Э-24</title>
     <script src="https://telegram.org"></script>
-   <style>
-    /* Подключаем современный шрифт Inter */
-    @import url('https://googleapis.com');
+    <link href="https://googleapis.com" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f3f4f6;
+            --card: #ffffff;
+            --primary: #4f46e5;
+            --text-main: #111827;
+            --text-muted: #6b7280;
+        }
 
-    body { 
-        background: #f8fafc; 
-        font-family: 'Inter', -apple-system, sans-serif; 
-        margin: 0; padding: 15px; color: #1e293b; 
-    }
+        body {
+            background-color: var(--bg);
+            font-family: 'Inter', sans-serif;
+            margin: 0; padding: 16px;
+            color: var(--text-main);
+            -webkit-font-smoothing: antialiased;
+        }
 
-    /* ... остальные стили (search-input, card) остаются прежними ... */
-
-    .marks-container { 
-        display: none; flex-wrap: wrap; gap: 10px; 
-        margin-top: 12px; padding: 12px; 
-        background: #f1f5f9; border-radius: 16px; 
-    }
-    .marks-container.open { display: flex; }
-
-    /* ОБНОВЛЕННЫЕ КРАСИВЫЕ КРУЖКИ */
-    .mark-pill { 
-        width: 36px; height: 36px; /* Одинаковая ширина и высота для идеального круга */
-        display: flex; align-items: center; justify-content: center; 
-        border-radius: 11px; /* Стиль "Soft Square" или сделайте 50% для круга */
-        font-size: 15px; 
-        font-weight: 900; /* Очень жирный шрифт для четкости */
-        color: white;
-        text-shadow: 0 1px 2px rgba(0,0,0,0.1); /* Легкая тень под цифрой */
-        box-shadow: inset 0 -2px 0 rgba(0,0,0,0.15), 0 4px 6px -1px rgba(0,0,0,0.1);
-        line-height: 1;
-    }
-    
-    /* Цвета с мягким градиентом */
-    .m-high { background: linear-gradient(135deg, #22c55e, #16a34a); } 
-    .m-mid  { background: linear-gradient(135deg, #3b82f6, #2563eb); }
-    .m-warn { background: linear-gradient(135deg, #f59e0b, #d97706); } 
-    .m-low  { background: linear-gradient(135deg, #ef4444, #dc2626); }
-</style>
-
-
-        /* ИСПРАВЛЕННЫЕ КРУЖКИ ДЛЯ 10 */
-        .marks-container { display: none; flex-wrap: wrap; gap: 8px; margin-top: 10px; padding: 10px; background: #f8fafc; border-radius: 12px; }
-        .marks-container.open { display: flex; }
-        .mark-pill { 
-            min-width: 34px; height: 34px; padding: 0 4px;
-            display: flex; align-items: center; justify-content: center; 
-            border-radius: 10px; font-size: 14px; font-weight: 800; color: white;
+        /* Поиск */
+        .search-container {
+            position: sticky; top: 0; z-index: 10;
+            background: rgba(243, 244, 246, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 10px 0 20px 0;
+        }
+        #search {
+            width: 100%; border: none; padding: 16px 20px;
+            border-radius: 16px; background: var(--card);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            font-size: 16px; font-weight: 500; outline: none;
             box-sizing: border-box;
         }
+
+        /* Карточка */
+        .card {
+            background: var(--card); border-radius: 24px;
+            padding: 20px; margin-bottom: 20px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(255,255,255,0.7);
+        }
+        .student-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 18px;
+        }
+        .student-name { font-size: 19px; font-weight: 800; margin: 0; color: var(--text-main); }
+        .total-badge {
+            background: linear-gradient(135deg, #6366f1, #4338ca);
+            color: white; padding: 6px 14px; border-radius: 12px;
+            font-weight: 900; font-size: 17px; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        /* Предметы */
+        .sub-row {
+            border-top: 1px solid #f3f4f6; padding: 14px 0;
+            cursor: pointer; -webkit-tap-highlight-color: transparent;
+        }
+        .sub-main { display: flex; justify-content: space-between; align-items: center; }
+        .sub-name { font-size: 14px; font-weight: 600; color: #4b5563; flex: 1; padding-right: 12px; }
+        .sub-avg {
+            background: #f3f4f6; color: #1f2937;
+            padding: 4px 10px; border-radius: 8px;
+            font-weight: 800; font-size: 13px;
+        }
+
+        /* Красивые оценки (Фикс для 10) */
+        .marks-container {
+            display: none; flex-wrap: wrap; gap: 8px;
+            margin-top: 12px; padding: 12px;
+            background: #f9fafb; border-radius: 16px;
+            animation: fadeIn 0.3s ease;
+        }
+        .marks-container.open { display: flex; }
         
+        .mark-pill {
+            width: 38px; height: 38px;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 12px; font-size: 15px; font-weight: 900;
+            color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
         /* Цвета */
-        .m-high { background: #22c55e; } .m-mid { background: #3b82f6; }
-        .m-warn { background: #eab308; } .m-low { background: #ef4444; }
-        
-        #loader { text-align: center; margin-top: 50px; font-weight: bold; color: #6366f1; }
+        .m-high { background: linear-gradient(135deg, #22c55e, #16a34a); }
+        .m-mid  { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+        .m-warn { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .m-low  { background: linear-gradient(135deg, #ef4444, #dc2626); }
+
+        #loader { text-align: center; margin-top: 40px; font-weight: 800; color: var(--primary); }
     </style>
 </head>
 <body>
 
-    <input type="text" id="search" class="search-input" placeholder="Поиск студента...">
-    <div id="loader">Загрузка данных...</div>
+    <div class="search-container">
+        <input type="text" id="search" placeholder="Поиск по фамилии...">
+    </div>
+
+    <div id="loader">Синхронизация...</div>
     <div id="content"></div>
 
     <script>
-        const API_URL = 'https://script.google.com/macros/s/AKfycbyc42bfeSnL3BbUOFqrU3dCa3X01GecPwIZA-LiENaR2EaUbnV06bIAyVa7Oz8J8ZUv/exec';
+        const API_URL = 'ВАША_ССЫЛКА_EXEC'; // ЗАМЕНИТЕ НА СВОЮ
+
+        let allData = [];
 
         async function init() {
             try {
                 const res = await fetch(API_URL);
-                const data = await res.json();
+                allData = await res.json();
                 document.getElementById('loader').style.display = 'none';
-                window.myData = data;
-                render(data);
+                render(allData);
             } catch (e) {
-                document.getElementById('loader').innerText = "Ошибка доступа к таблице";
+                document.getElementById('loader').innerText = "Ошибка загрузки данных";
             }
         }
 
-        function getColor(m) {
+        function getMarkColor(m) {
             const v = parseInt(m);
             if (v >= 9) return 'm-high';
             if (v >= 7) return 'm-mid';
@@ -94,37 +132,50 @@
         function render(data) {
             const container = document.getElementById('content');
             container.innerHTML = '';
+            
             data.forEach(student => {
                 const card = document.createElement('div');
                 card.className = 'card';
-                let subs = '';
+                
+                let subjectsHtml = '';
                 student.subjects.forEach(s => {
-                    const marks = s.marks.map(m => `<div class="mark-pill ${getColor(m)}">${m}</div>`).join('');
-                    subs += `
+                    const marks = Array.isArray(s.marks) ? s.marks : [];
+                    const marksHtml = marks.map(m => `
+                        <div class="mark-pill ${getMarkColor(m)}">${m}</div>
+                    `).join('');
+
+                    subjectsHtml += `
                         <div class="sub-row" onclick="const c=this.querySelector('.marks-container'); c.classList.toggle('open')">
                             <div class="sub-main">
                                 <div class="sub-name">${s.subject}</div>
                                 <div class="sub-avg">${s.avg}</div>
                             </div>
-                            <div class="marks-container">${marks || 'Нет оценок'}</div>
-                        </div>`;
+                            <div class="marks-container">
+                                ${marksHtml || '<small style="color:#94a3b8">Оценок нет</small>'}
+                            </div>
+                        </div>
+                    `;
                 });
+
                 card.innerHTML = `
                     <div class="student-header">
                         <h2 class="student-name">${student.studentName}</h2>
                         <div class="total-badge">${student.totalAverage}</div>
                     </div>
-                    ${subs}`;
+                    <div>${subjectsHtml}</div>
+                `;
                 container.appendChild(card);
             });
         }
 
         document.getElementById('search').oninput = (e) => {
             const val = e.target.value.toLowerCase();
-            render(window.myData.filter(s => s.studentName.toLowerCase().includes(val)));
+            render(allData.filter(s => s.studentName.toLowerCase().includes(val)));
         };
 
-        if(window.Telegram?.WebApp) window.Telegram.WebApp.expand();
+        const tg = window.Telegram?.WebApp;
+        if(tg) { tg.expand(); tg.ready(); }
+        
         init();
     </script>
 </body>
