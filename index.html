@@ -3,81 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GradeBook Pro</title>
-    <!-- Подключаем SDK Telegram -->
+    <title>Журнал Группы</title>
     <script src="https://telegram.org"></script>
     <script src="https://tailwindcss.com"></script>
     <style>
-        :root {
-            --tg-theme-bg-color: #f4f7f9;
-            --tg-theme-text-color: #1c1c1e;
-            --tg-theme-button-color: #007aff;
-        }
         body {
-            background-color: var(--tg-theme-bg-color);
-            color: var(--tg-theme-text-color);
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            /* Приятный градиент на фон */
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e9f2 100%);
+            min-height: 100vh;
+            font-family: 'Inter', -apple-system, sans-serif;
         }
-        .glass-card {
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        .glass {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
         }
-        .grade-badge {
-            transition: transform 0.2s;
+        .subject-row {
+            transition: all 0.2s ease;
         }
-        .grade-badge:active { transform: scale(0.95); }
-        
-        /* Плавное появление списка */
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+        .subject-row:hover {
+            background: rgba(255, 255, 255, 0.5);
+            transform: translateX(4px);
         }
-        .animate-slide { animation: slideUp 0.5s ease-out forwards; }
+        /* Кастомный скролл */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
     </style>
 </head>
-<body class="p-4 transition-colors duration-300">
+<body class="p-4 pb-12">
 
     <!-- Header -->
-    <div class="mb-6">
-        <h1 class="text-3xl font-extrabold tracking-tight mb-1 text-slate-800">Журнал</h1>
-        <p id="group-label" class="text-blue-500 font-semibold text-sm uppercase tracking-widest opacity-80">Группа Э-24</p>
-    </div>
+    <header class="mb-8 mt-2 px-2">
+        <div class="flex justify-between items-end">
+            <div>
+                <p class="text-indigo-600 font-bold text-xs uppercase tracking-widest mb-1">Колледж • Группа</p>
+                <h1 class="text-3xl font-black text-slate-800">Успеваемость</h1>
+            </div>
+            <div class="bg-indigo-600 text-white p-2 rounded-xl shadow-lg shadow-indigo-200">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+            </div>
+        </div>
+    </header>
 
     <!-- Поиск -->
-    <div class="relative mb-6">
-        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <svg class="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"></path></svg>
-        </div>
-        <input type="text" id="search" placeholder="Найти студента..." 
-               class="block w-full pl-10 pr-4 py-3 border-none rounded-2xl glass-card focus:ring-2 focus:ring-blue-500 transition-all text-sm">
+    <div class="mb-8 px-1">
+        <input type="text" id="search" placeholder="Поиск по фамилии..." 
+               class="w-full glass rounded-2xl py-4 px-6 shadow-sm focus:ring-2 focus:ring-indigo-400 outline-none transition-all text-slate-700 font-medium">
     </div>
 
     <div id="app">
         <!-- Loader -->
         <div id="loader" class="flex flex-col items-center justify-center py-20">
-            <div class="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-            <p class="mt-4 text-gray-500 animate-pulse">Синхронизация с облаком...</p>
+            <div class="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
         </div>
 
-        <div id="content" class="grid gap-4"></div>
+        <div id="content" class="space-y-6"></div>
     </div>
 
     <script>
-        const API_URL = 'https://script.google.com/macros/s/AKfycbya6kGZyxyf7CCzQ4PAYwaG08GIXYV5ggMh8wuh6sAnxQIS5c5gG6Dv0ewzJ5J1lOJG/exec';
+        const API_URL = 'ВАША_ССЫЛКА_EXEC';
+        
         let studentsData = [];
-
-// Инициализация Telegram Mini App с проверкой
-const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
-
-if (tg) {
-    tg.expand(); // Развернуть на весь экран
-    tg.ready();
-    console.log("Telegram WebApp инициализирован");
-} else {
-    console.warn("Приложение запущено вне Telegram или SDK не загружен");
-}
+        const tg = window.Telegram?.WebApp || null;
+        if(tg) { tg.expand(); tg.ready(); }
 
         async function init() {
             try {
@@ -86,48 +74,52 @@ if (tg) {
                 document.getElementById('loader').classList.add('hidden');
                 render(studentsData);
             } catch (e) {
-                document.getElementById('loader').innerHTML = "<p class='text-red-500 text-center font-bold'>Ошибка подключения к базе данных</p>";
+                console.error(e);
             }
-        }
-
-        function getGradeColor(grade) {
-            const val = parseFloat(grade.replace(',', '.'));
-            if (val >= 8) return 'bg-green-100 text-green-700';
-            if (val >= 6) return 'bg-blue-100 text-blue-700';
-            if (val >= 4) return 'bg-yellow-100 text-yellow-700';
-            return 'bg-red-100 text-red-700';
         }
 
         function render(data) {
             const container = document.getElementById('content');
             container.innerHTML = '';
 
-            data.forEach((student, i) => {
+            data.forEach((student) => {
                 const card = document.createElement('div');
-                card.className = `glass-card p-5 rounded-[2rem] animate-slide`;
-                card.style.animationDelay = `${i * 0.05}s`;
+                card.className = "glass rounded-[2.5rem] p-6 shadow-xl shadow-slate-200/50 border border-white/80";
 
-                const subjects = student.subjects.map(s => `
-                    <div class="flex justify-between items-center py-2 border-b border-gray-100/50 last:border-0">
-                        <span class="text-gray-500 text-[13px] font-medium truncate pr-4">${s.subject}</span>
-                        <span class="px-2 py-1 rounded-lg font-bold text-xs ${getGradeColor(s.avg)}">${s.avg}</span>
-                    </div>
-                `).join('');
+                const subjects = student.subjects.map(s => {
+                    const grade = parseFloat(s.avg.replace(',', '.'));
+                    let colorClass = 'text-slate-700 bg-slate-100';
+                    if (grade >= 8) colorClass = 'text-emerald-700 bg-emerald-50';
+                    else if (grade >= 5) colorClass = 'text-indigo-700 bg-indigo-50';
+                    else if (grade > 0) colorClass = 'text-rose-700 bg-rose-50';
+
+                    return `
+                        <div class="subject-row flex justify-between items-center p-3 rounded-2xl mb-1">
+                            <span class="text-slate-600 text-sm font-semibold truncate pr-4">${s.subject}</span>
+                            <span class="px-3 py-1 rounded-xl font-black text-xs min-w-[40px] text-center ${colorClass}">
+                                ${s.avg}
+                            </span>
+                        </div>
+                    `;
+                }).join('');
 
                 card.innerHTML = `
-                    <div class="flex justify-between items-center mb-4">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold shadow-lg">
-                                ${student.studentName.charAt(0)}
+                    <div class="flex justify-between items-center mb-6">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg rotate-3">
+                                <span class="text-xl font-bold -rotate-3">${student.studentName.charAt(0)}</span>
                             </div>
-                            <h2 class="font-bold text-slate-800 text-base leading-tight">${student.studentName}</h2>
+                            <div>
+                                <h2 class="font-bold text-slate-800 text-lg leading-tight">${student.studentName}</h2>
+                                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Студент</p>
+                            </div>
                         </div>
-                        <div class="text-right">
-                            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Общий</p>
-                            <p class="text-2xl font-black text-slate-800 leading-none">${student.totalAverage}</p>
+                        <div class="bg-white px-4 py-2 rounded-2xl border border-slate-100 shadow-sm text-center">
+                            <p class="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">Средний</p>
+                            <p class="text-xl font-black text-indigo-600 leading-none">${student.totalAverage}</p>
                         </div>
                     </div>
-                    <div class="space-y-1 bg-white/40 rounded-2xl p-2">
+                    <div class="space-y-1">
                         ${subjects}
                     </div>
                 `;
@@ -137,8 +129,7 @@ if (tg) {
 
         document.getElementById('search').addEventListener('input', (e) => {
             const val = e.target.value.toLowerCase();
-            const filtered = studentsData.filter(s => s.studentName.toLowerCase().includes(val));
-            render(filtered);
+            render(studentsData.filter(s => s.studentName.toLowerCase().includes(val)));
         });
 
         init();
