@@ -2,12 +2,14 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Журнал Э-24</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Журнал 86РТК</title>
+    <!-- SDK Telegram -->
     <script src="https://telegram.org"></script>
     <link href="https://googleapis.com" rel="stylesheet">
     <style>
         :root {
+            /* Глубокая темная мятная палитра */
             --bg: #2d3735; 
             --card: #3a4744;
             --text-main: #e2e8f0;
@@ -22,48 +24,63 @@
             color: var(--text-main);
             letter-spacing: -0.02em;
             -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
         }
 
         body { padding: 20px; box-sizing: border-box; }
 
+        /* Лоадер на весь экран */
         #loader {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: var(--bg) !important; display: flex; flex-direction: column;
             align-items: center; justify-content: center; z-index: 100;
         }
         .spinner {
-            width: 40px; height: 40px; border: 4px solid rgba(255, 255, 255, 0.1);
+            width: 44px; height: 44px; border: 4px solid rgba(255, 255, 255, 0.1);
             border-top: 4px solid var(--accent); border-radius: 50%;
             animation: spin 1s linear infinite; margin-bottom: 16px;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        .header-title { font-size: 26px; font-weight: 800; margin-bottom: 24px; color: #ffffff; }
+        .header-title { font-size: 28px; font-weight: 800; margin-bottom: 24px; color: #ffffff; letter-spacing: -0.04em; }
 
+        /* Поиск */
+        #search {
+            width: 100%; border: none; padding: 16px 20px;
+            border-radius: 18px; background: rgba(255, 255, 255, 0.07);
+            font-size: 16px; font-family: inherit; font-weight: 500;
+            outline: none; box-sizing: border-box; margin-bottom: 24px; color: #ffffff;
+        }
+        #search::placeholder { color: var(--text-muted); }
+
+        /* Карточка студента */
         .card {
             background: var(--card); border-radius: 28px;
-            padding: 24px; margin-bottom: 18px;
+            padding: 22px; margin-bottom: 18px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             border: 1px solid rgba(255, 255, 255, 0.05);
             animation: slideUp 0.4s ease-out;
         }
-
         .student-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
         .student-name { font-size: 19px; font-weight: 700; margin: 0; color: #ffffff; }
         
+        /* Контейнер предметов (скрыт по умолчанию) */
         .subs-container { 
-            display: none; margin-top: 20px; padding-top: 20px; 
+            display: none; margin-top: 18px; padding-top: 18px; 
             border-top: 1px solid rgba(255, 255, 255, 0.08); 
         }
         .subs-container.open { display: block; }
 
+        /* Строка предмета */
         .sub-row { padding: 14px 0; cursor: pointer; border-bottom: 1px solid rgba(255, 255, 255, 0.03); }
         .sub-row:last-child { border-bottom: none; }
         .sub-main { display: flex; justify-content: space-between; align-items: center; }
         .sub-name { font-size: 14px; font-weight: 500; color: var(--text-muted); flex: 1; }
         
+        /* Цветные плашки баллов */
         .score-pill { font-size: 13px; font-weight: 800; padding: 5px 12px; border-radius: 10px; margin-left: 12px; }
 
+        /* Оценки внутри предмета */
         .marks-container {
             display: none; flex-wrap: wrap; gap: 8px;
             margin-top: 12px; padding: 12px; background: rgba(0, 0, 0, 0.15); border-radius: 14px;
@@ -72,24 +89,19 @@
         .no-marks { font-size: 12px; color: var(--text-muted); width: 100%; text-align: center; }
 
         .mark-pill {
-            width: 36px; height: 36px; display: flex; align-items: center; 
+            width: 38px; height: 38px; display: flex; align-items: center; 
             justify-content: center; border-radius: 11px; font-size: 14px; font-weight: 800;
         }
 
+        /* Цветовая индикация */
         .m-high { background: #065f46; color: #a7f3d0; }
         .m-mid  { background: #1e3a8a; color: #bfdbfe; }
         .m-warn { background: #78350f; color: #fef08a; }
         .m-low  { background: #7f1d1d; color: #fecaca; }
 
-        .no-access-card {
-            text-align: center; padding: 30px; background: var(--card); border-radius: 28px;
-        }
-        .id-box {
-            background: rgba(0,0,0,0.2); padding: 15px; border-radius: 14px;
-            margin: 15px 0; font-family: monospace; color: var(--accent); font-size: 20px;
-        }
-
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Убираем выделение при нажатии на мобилках */
         * { -webkit-tap-highlight-color: transparent; user-select: none; }
     </style>
 </head>
@@ -97,33 +109,39 @@
 
     <div id="loader">
         <div class="spinner"></div>
-        <div style="font-weight: 700; color: #94a3b8; font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em;">Авторизация</div>
+        <div style="font-weight: 700; color: #94a3b8; font-size: 12px; text-transform: uppercase;">Синхронизация данных</div>
     </div>
+
+    <div class="header-title">Журнал группы</div>
+    <input type="text" id="search" placeholder="Поиск по фамилии...">
 
     <div id="content"></div>
 
     <script>
-        const API_URL = 'https://script.google.com/macros/s/AKfycby51e8m8t0Q8_xRabHn-1pYO-m7kkokiA__LrpAGw6cbzG4iz32Yc-T4JSC2dvWEYNI/exec'; // <--- ЗАМЕНИТЬ!
+        // === ТВОЯ ССЫЛКА ИЗ GOOGLE APPS SCRIPT ===
+        const API_URL = 'https://script.google.com/macros/s/AKfycbxJjvvps-faFyjFwm8tED8OhYQFCLl6UwyRQfIJEGLLa9Hpq_cMVUIDB1LY-qLJgxrV/exec'; 
 
+        let allData = [];
         const tg = window.Telegram?.WebApp;
-        const userTgId = tg?.initDataUnsafe?.user?.id?.toString() || "NO_ID";
+
+        // Принудительное расширение на весь экран
+        if (tg) {
+            tg.ready();
+            tg.expand();
+            tg.headerColor = '#2d3735';
+            tg.backgroundColor = '#2d3735';
+            // Повторный вызов для надежности
+            setTimeout(() => { if (!tg.isExpanded) tg.expand(); }, 200);
+        }
 
         async function init() {
             try {
                 const res = await fetch(API_URL);
-                const allData = await res.json();
+                allData = await res.json();
                 document.getElementById('loader').style.display = 'none';
-
-                // Фильтр персонального входа
-                const myData = allData.filter(s => s.telegramId === userTgId);
-
-                if (myData.length > 0) {
-                    render(myData);
-                } else {
-                    renderNoAccess();
-                }
+                render(allData);
             } catch (e) {
-                document.getElementById('loader').innerHTML = "<div style='color:#f87171;'>Ошибка API</div>";
+                document.getElementById('loader').innerHTML = "<div style='color:#f87171; font-weight:800;'>Ошибка сети или CORS</div>";
             }
         }
 
@@ -137,7 +155,7 @@
 
         function render(data) {
             const container = document.getElementById('content');
-            container.innerHTML = '<div class="header-title">Ваш профиль</div>';
+            container.innerHTML = '';
             
             data.forEach(student => {
                 const card = document.createElement('div');
@@ -159,6 +177,7 @@
                         </div>`;
                 }).join('');
 
+                // Клик по карточке студента раскрывает список предметов
                 card.onclick = () => card.querySelector('.subs-container').classList.toggle('open');
 
                 card.innerHTML = `
@@ -166,29 +185,18 @@
                         <h2 class="student-name">${student.studentName}</h2>
                         <div class="score-pill ${getStyle(student.totalAverage)}">${student.totalAverage}</div>
                     </div>
-                    <div class="subs-container open">${subsHtml}</div>
+                    <div class="subs-container">${subsHtml}</div>
                 `;
                 container.appendChild(card);
             });
         }
 
-        function renderNoAccess() {
-            const container = document.getElementById('content');
-            container.innerHTML = `
-                <div class="header-title">Доступ</div>
-                <div class="no-access-card">
-                    <p style="color: var(--text-muted); font-size: 14px;">Ваш ID не найден в базе:</p>
-                    <div class="id-box">${userTgId}</div>
-                    <p style="color: var(--text-muted); font-size: 14px;">Скопируйте ID и отправьте администратору журнала.</p>
-                </div>
-            `;
-        }
+        // Логика поиска
+        document.getElementById('search').oninput = (e) => {
+            const val = e.target.value.toLowerCase().trim();
+            render(allData.filter(s => s.studentName.toLowerCase().includes(val)));
+        };
 
-        if(tg) {
-            tg.expand();
-            tg.headerColor = '#2d3735'; 
-            tg.backgroundColor = '#2d3735';
-        }
         init();
     </script>
 </body>
