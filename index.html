@@ -1,43 +1,126 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Мой Журнал</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Электронный Журнал</title>
     <script src="https://tailwindcss.com"></script>
-	<link rel="icon" href="data:,">
+    <link rel="icon" href="data:,">
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        .student-card { transition: all 0.2s ease; }
+        .student-card:active { transform: scale(0.98); opacity: 0.9; }
+        .search-input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+        /* Анимация появления */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-in { animation: fadeIn 0.4s ease forwards; }
+    </style>
 </head>
-<body class="bg-gray-100 p-4">
-    <div id="app" class="max-w-md mx-auto">
-        <h1 class="text-2xl font-bold mb-4 text-center">Журнал Группы</h1>
-        <div id="loader" class="text-center">Загрузка оценок...</div>
+<body class="bg-gray-50 text-slate-900 pb-10">
+
+    <!-- Шапка и Поиск -->
+    <div class="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-gray-200 p-4 mb-4">
+        <h1 class="text-xl font-black text-slate-800 mb-3 text-center uppercase tracking-wider">Группа: Оценки</h1>
+        <div class="relative">
+            <input type="text" id="search" placeholder="Поиск по фамилии..." 
+                   class="search-input w-full bg-gray-100 border-none rounded-xl py-3 px-4 pl-11 text-sm">
+            <svg class="w-5 h-5 text-gray-400 absolute left-3.5 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+        </div>
+    </div>
+
+    <div id="app" class="max-w-md mx-auto px-4">
+        <!-- Состояние загрузки -->
+        <div id="loader" class="flex flex-col items-center justify-center py-20">
+            <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mb-4"></div>
+            <p class="text-gray-500 font-medium">Получаем данные из таблицы...</p>
+        </div>
+
+        <!-- Контейнер для карточек -->
         <div id="content" class="space-y-4"></div>
     </div>
 
     <script>
-        const API_URL = 'https://script.google.com/macros/s/AKfycbwhjEnXl3TXRargwzzN2obflCw7WTwkKwjJbg4e1X5NAh40HExthkrpy9-SoCp1ypo6/exec';
+        // === НАСТРОЙКА ===
+        const API_URL = 'https://script.google.com/macros/s/AKfycbya6kGZyxyf7CCzQ4PAYwaG08GIXYV5ggMh8wuh6sAnxQIS5c5gG6Dv0ewzJ5J1lOJG/exec'; 
+        // =================
 
-        async function loadGrades() {
+        let allStudents = [];
+
+        async function loadData() {
+            const loader = document.getElementById('loader');
+            const content = document.getElementById('content');
+
             try {
                 const response = await fetch(API_URL);
-                const data = await response.json();
-                const container = document.getElementById('content');
-                document.getElementById('loader').classList.add('hidden');
+                if (!response.ok) throw new Error('Ошибка сети');
+                
+                allStudents = await response.json();
+                loader.classList.add('hidden');
+                renderStudents(allStudents);
 
-                data.forEach(item => {
-                    const card = document.createElement('div');
-                    card.className = "bg-white p-4 rounded-xl shadow-sm border border-gray-200";
-                    card.innerHTML = `
-                        <h2 class="font-bold text-lg text-blue-600">${item.studentName}</h2>
-                        <p class="text-sm text-gray-500 text-right">Ср. балл: ${item.average[1] || '—'}</p>
-                    `;
-                    container.appendChild(card);
-                });
-            } catch (e) {
-                document.getElementById('loader').innerText = "Ошибка загрузки";
+            } catch (error) {
+                console.error(error);
+                loader.innerHTML = `
+                    <div class="bg-red-50 text-red-600 p-4 rounded-xl text-center border border-red-100">
+                        <p class="font-bold">Ошибка загрузки</p>
+                        <p class="text-sm opacity-80">Проверьте ссылку на API и доступ в Google Таблице</p>
+                    </div>`;
             }
         }
-        loadGrades();
+
+        function renderStudents(students) {
+            const container = document.getElementById('content');
+            container.innerHTML = '';
+
+            if (students.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-400 py-10">Никого не найдено</p>';
+                return;
+            }
+
+            students.forEach((student, index) => {
+                const card = document.createElement('div');
+                card.className = "student-card bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden animate-in";
+                card.style.animationDelay = `${index * 0.05}s`;
+                
+                // Формируем строки предметов
+                let subjectsHtml = student.subjects.map(s => `
+                    <div class="flex justify-between items-center py-2 border-b border-gray-50 last:border-0">
+                        <span class="text-gray-600 text-xs sm:text-sm pr-4 line-clamp-1">${s.subject}</span>
+                        <span class="font-bold text-slate-800 text-sm bg-gray-50 px-2 py-0.5 rounded">${s.avg}</span>
+                    </div>
+                `).join('');
+
+                card.innerHTML = `
+                    <div class="p-4">
+                        <div class="flex justify-between items-start mb-3">
+                            <h2 class="font-bold text-lg text-slate-900 leading-tight">${student.studentName}</h2>
+                            <div class="flex flex-col items-end">
+                                <span class="text-[10px] text-gray-400 uppercase font-bold tracking-tighter">Ср. балл</span>
+                                <span class="text-xl font-black text-blue-600 leading-none">${student.totalAverage}</span>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-lg px-1">
+                            ${subjectsHtml}
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Логика поиска
+        document.getElementById('search').addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase().trim();
+            const filtered = allStudents.filter(s => 
+                s.studentName.toLowerCase().includes(query)
+            );
+            renderStudents(filtered);
+        });
+
+        // Запуск при загрузке страницы
+        window.onload = loadData;
     </script>
 </body>
 </html>
