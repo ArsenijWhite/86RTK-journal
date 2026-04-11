@@ -6,134 +6,100 @@
     <title>Журнал Э-24</title>
     <script src="https://telegram.org"></script>
     <style>
-        :root { --bg: #f8fafc; --card: #ffffff; --primary: #6366f1; }
-        body { background: var(--bg); font-family: -apple-system, system-ui, sans-serif; margin: 0; padding: 16px; color: #1e293b; }
+        body { background: #f1f5f9; font-family: -apple-system, sans-serif; margin: 0; padding: 15px; color: #1e293b; }
+        .search-input { width: 100%; padding: 14px; border-radius: 15px; border: 1px solid #e2e8f0; margin-bottom: 20px; box-sizing: border-box; font-size: 16px; outline: none; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         
-        .search-box { width: 100%; padding: 14px; border-radius: 16px; border: 1px solid #e2e8f0; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); outline: none; box-sizing: border-box; font-size: 16px; }
-        
-        .card { background: var(--card); border-radius: 24px; padding: 20px; margin-bottom: 20px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); border: 1px solid #f1f5f9; }
-        .student-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; }
-        .student-name { margin: 0; font-size: 1.2rem; font-weight: 800; color: #0f172a; line-height: 1.2; }
-        
-        .total-badge { background: linear-gradient(135deg, #6366f1, #4f46e5); color: white; padding: 6px 14px; border-radius: 12px; font-weight: 900; font-size: 1.1rem; box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3); }
-        
-        .sub-row { border-bottom: 1px solid #f1f5f9; padding: 12px 0; }
-        .sub-row:last-child { border: none; }
-        .sub-main { display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .card { background: white; border-radius: 24px; padding: 20px; margin-bottom: 20px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+        .student-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #f1f5f9; }
+        .student-name { font-size: 18px; font-weight: 800; margin: 0; color: #0f172a; }
+        .total-badge { background: #6366f1; color: white; padding: 5px 12px; border-radius: 10px; font-weight: 900; font-size: 16px; }
+
+        .sub-row { padding: 12px 0; border-bottom: 1px solid #f8fafc; cursor: pointer; }
+        .sub-main { display: flex; justify-content: space-between; align-items: center; }
         .sub-name { font-size: 14px; font-weight: 600; color: #475569; flex: 1; padding-right: 10px; }
-        .sub-avg { background: #f1f5f9; color: #1e293b; padding: 4px 10px; border-radius: 8px; font-weight: 800; font-size: 13px; }
-        
-        /* Стили для маленьких цветных оценок */
-        .marks-container { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
-                .mark-pill { 
-            min-width: 32px; /* Увеличили, чтобы влезало 10 */
-            height: 32px; 
-            display: inline-flex; /* Чтобы корректно тянулось */
-            align-items: center; 
-            justify-content: center; 
-            border-radius: 8px; 
-            font-size: 13px; 
-            font-weight: bold; 
-            color: white; 
-            padding: 0 4px; /* Добавили отступы по бокам */
+        .sub-avg { background: #f1f5f9; padding: 3px 10px; border-radius: 8px; font-weight: 800; font-size: 13px; }
+
+        /* ИСПРАВЛЕННЫЕ КРУЖКИ ДЛЯ 10 */
+        .marks-container { display: none; flex-wrap: wrap; gap: 8px; margin-top: 10px; padding: 10px; background: #f8fafc; border-radius: 12px; }
+        .marks-container.open { display: flex; }
+        .mark-pill { 
+            min-width: 34px; height: 34px; padding: 0 4px;
+            display: flex; align-items: center; justify-content: center; 
+            border-radius: 10px; font-size: 14px; font-weight: 800; color: white;
+            box-sizing: border-box;
         }
-
         
-        .m5 { background: #dcfce7; color: #166534; } /* Отлично */
-        .m4 { background: #dbeafe; color: #1e40af; } /* Хорошо */
-        .m3 { background: #fef9c3; color: #854d0e; } /* Удовл */
-        .m2 { background: #fee2e2; color: #991b1b; } /* Плохо */
-        .m-other { background: #f1f5f9; color: #475569; }
-
-        .sub-details { max-height: 0; overflow: hidden; transition: all 0.3s ease; opacity: 0; }
-        .sub-details.open { max-height: 200px; opacity: 1; padding-top: 5px; }
+        /* Цвета */
+        .m-high { background: #22c55e; } .m-mid { background: #3b82f6; }
+        .m-warn { background: #eab308; } .m-low { background: #ef4444; }
         
-        #loader { text-align: center; padding: 40px; font-weight: bold; color: #6366f1; }
+        #loader { text-align: center; margin-top: 50px; font-weight: bold; color: #6366f1; }
     </style>
 </head>
 <body>
 
-    <input type="text" id="search" class="search-box" placeholder="Поиск по фамилии...">
-    
-    <div id="app">
-        <div id="loader">Загрузка данных...</div>
-        <div id="content"></div>
-    </div>
+    <input type="text" id="search" class="search-input" placeholder="Поиск студента...">
+    <div id="loader">Загрузка данных...</div>
+    <div id="content"></div>
 
     <script>
-        const API_URL = 'https://script.google.com/macros/s/AKfycbxrTyXaVF9BN9TDLlZP6jk9kU2Prg3HG287oGZceUPEX1NfJcsj_RxDFWqy1hdqCQF2/exec';
-        let dataStore = [];
+        const API_URL = 'https://script.google.com/macros/s/AKfycbyc42bfeSnL3BbUOFqrU3dCa3X01GecPwIZA-LiENaR2EaUbnV06bIAyVa7Oz8J8ZUv/exec';
 
-        async function load() {
+        async function init() {
             try {
                 const res = await fetch(API_URL);
-                dataStore = await res.json();
+                const data = await res.json();
                 document.getElementById('loader').style.display = 'none';
-                render(dataStore);
+                window.myData = data;
+                render(data);
             } catch (e) {
-                document.getElementById('loader').innerText = "Ошибка загрузки данных.";
+                document.getElementById('loader').innerText = "Ошибка доступа к таблице";
             }
         }
 
-        function getMarkClass(mark) {
-            const m = parseInt(mark);
-            if (m >= 9 || m == 5) return 'm5';
-            if (m >= 7 || m == 4) return 'm4';
-            if (m >= 4 || m == 3) return 'm3';
-            if (m > 0) return 'm2';
-            return 'm-other';
+        function getColor(m) {
+            const v = parseInt(m);
+            if (v >= 9) return 'm-high';
+            if (v >= 7) return 'm-mid';
+            if (v >= 4) return 'm-warn';
+            return 'm-low';
         }
 
-                function render(data) {
+        function render(data) {
             const container = document.getElementById('content');
             container.innerHTML = '';
-            
             data.forEach(student => {
                 const card = document.createElement('div');
                 card.className = 'card';
-                
-                const subsHtml = student.subjects.map(s => {
-                    // --- ВОТ ЭТОТ ИСПРАВЛЕННЫЙ БЛОК (примерно 84-88 строки) ---
-                    const marksArray = Array.isArray(s.marks) ? s.marks : [];
-                    const marksHtml = marksArray.map(m => `
-                        <div class="mark-pill ${getMarkClass(m)}">${m}</div>
-                    `).join('');
-                    // -------------------------------------------------------
-
-                    return `
-                        <div class="sub-row">
-                            <div class="sub-main" onclick="this.nextElementSibling.classList.toggle('open')">
+                let subs = '';
+                student.subjects.forEach(s => {
+                    const marks = s.marks.map(m => `<div class="mark-pill ${getColor(m)}">${m}</div>`).join('');
+                    subs += `
+                        <div class="sub-row" onclick="const c=this.querySelector('.marks-container'); c.classList.toggle('open')">
+                            <div class="sub-main">
                                 <div class="sub-name">${s.subject}</div>
                                 <div class="sub-avg">${s.avg}</div>
                             </div>
-                            <div class="sub-details">
-                                <div class="marks-container">${marksHtml || '<small class="text-gray-400">Оценок нет</small>'}</div>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-
+                            <div class="marks-container">${marks || 'Нет оценок'}</div>
+                        </div>`;
+                });
                 card.innerHTML = `
                     <div class="student-header">
                         <h2 class="student-name">${student.studentName}</h2>
                         <div class="total-badge">${student.totalAverage}</div>
                     </div>
-                    <div class="subs-list">${subsHtml}</div>
-                `;
+                    ${subs}`;
                 container.appendChild(card);
             });
         }
 
         document.getElementById('search').oninput = (e) => {
             const val = e.target.value.toLowerCase();
-            render(dataStore.filter(s => s.studentName.toLowerCase().includes(val)));
+            render(window.myData.filter(s => s.studentName.toLowerCase().includes(val)));
         };
 
-        if(window.Telegram?.WebApp) {
-            window.Telegram.WebApp.expand();
-            window.Telegram.WebApp.ready();
-        }
-        load();
+        if(window.Telegram?.WebApp) window.Telegram.WebApp.expand();
+        init();
     </script>
 </body>
 </html>
