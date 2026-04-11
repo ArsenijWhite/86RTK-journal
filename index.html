@@ -7,117 +7,61 @@
     <script src="https://telegram.org"></script>
     <style>
         :root {
-            --bg: #2d3735; 
-            --card: #3a4744;
-            --accent: #10b981;
-            --text: #e2e8f0;
-            --muted: #94a3b8;
+            --bg: #2d3735; --card: #3a4744; --accent: #10b981; --text: #e2e8f0; --muted: #94a3b8;
         }
 
-        * {
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", sans-serif;
-            -webkit-font-smoothing: antialiased;
-            -webkit-tap-highlight-color: transparent;
-            user-select: none;
-        }
-
-        html, body {
-            background-color: var(--bg) !important;
-            margin: 0; padding: 0;
-            color: var(--text);
-            overflow-y: auto; 
-        }
-
+        * { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; user-select: none; }
+        html, body { background-color: var(--bg) !important; margin: 0; padding: 0; color: var(--text); overflow-y: auto; }
         body { padding: 20px; box-sizing: border-box; min-height: 100vh; }
 
-        /* --- НЕОНОВЫЙ ЛОАДЕР --- */
-        #loader {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--bg); z-index: 1000; 
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            transition: opacity 0.6s ease, visibility 0.6s;
-        }
-
-        .loader-text {
-            font-size: 12px; font-weight: 600; color: var(--accent);
-            text-transform: uppercase; letter-spacing: 0.3em;
-            margin-bottom: 30px; animation: textBreath 2s infinite ease-in-out;
-            text-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
-        }
-
-        .progress-wrapper {
-            width: 180px; height: 3px; background: rgba(255, 255, 255, 0.05);
-            border-radius: 10px; position: relative; overflow: hidden;
-        }
-
-        .progress-line {
-            width: 80px; height: 100%; background: var(--accent);
-            border-radius: 10px; position: absolute; left: -80px;
-            animation: moveLine 2.2s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
-            box-shadow: 0 0 5px #fff, 0 0 10px var(--accent), 0 0 20px var(--accent);
-        }
-
+        /* --- ЛОАДЕР --- */
+        #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.6s ease, visibility 0.6s; }
+        .loader-text { font-size: 12px; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: 0.3em; margin-bottom: 30px; animation: textBreath 2s infinite ease-in-out; text-shadow: 0 0 12px rgba(16, 185, 129, 0.4); }
+        .progress-wrapper { width: 180px; height: 3px; background: rgba(255, 255, 255, 0.05); border-radius: 10px; position: relative; overflow: hidden; }
+        .progress-line { width: 80px; height: 100%; background: var(--accent); border-radius: 10px; position: absolute; left: -80px; animation: moveLine 2.2s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite; box-shadow: 0 0 10px var(--accent); }
         @keyframes moveLine { 0% { transform: translateX(0); } 50% { transform: translateX(260px); } 100% { transform: translateX(0); } }
         @keyframes textBreath { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
 
         /* --- КОНТЕНТ --- */
         #main-content { opacity: 0; transform: translateY(10px); transition: all 0.6s ease-out; display: none; }
         #main-content.visible { opacity: 1; transform: translateY(0); display: block; }
-
         .header-title { font-size: 26px; font-weight: 700; margin-bottom: 20px; letter-spacing: -0.02em; }
+        #search { width: 100%; border: none; padding: 16px 20px; border-radius: 16px; background: rgba(255, 255, 255, 0.08); color: #fff; font-size: 17px; outline: none; box-sizing: border-box; margin-bottom: 20px; }
 
-        #search {
-            width: 100%; border: none; padding: 16px 20px; 
-            border-radius: 16px; background: rgba(255, 255, 255, 0.08); color: #fff;
-            font-size: 17px; outline: none; box-sizing: border-box; margin-bottom: 20px;
-        }
-
-        .card {
-            background: var(--card); border-radius: 24px; padding: 20px; margin-bottom: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.05); box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-            cursor: pointer;
-        }
-
+        .card { background: var(--card); border-radius: 24px; padding: 20px; margin-bottom: 16px; border: 1px solid rgba(255, 255, 255, 0.05); box-shadow: 0 10px 30px rgba(0,0,0,0.15); cursor: pointer; position: relative; }
         .student-header { display: flex; justify-content: space-between; align-items: center; pointer-events: none; }
-        
-        /* Стили плашек (уменьшены для предметов) */
-        .score-pill { font-size: 13px; font-weight: 700; padding: 4px 10px; border-radius: 8px; min-width: 30px; text-align: center; }
-        .score-pill-large { font-size: 14px; font-weight: 700; padding: 6px 12px; border-radius: 10px; min-width: 34px; text-align: center; }
+        .score-pill { font-size: 12px; font-weight: 800; padding: 4px 8px; border-radius: 7px; min-width: 28px; text-align: center; }
+        .score-pill-large { font-size: 14px; font-weight: 800; padding: 6px 12px; border-radius: 10px; min-width: 34px; text-align: center; }
 
-        /* --- ЦВЕТОВАЯ ЛОГИКА --- */
-        .m-low  { background: #ff3b30; color: #fff; } 
-        .m-warn { background: #ffcc00; color: #000; } 
-        .m-high { background: #34c759; color: #fff; } 
+        /* --- НОВАЯ ЦВЕТОВАЯ ПАЛИТРА --- */
+        .m-low  { background: #ff3b30; color: #fff; } /* 1-3: Красный */
+        .m-warn { background: #ff9f0a; color: #fff; } /* 4-6: Оранжево-Янтарный */
+        .m-high { background: #248a3d; color: #fff; } /* 7-9: Темно-зеленый */
         .m-gold { 
-            background: linear-gradient(135deg, #ffd700, #ffae00); 
-            color: #000; box-shadow: 0 0 12px rgba(255, 215, 0, 0.4);
-            border: 0.5px solid rgba(255, 255, 255, 0.4);
+            background: linear-gradient(145deg, #ffea00, #ff9500); 
+            color: #000; box-shadow: 0 0 15px rgba(255, 215, 0, 0.4), inset 0 0 5px #fff;
+            font-weight: 900 !important; border: 0.5px solid #fff;
         }
 
         .subs-container { display: none; margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px; }
         .subs-container.open { display: block; }
-        
-        .sub-row { display: flex; justify-content: space-between; padding: 10px 0; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.03); }
-        
-        .marks-container { display: none; flex-wrap: wrap; gap: 6px; margin-top: 10px; padding: 10px; background: rgba(0,0,0,0.15); border-radius: 12px; }
+        .sub-row { display: flex; justify-content: space-between; padding: 8px 0; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.03); }
+        .marks-container { display: none; flex-wrap: wrap; gap: 5px; margin-top: 10px; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 12px; }
         .marks-container.open { display: flex; }
+        .mark-pill { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 7px; font-size: 12px; font-weight: 800; }
         
-        /* Компактные плитки оценок */
-        .mark-pill { width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 13px; font-weight: 700; }
-
+        .crown { margin-left: 6px; font-size: 16px; filter: drop-shadow(0 0 5px gold); }
     </style>
 </head>
 <body>
 
     <div id="loader">
         <div class="loader-text">Загрузка</div>
-        <div class="progress-wrapper">
-            <div class="progress-line"></div>
-        </div>
+        <div class="progress-wrapper"><div class="progress-line"></div></div>
     </div>
 
     <div id="main-content">
-        <div class="header-title">Журнал группы 86 РТК</div>
+        <div class="header-title">Журнал группы 86РТК</div>
         <input type="text" id="search" placeholder="Поиск">
         <div id="content"></div>
     </div>
@@ -127,26 +71,17 @@
         const tg = window.Telegram?.WebApp;
 
         async function init() {
-            if (tg) {
-                tg.ready(); tg.expand();
-                tg.headerColor = '#2d3735'; tg.backgroundColor = '#2d3735';
-            }
-            
+            if (tg) { tg.ready(); tg.expand(); tg.headerColor = '#2d3735'; tg.backgroundColor = '#2d3735'; }
             try {
                 const res = await fetch(API_URL);
                 const data = await res.json();
-                const loader = document.getElementById('loader');
-                const main = document.getElementById('main-content');
-                
+                document.getElementById('loader').style.opacity = '0';
                 setTimeout(() => {
-                    loader.style.opacity = '0';
-                    setTimeout(() => {
-                        loader.style.visibility = 'hidden';
-                        main.style.display = 'block';
-                        setTimeout(() => main.classList.add('visible'), 50);
-                        render(data);
-                    }, 600);
-                }, 1000);
+                    document.getElementById('loader').style.visibility = 'hidden';
+                    document.getElementById('main-content').style.display = 'block';
+                    setTimeout(() => document.getElementById('main-content').classList.add('visible'), 50);
+                    render(data);
+                }, 600);
             } catch (e) { document.querySelector('.loader-text').innerText = "Ошибка загрузки"; }
         }
 
@@ -155,16 +90,22 @@
             if (v >= 10) return 'm-gold';
             if (v >= 7)  return 'm-high';
             if (v >= 4)  return 'm-warn';
-            if (v >= 1)  return 'm-low';
-            return '';
+            return 'm-low';
         }
 
         function render(data) {
             const container = document.getElementById('content');
             container.innerHTML = '';
+            
+            // Находим топ-3 по среднему баллу
+            const sorted = [...data].sort((a, b) => parseFloat(String(b.totalAverage).replace(',', '.')) - parseFloat(String(a.totalAverage).replace(',', '.')));
+            const topNames = sorted.slice(0, 3).map(s => s.studentName);
+
             data.forEach(student => {
                 const card = document.createElement('div');
                 card.className = 'card';
+                const isTop = topNames.includes(student.studentName);
+                
                 card.onclick = () => {
                     if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
                     card.querySelector('.subs-container').classList.toggle('open');
@@ -176,16 +117,18 @@
                     return `
                         <div onclick="event.stopPropagation(); this.querySelector('.marks-container').classList.toggle('open')">
                             <div class="sub-row">
-                                <span style="font-size:14px; opacity:0.8; font-weight:500;">${s.subject}</span>
+                                <span style="font-size:13px; opacity:0.7; font-weight:500;">${s.subject}</span>
                                 <span class="score-pill ${getStyle(s.avg)}">${s.avg}</span>
                             </div>
-                            <div class="marks-container">${marksHtml || '<small style="font-size:11px; opacity:0.5">Нет оценок</small>'}</div>
+                            <div class="marks-container">${marksHtml || '<small style="font-size:10px; opacity:0.4">Нет оценок</small>'}</div>
                         </div>`;
                 }).join('');
 
                 card.innerHTML = `
                     <div class="student-header">
-                        <span style="font-weight:700; font-size:18px">${student.studentName}</span>
+                        <span style="font-weight:700; font-size:17px; display:flex; align-items:center;">
+                            ${student.studentName} ${isTop ? '<span class="crown">👑</span>' : ''}
+                        </span>
                         <div class="score-pill-large ${getStyle(student.totalAverage)}">${student.totalAverage}</div>
                     </div>
                     <div class="subs-container">${subs}</div>`;
@@ -195,9 +138,7 @@
 
         document.getElementById('search').oninput = (e) => {
             const val = e.target.value.toLowerCase().trim();
-            document.querySelectorAll('.card').forEach(card => {
-                card.style.display = card.innerText.toLowerCase().includes(val) ? 'block' : 'none';
-            });
+            document.querySelectorAll('.card').forEach(card => card.style.display = card.innerText.toLowerCase().includes(val) ? 'block' : 'none');
         };
 
         init();
