@@ -8,12 +8,12 @@
     <link href="https://googleapis.com" rel="stylesheet">
     <style>
         :root {
-            /* Сделали фон более насыщенным и темным */
-            --bg: #dbe7e4; 
-            /* Карточки теперь не кипенно-белые, а с легким оттенком */
-            --card: #f8fafc;
-            --text-main: #1e293b;
-            --text-muted: #64748b;
+            /* Глубокий темный серо-мятный фон */
+            --bg: #2d3735; 
+            /* Темные приглушенные карточки */
+            --card: #3a4744;
+            --text-main: #e2e8f0;
+            --text-muted: #94a3b8;
             --accent: #10b981;
         }
 
@@ -34,69 +34,70 @@
             align-items: center; justify-content: center; z-index: 100;
         }
         .spinner {
-            width: 44px; height: 44px; border: 4px solid rgba(16, 185, 129, 0.1);
+            width: 44px; height: 44px; border: 4px solid rgba(255, 255, 255, 0.1);
             border-top: 4px solid var(--accent); border-radius: 50%;
             animation: spin 1s cubic-bezier(0.4, 0, 0.2, 1) infinite;
             margin-bottom: 16px;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        .header-title { font-size: 28px; font-weight: 800; margin-bottom: 24px; letter-spacing: -0.04em; color: #0f172a; }
+        .header-title { font-size: 28px; font-weight: 800; margin-bottom: 24px; letter-spacing: -0.04em; color: #ffffff; }
 
         #search {
             width: 100%; border: none; padding: 16px 20px;
-            border-radius: 18px; background: rgba(0, 0, 0, 0.08); /* Чуть темнее */
+            border-radius: 18px; background: rgba(255, 255, 255, 0.07);
             font-size: 16px; font-family: inherit; font-weight: 500;
-            outline: none; box-sizing: border-box; margin-bottom: 24px;
+            outline: none; box-sizing: border-box; margin-bottom: 24px; color: #ffffff;
         }
+        #search::placeholder { color: var(--text-muted); }
 
         .card {
             background: var(--card); border-radius: 28px;
             padding: 22px; margin-bottom: 18px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06); /* Тень глубже */
-            border: 1px solid rgba(0,0,0,0.05);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
         .student-header {
             display: flex; justify-content: space-between; align-items: center;
             cursor: pointer;
         }
-        .student-name { font-size: 19px; font-weight: 700; margin: 0; }
+        .student-name { font-size: 19px; font-weight: 700; margin: 0; color: #ffffff; }
         
         .subs-container { 
             display: none; margin-top: 18px; padding-top: 18px; 
-            border-top: 1px solid #e2e8f0; animation: slideDown 0.3s ease-out;
+            border-top: 1px solid rgba(255, 255, 255, 0.08); animation: slideDown 0.3s ease-out;
         }
         .subs-container.open { display: block; }
 
         @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
-        .sub-row { padding: 14px 0; cursor: pointer; border-bottom: 1px solid #edf2f7; }
+        .sub-row { padding: 14px 0; cursor: pointer; border-bottom: 1px solid rgba(255, 255, 255, 0.03); }
         .sub-row:last-child { border-bottom: none; }
         .sub-main { display: flex; justify-content: space-between; align-items: center; }
-        .sub-name { font-size: 15px; font-weight: 500; color: var(--text-muted); flex: 1; }
+        .sub-name { font-size: 14px; font-weight: 500; color: var(--text-muted); flex: 1; }
         
         .score-pill { 
             font-size: 13px; font-weight: 800; padding: 5px 12px; 
             border-radius: 10px; margin-left: 12px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
 
         .marks-container {
             display: none; flex-wrap: wrap; gap: 8px;
-            margin-top: 12px; padding: 12px; background: #f1f5f9; border-radius: 14px;
+            margin-top: 12px; padding: 12px; background: rgba(0, 0, 0, 0.15); border-radius: 14px;
         }
         .marks-container.open { display: flex; }
-        .no-marks { font-size: 13px; color: var(--text-muted); width: 100%; text-align: center; padding: 4px 0; }
+        .no-marks { font-size: 12px; color: var(--text-muted); width: 100%; text-align: center; padding: 4px 0; }
 
         .mark-pill {
             width: 36px; height: 36px; display: flex; align-items: center; 
             justify-content: center; border-radius: 11px; font-size: 14px; font-weight: 800;
         }
 
-        .m-high { background: #c6f6d5; color: #22543d; }
-        .m-mid  { background: #bee3f8; color: #2a4365; }
-        .m-warn { background: #fef08a; color: #713f12; }
-        .m-low  { background: #fed7d7; color: #742a2a; }
+        /* Цвета для темной темы (более насыщенные) */
+        .m-high { background: #065f46; color: #a7f3d0; } /* Зеленый */
+        .m-mid  { background: #1e3a8a; color: #bfdbfe; } /* Синий */
+        .m-warn { background: #78350f; color: #fef08a; } /* Желтый */
+        .m-low  { background: #7f1d1d; color: #fecaca; } /* Красный */
 
         * { -webkit-tap-highlight-color: transparent; user-select: none; }
     </style>
@@ -105,11 +106,11 @@
 
     <div id="loader">
         <div class="spinner"></div>
-        <div style="font-weight: 700; color: #64748b; font-size: 14px; letter-spacing: 0.05em; text-transform: uppercase;">Загрузка</div>
+        <div style="font-weight: 700; color: #94a3b8; font-size: 14px; text-transform: uppercase;">Загрузка</div>
     </div>
 
-    <div class="header-title">Успеваемость</div>
-    <input type="text" id="search" placeholder="Поиск по фамилии">
+    <div class="header-title">Журнал</div>
+    <input type="text" id="search" placeholder="Поиск фамилии">
 
     <div id="content"></div>
 
@@ -124,7 +125,7 @@
                 document.getElementById('loader').style.display = 'none';
                 render(allData);
             } catch (e) {
-                document.getElementById('loader').innerHTML = "<div style='color:#ef4444; font-weight:700;'>Ошибка</div>";
+                document.getElementById('loader').innerHTML = "<div style='color:#f87171;'>Ошибка связи</div>";
             }
         }
 
@@ -160,19 +161,14 @@
                         </div>`;
                 }).join('');
 
-                card.onclick = () => {
-                    const subs = card.querySelector('.subs-container');
-                    subs.classList.toggle('open');
-                };
+                card.onclick = () => card.querySelector('.subs-container').classList.toggle('open');
 
                 card.innerHTML = `
                     <div class="student-header">
                         <h2 class="student-name">${student.studentName}</h2>
                         <div class="score-pill ${getStyle(student.totalAverage)}">${student.totalAverage}</div>
                     </div>
-                    <div class="subs-container">
-                        ${subsHtml}
-                    </div>
+                    <div class="subs-container">${subsHtml}</div>
                 `;
                 container.appendChild(card);
             });
@@ -185,9 +181,9 @@
 
         const tg = window.Telegram?.WebApp;
         if(tg) {
-            tg.expand();
-            tg.ready();
-            tg.headerColor = '#dbe7e4'; 
+            tg.expand(); tg.ready();
+            tg.headerColor = '#2d3735'; 
+            tg.backgroundColor = '#2d3735';
         }
         
         init();
