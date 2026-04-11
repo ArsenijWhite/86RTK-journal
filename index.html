@@ -11,88 +11,102 @@
             --bg: #2d3735; 
             --card: #3a4744;
             --accent: #10b981;
-            --skeleton: rgba(255, 255, 255, 0.05);
+            --text: #e2e8f0;
+            --muted: #94a3b8;
         }
 
         html, body {
             background-color: var(--bg) !important;
             margin: 0; padding: 0; min-height: 100vh;
             font-family: 'Manrope', sans-serif;
-            color: #e2e8f0; letter-spacing: -0.02em;
-            -webkit-font-smoothing: antialiased;
+            color: var(--text);
             overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
         }
 
         body { padding: 20px; box-sizing: border-box; }
 
-        /* КРУТОЙ ЭФФЕКТ ЗАГРУЗКИ (SKELETON) */
+        /* КРУТОЙ ЛИНЕЙНЫЙ ЛОАДЕР */
         #loader {
-            position: fixed; top: 80px; left: 20px; right: 20px; z-index: 100;
-            display: flex; flex-direction: column; gap: 15px;
-            animation: fadeIn 0.5s ease-out forwards;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            background: var(--bg); z-index: 1000; transition: opacity 0.4s ease;
         }
 
-        .skeleton-card {
-            height: 80px; background: var(--card); border-radius: 24px;
-            position: relative; overflow: hidden;
+        .loader-text {
+            font-size: 13px; font-weight: 700; color: var(--muted);
+            text-transform: uppercase; letter-spacing: 0.15em;
+            margin-bottom: 20px; animation: pulseText 1.5s infinite ease-in-out;
         }
 
-        .skeleton-card::after {
-            content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.03), transparent);
-            animation: wave 1.5s infinite;
+        .progress-container {
+            width: 140px; height: 3px; background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px; overflow: hidden; position: relative;
         }
 
-        @keyframes wave {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
+        .progress-bar {
+            width: 60px; height: 100%; background: var(--accent);
+            border-radius: 10px; position: absolute;
+            animation: slideLine 1.2s infinite ease-in-out;
+            box-shadow: 0 0 10px var(--accent);
         }
 
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideLine {
+            0% { left: -60px; }
+            50% { left: 140px; }
+            100% { left: -60px; }
+        }
 
-        /* Основной контент */
-        .header-title { font-size: 28px; font-weight: 800; margin-bottom: 24px; }
+        @keyframes pulseText {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 1; }
+        }
+
+        /* ОСНОВНОЙ КОНТЕНТ */
+        #main-content { opacity: 0; transform: translateY(10px); transition: all 0.5s ease; }
+        #main-content.visible { opacity: 1; transform: translateY(0); }
+
+        .header-title { font-size: 28px; font-weight: 800; margin-bottom: 24px; color: #fff; }
+
         #search {
-            width: 100%; border: none; padding: 16px; border-radius: 18px;
-            background: rgba(255, 255, 255, 0.07); color: white;
+            width: 100%; border: none; padding: 16px 20px; border-radius: 18px;
+            background: rgba(255, 255, 255, 0.07); color: #fff;
             font-size: 16px; margin-bottom: 24px; outline: none; box-sizing: border-box;
         }
 
         .card {
             background: var(--card); border-radius: 28px; padding: 22px; margin-bottom: 18px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            transition: transform 0.2s ease;
+            border: 1px solid rgba(255, 255, 255, 0.05); box-shadow: 0 8px 24px rgba(0,0,0,0.15);
         }
-        
-        .student-header { display: flex; justify-content: space-between; align-items: center; }
-        .score-pill { font-size: 13px; font-weight: 800; padding: 5px 12px; border-radius: 10px; }
 
-        /* Цвета оценок */
+        .student-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .score-pill { font-size: 13px; font-weight: 800; padding: 5px 12px; border-radius: 10px; min-width: 35px; text-align: center; }
+
         .m-high { background: #065f46; color: #a7f3d0; }
         .m-mid  { background: #1e3a8a; color: #bfdbfe; }
         .m-warn { background: #78350f; color: #fef08a; }
         .m-low  { background: #7f1d1d; color: #fecaca; }
 
-        .subs-container { display: none; margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px; }
-        .subs-container.open { display: block; }
-        .sub-row { padding: 12px 0; display: flex; justify-content: space-between; }
+        .subs-container { display: none; margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 15px; }
+        .subs-container.open { display: block; animation: slideIn 0.3s ease; }
 
-        .hidden { display: none !important; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+        * { -webkit-tap-highlight-color: transparent; user-select: none; }
     </style>
 </head>
 <body>
 
-    <!-- Скелетная загрузка -->
+    <!-- Линейный лоадер -->
     <div id="loader">
-        <div class="skeleton-card"></div>
-        <div class="skeleton-card"></div>
-        <div class="skeleton-card" style="height: 120px"></div>
-        <div class="skeleton-card"></div>
+        <div class="loader-text">Инициализация</div>
+        <div class="progress-container">
+            <div class="progress-bar"></div>
+        </div>
     </div>
 
-    <div id="main-content" class="hidden">
+    <div id="main-content">
         <div class="header-title">Журнал</div>
-        <input type="text" id="search" placeholder="Поиск фамилии...">
+        <input type="text" id="search" placeholder="Поиск по фамилии...">
         <div id="content"></div>
     </div>
 
@@ -100,29 +114,34 @@
         const API_URL = 'ВАША_ССЫЛКА_EXEC';
         const tg = window.Telegram.WebApp;
 
-        // ФОРСИРОВАННЫЙ ПОЛНЫЙ ЭКРАН
-        function expandApp() {
+        // Полноэкранный режим
+        function setupApp() {
             tg.ready();
             tg.expand();
-            if (tg.requestFullscreen) tg.requestFullscreen(); // Для новых версий
+            tg.headerColor = '#2d3735';
+            tg.backgroundColor = '#2d3735';
         }
 
         async function init() {
-            expandApp();
+            setupApp();
             try {
                 const res = await fetch(API_URL);
                 const data = await res.json();
                 
-                // Плавный переход от лоадера к контенту
-                document.getElementById('loader').style.opacity = '0';
+                // Плавное переключение
+                const loader = document.getElementById('loader');
+                const main = document.getElementById('main-content');
+                
+                loader.style.opacity = '0';
                 setTimeout(() => {
-                    document.getElementById('loader').classList.add('hidden');
-                    document.getElementById('main-content').classList.remove('hidden');
+                    loader.style.display = 'none';
+                    main.classList.add('visible');
                     render(data);
                 }, 400);
 
             } catch (e) {
-                document.getElementById('loader').innerHTML = "Ошибка сети";
+                document.querySelector('.loader-text').innerText = "Ошибка сети";
+                document.querySelector('.progress-bar').style.background = "#ef4444";
             }
         }
 
@@ -143,8 +162,8 @@
                 card.onclick = () => card.querySelector('.subs-container').classList.toggle('open');
                 
                 let subs = student.subjects.map(s => `
-                    <div class="sub-row">
-                        <span style="font-size:14px; opacity:0.7">${s.subject}</span>
+                    <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.03)">
+                        <span style="font-size:14px; opacity:0.6">${s.subject}</span>
                         <span class="score-pill ${getStyle(s.avg)}">${s.avg}</span>
                     </div>
                 `).join('');
@@ -160,11 +179,20 @@
             });
         }
 
-        expandApp();
+        // Поиск
+        document.getElementById('search').oninput = (e) => {
+            const val = e.target.value.toLowerCase().trim();
+            const cards = document.querySelectorAll('.card');
+            cards.forEach(card => {
+                const name = card.querySelector('.student-name')?.innerText.toLowerCase() || 
+                             card.querySelector('span').innerText.toLowerCase();
+                card.style.display = name.includes(val) ? 'block' : 'none';
+            });
+        };
+
         init();
-        
-        // Повторный вызов расширения при любом клике (лайфхак для браузеров)
-        document.body.addEventListener('click', () => { if (!tg.isExpanded) tg.expand(); });
+        // Лайфхак для открытия на весь экран при первом касании
+        document.addEventListener('touchstart', () => { if(!tg.isExpanded) tg.expand(); }, {passive: true});
     </script>
 </body>
 </html>
