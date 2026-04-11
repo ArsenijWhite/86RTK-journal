@@ -72,7 +72,7 @@
             return 'm-other';
         }
 
-        function render(data) {
+                function render(data) {
             const container = document.getElementById('content');
             container.innerHTML = '';
             
@@ -81,9 +81,12 @@
                 card.className = 'card';
                 
                 const subsHtml = student.subjects.map(s => {
-                    const marksHtml = s.marks.map(m => `
+                    // --- ВОТ ЭТОТ ИСПРАВЛЕННЫЙ БЛОК (примерно 84-88 строки) ---
+                    const marksArray = Array.isArray(s.marks) ? s.marks : [];
+                    const marksHtml = marksArray.map(m => `
                         <div class="mark-pill ${getMarkClass(m)}">${m}</div>
                     `).join('');
+                    // -------------------------------------------------------
 
                     return `
                         <div class="sub-row">
@@ -92,7 +95,7 @@
                                 <div class="sub-avg">${s.avg}</div>
                             </div>
                             <div class="sub-details">
-                                <div class="marks-container">${marksHtml || '<small>Оценок пока нет</small>'}</div>
+                                <div class="marks-container">${marksHtml || '<small class="text-gray-400">Оценок нет</small>'}</div>
                             </div>
                         </div>
                     `;
