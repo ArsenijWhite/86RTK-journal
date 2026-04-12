@@ -12,7 +12,7 @@
         }
         * { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; user-select: none; box-sizing: border-box; }
         html, body { background-color: var(--bg); margin: 0; padding: 0; color: var(--text); overflow-y: auto; min-height: 100vh; }
-        body { padding: 20px; padding-bottom: 80px; } /* Отступ снизу для кнопок */
+        body { padding: 20px; padding-bottom: 100px; }
 
         /* Лоадер */
         #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s; }
@@ -28,7 +28,7 @@
         @keyframes breath { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
         @keyframes blink-red { 0%, 100% { opacity: 1; } 50% { opacity: 0.1; } }
 
-        /* Контент */
+        /* Интерфейс */
         #main-content { opacity: 0; transition: 0.5s; }
         .header-title { font-size: 22px; font-weight: 800; margin-bottom: 15px; }
         #search { width: 100%; border: 1px solid rgba(255,255,255,0.1); padding: 14px 18px; border-radius: 15px; background: rgba(255,255,255,0.05); color: #fff; font-size: 16px; outline: none; margin-bottom: 15px; }
@@ -45,26 +45,25 @@
 
         .subs-container { display: none; padding-top: 15px; margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.05); }
         .subs-container.open { display: block; }
-        .sub-item { margin-bottom: 12px; }
-        .sub-row { display: flex; justify-content: space-between; align-items: center; }
+        .sub-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         
-        .marks-box { display: none; flex-wrap: wrap; gap: 5px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 12px; margin-top: 8px; }
+        .marks-box { display: none; flex-wrap: wrap; gap: 5px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 12px; margin-top: 5px; margin-bottom: 10px; }
         .marks-box.open { display: flex; }
         .mark { width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; border-radius: 6px; font-size: 11px; font-weight: 800; }
 
-        /* ФЛОАТ КНОПКИ */
-        .fab-container { position: fixed; bottom: 25px; right: 20px; display: flex; flex-direction: column; gap: 12px; z-index: 999; }
+        /* ПЛАВАЮЩИЕ КНОПКИ */
+        .fab-container { position: fixed; bottom: 30px; right: 20px; display: flex; flex-direction: column; gap: 15px; z-index: 999; }
         .fab { 
-            width: 44px; height: 44px; border-radius: 50%; 
+            width: 48px; height: 48px; border-radius: 50%; 
             background: rgba(255, 255, 255, 0.08); 
-            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
             border: 0.5px solid rgba(255, 255, 255, 0.4); 
             display: flex; align-items: center; justify-content: center; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            transition: all 0.2s ease;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .fab:active { transform: scale(0.9); background: rgba(255, 255, 255, 0.15); }
-        .fab svg { width: 20px; height: 20px; fill: #fff; }
+        .fab:active { transform: scale(0.85); background: rgba(255, 255, 255, 0.15); }
+        .fab svg { width: 22px; height: 22px; fill: #fff; }
     </style>
 </head>
 <body>
@@ -80,12 +79,12 @@
         <div id="list"></div>
     </div>
 
-    <!-- Кнопки управления -->
+    <!-- Блок кнопок -->
     <div class="fab-container">
-        <div class="fab" onclick="forceUpdate()" title="Обновить данные">
+        <div class="fab" onclick="forceUpdate()">
             <svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z""")/>></svg>
         </div>
-        <div class="fab" onclick="window.Telegram.WebApp.openTelegramLink('https://t.me')" title="Разработчик">
+        <div class="fab" onclick="openDev()">
             <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .33z""")/>></svg>
         </div>
     </div>
@@ -129,7 +128,7 @@
                 if (!ALL_DATA.length) {
                     const loader = document.getElementById('loader');
                     loader.classList.add('error-state');
-                    document.querySelector('.loader-text').innerText = "Ошибка сети";
+                    document.querySelector('.loader-text').innerText = "Ошибка загрузки";
                     if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
                 }
             }
@@ -143,6 +142,14 @@
             loader.classList.remove('error-state');
             document.querySelector('.loader-text').innerText = "Обновление...";
             init(true);
+        }
+
+        function openDev() {
+            if (tg && tg.openTelegramLink) {
+                tg.openTelegramLink('https://t.me');
+            } else {
+                window.open('https://t.me', '_blank');
+            }
         }
 
         function hideLoader() {
