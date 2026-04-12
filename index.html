@@ -8,20 +8,37 @@
     <style>
         :root {
             --bg: #2d3735; --card: #3a4744; --accent: #10b981; --text: #e2e8f0; --muted: #94a3b8;
+            --error: #ff3b30;
         }
         * { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; user-select: none; box-sizing: border-box; }
         html, body { background-color: var(--bg); margin: 0; padding: 0; color: var(--text); overflow-y: auto; min-height: 100vh; }
         body { padding: 20px; }
 
-        /* Лоадер */
+        /* --- ЛОАДЕР --- */
         #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s; }
         .loader-text { font-size: 11px; font-weight: 700; color: #fff; text-transform: uppercase; letter-spacing: 0.4em; margin-bottom: 25px; animation: breath 2s infinite; }
+        
         .progress-w { width: 150px; height: 2px; background: rgba(255,255,255,0.1); border-radius: 10px; overflow: hidden; position: relative; }
         .progress-l { width: 70px; height: 100%; background: #fff; position: absolute; left: -70px; animation: move 2s infinite; box-shadow: 0 0 10px #fff; }
+
+        /* --- СОСТОЯНИЕ ОШИБКИ --- */
+        #loader.error-state .progress-l {
+            animation: blink-red 0.8s infinite !important;
+            width: 100% !important;
+            left: 0 !important;
+            background: var(--error) !important;
+            box-shadow: 0 0 15px var(--error) !important;
+        }
+        #loader.error-state .loader-text {
+            color: var(--error) !important;
+            animation: none !important;
+        }
+
         @keyframes move { 0% { left: -70px; } 100% { left: 150px; } }
         @keyframes breath { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+        @keyframes blink-red { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
-        /* Интерфейс */
+        /* --- ИНТЕРФЕЙС --- */
         #main-content { display: none; opacity: 0; transition: 0.5s; }
         .header-title { font-size: 22px; font-weight: 800; margin-bottom: 15px; }
         #search { width: 100%; border: 1px solid rgba(255,255,255,0.1); padding: 14px 18px; border-radius: 15px; background: rgba(255,255,255,0.05); color: #fff; font-size: 16px; outline: none; margin-bottom: 15px; }
@@ -82,7 +99,11 @@
             }
             try {
                 const res = await fetch(API_URL);
+                if (!res.ok) throw new Error(); // Проверка на статус ответа
                 ALL_DATA = await res.json();
+                
+                if (ALL_DATA.error) throw new Error(); // Если GAS вернул объект с ошибкой
+
                 render(ALL_DATA);
                 
                 document.getElementById('loader').style.opacity = '0';
@@ -93,7 +114,11 @@
                     setTimeout(() => mc.style.opacity = '1', 50);
                 }, 500);
             } catch (e) {
+                // АКТИВАЦИЯ ОШИБКИ
+                const loader = document.getElementById('loader');
+                loader.classList.add('error-state');
                 document.querySelector('.loader-text').innerText = "Ошибка загрузки";
+                if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
             }
         }
 
@@ -101,23 +126,13 @@
             const container = document.getElementById('list');
             container.innerHTML = '';
             
-            // 1. Сортировка ПО АЛФАВИТУ
-            const sortedAlphabet = [...items].sort((a, b) => 
-                a.studentName.localeCompare(b.studentName)
-            );
-
-            // 2. Поиск ТОП-3 по успеваемости (для медалей)
-            const topByScore = [...items]
-                .sort((a, b) => parseFloat(b.totalAverage.replace(',','.')) - parseFloat(a.totalAverage.replace(',','.')))
-                .slice(0, 3)
-                .map(s => s.studentName);
-
+            const sortedAlphabet = [...items].sort((a, b) => a.studentName.localeCompare(b.studentName));
+            const topByScore = [...items].sort((a, b) => parseFloat(b.totalAverage.replace(',','.')) - parseFloat(a.totalAverage.replace(',','.'))).slice(0, 3).map(s => s.studentName);
             const crowns = ['🥇', '🥈', '🥉'];
 
             sortedAlphabet.forEach(s => {
                 const card = document.createElement('div');
                 card.className = 'card';
-                
                 const topIdx = topByScore.indexOf(s.studentName);
                 const isTop = topIdx !== -1;
 
@@ -154,8 +169,7 @@
 
         document.getElementById('search').oninput = (e) => {
             const val = e.target.value.toLowerCase();
-            const filtered = ALL_DATA.filter(x => x.studentName.toLowerCase().includes(val));
-            render(filtered);
+            render(ALL_DATA.filter(x => x.studentName.toLowerCase().includes(val)));
         };
 
         init();
