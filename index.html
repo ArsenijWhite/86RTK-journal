@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Журнал Э-24</title>
     <script src="https://telegram.org"></script>
-    <link href="https://googleapis.com" rel="stylesheet">
     <style>
         :root {
             --bg: #2d3735; --card: #3a4744; --accent: #10b981; --text: #e2e8f0; --muted: #94a3b8;
@@ -15,104 +14,103 @@
         html, body { background-color: var(--bg) !important; margin: 0; padding: 0; color: var(--text); overflow-y: auto; }
         body { padding: 20px; box-sizing: border-box; min-height: 100vh; }
 
-        /* --- БЕЛЫЙ ЛОАДЕР --- */
+        /* --- ЛОАДЕР --- */
         #loader { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             background: var(--bg); z-index: 1000; 
             display: flex; flex-direction: column; align-items: center; justify-content: center; 
             transition: opacity 0.6s ease, visibility 0.6s; 
         }
-        
-        .loader-text { 
-            font-size: 12px; font-weight: 700; 
-            color: #ffffff; /* Чисто белый текст */
-            text-transform: uppercase; letter-spacing: 0.4em; 
-            margin-bottom: 30px; animation: textBreath 2s infinite ease-in-out; 
-            text-shadow: 0 0 10px rgba(255, 255, 255, 0.3); 
-        }
-
-        .progress-wrapper { 
-            width: 180px; height: 2px; 
-            background: rgba(255, 255, 255, 0.1); 
-            border-radius: 10px; position: relative; overflow: hidden; 
-        }
-
-        .progress-line { 
-            width: 80px; height: 100%; 
-            background: #ffffff; /* Чисто белая полоска */
-            border-radius: 10px; position: absolute; left: -80px; 
-            animation: moveLine 2.2s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite; 
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.6); 
-        }
-
+        .loader-text { font-size: 12px; font-weight: 700; color: #ffffff; text-transform: uppercase; letter-spacing: 0.4em; margin-bottom: 30px; animation: textBreath 2s infinite ease-in-out; }
+        .progress-wrapper { width: 180px; height: 2px; background: rgba(255, 255, 255, 0.1); border-radius: 10px; position: relative; overflow: hidden; }
+        .progress-line { width: 80px; height: 100%; background: #ffffff; position: absolute; left: -80px; animation: moveLine 2.2s infinite; }
         @keyframes moveLine { 0% { transform: translateX(0); } 50% { transform: translateX(260px); } 100% { transform: translateX(0); } }
         @keyframes textBreath { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
 
-        /* --- КОНТЕНТ (остальное без изменений) --- */
+        /* --- КОНТЕНТ --- */
         #main-content { opacity: 0; transform: translateY(10px); transition: all 0.6s ease-out; display: none; }
         #main-content.visible { opacity: 1; transform: translateY(0); display: block; }
-        .header-title { font-size: 26px; font-weight: 700; margin-bottom: 20px; letter-spacing: -0.02em; }
-        #search { width: 100%; border: none; padding: 16px 20px; border-radius: 16px; background: rgba(255, 255, 255, 0.08); color: #fff; font-size: 17px; outline: none; box-sizing: border-box; margin-bottom: 20px; }
+        
+        .header-title { font-size: 24px; font-weight: 700; margin-bottom: 20px; }
+        #search { width: 100%; border: none; padding: 16px 20px; border-radius: 16px; background: rgba(255, 255, 255, 0.08); color: #fff; font-size: 17px; outline: none; box-sizing: border-box; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.05); }
 
-        .card { background: var(--card); border-radius: 24px; padding: 20px; margin-bottom: 16px; border: 1px solid rgba(255, 255, 255, 0.05); box-shadow: 0 10px 30px rgba(0,0,0,0.15); cursor: pointer; position: relative; }
-        .student-header { display: flex; justify-content: space-between; align-items: center; pointer-events: none; }
-        .score-pill { font-size: 12px; font-weight: 800; padding: 4px 8px; border-radius: 7px; min-width: 28px; text-align: center; }
-        .score-pill-large { font-size: 14px; font-weight: 800; padding: 6px 12px; border-radius: 10px; min-width: 34px; text-align: center; }
+        .card { background: var(--card); border-radius: 24px; padding: 20px; margin-bottom: 16px; border: 1px solid rgba(255, 255, 255, 0.05); cursor: pointer; transition: transform 0.1s; }
+        .card:active { transform: scale(0.98); }
+        
+        .student-header { display: flex; justify-content: space-between; align-items: center; }
+        .student-info { display: flex; align-items: center; gap: 8px; }
+        .student-name { font-size: 17px; font-weight: 600; }
 
+        .score-pill { font-size: 11px; font-weight: 800; padding: 4px 8px; border-radius: 8px; min-width: 28px; text-align: center; }
+        .score-pill-large { font-size: 14px; font-weight: 800; padding: 6px 12px; border-radius: 10px; }
+
+        /* ОЦЕНКИ ЦВЕТА */
         .m-low  { background: #ff3b30; color: #fff; } 
         .m-warn { background: #ff9f0a; color: #fff; } 
         .m-high { background: #248a3d; color: #fff; } 
-        .m-gold { background: linear-gradient(145deg, #ffea00, #ff9500); color: #000; box-shadow: 0 0 15px rgba(255, 215, 0, 0.4), inset 0 0 5px #fff; font-weight: 900 !important; border: 0.5px solid #fff; }
+        .m-gold { background: linear-gradient(145deg, #ffea00, #ff9500); color: #000; font-weight: 900; }
+        .m-none { background: rgba(255,255,255,0.1); color: var(--muted); }
 
-        .subs-container { display: none; margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px; }
+        /* ПРЕДМЕТЫ ВНУТРИ */
+        .subs-container { display: none; margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 10px; }
         .subs-container.open { display: block; }
-        .sub-row { display: flex; justify-content: space-between; padding: 8px 0; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.03); }
-        .marks-container { display: none; flex-wrap: wrap; gap: 5px; margin-top: 10px; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 12px; }
-        .marks-container.open { display: flex; }
-        .mark-pill { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 7px; font-size: 12px; font-weight: 800; }
         
-        .crown { margin-left: 6px; font-size: 16px; filter: drop-shadow(0 0 5px gold); }
+        .sub-item { margin-bottom: 12px; }
+        .sub-row { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; }
+        .sub-name { font-size: 13px; color: var(--muted); font-weight: 500; }
+
+        .marks-container { display: none; flex-wrap: wrap; gap: 6px; margin-top: 8px; padding: 10px; background: rgba(0,0,0,0.15); border-radius: 12px; }
+        .marks-container.open { display: flex; }
+        .mark-pill { width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; border-radius: 6px; font-size: 11px; font-weight: 800; }
+        
+        .crown { font-size: 16px; }
     </style>
 </head>
 <body>
 
     <div id="loader">
         <div class="loader-text">Загрузка</div>
-        <div class="progress-wrapper">
-            <div class="progress-line"></div>
-        </div>
+        <div class="progress-wrapper"><div class="progress-line"></div></div>
     </div>
 
     <div id="main-content">
-        <div class="header-title">Журнал группы 86РТК</div>
-        <input type="text" id="search" placeholder="Поиск">
+        <div class="header-title">Журнал группы</div>
+        <input type="text" id="search" placeholder="Поиск по фамилии...">
         <div id="content"></div>
     </div>
 
     <script>
-        const API_URL = 'https://script.google.com/macros/s/AKfycbxJjvvps-faFyjFwm8tED8OhYQFCLl6UwyRQfIJEGLLa9Hpq_cMVUIDB1LY-qLJgxrV/exec'; 
-        const tg = window.Telegram?.WebApp;
+        const API_URL = 'https://script.google.com/macros/s/AKfycbzSdD7jveUFnXFqU9uPzB0SFIZvowSK2VW4QcWaSsSjLXUwNgi4cONtDBIuy99QlXnH/exec'; 
+        const tg = window.Telegram.WebApp;
+        let ALL_DATA = [];
 
         async function init() {
-            if (tg) { tg.ready(); tg.expand(); tg.headerColor = '#2d3735'; tg.backgroundColor = '#2d3735'; }
+            tg.ready();
+            tg.expand();
+            tg.headerColor = '#2d3735';
+            
             try {
                 const res = await fetch(API_URL);
-                const data = await res.json();
+                ALL_DATA = await res.json();
+                
                 document.getElementById('loader').style.opacity = '0';
                 setTimeout(() => {
                     document.getElementById('loader').style.visibility = 'hidden';
                     document.getElementById('main-content').style.display = 'block';
                     setTimeout(() => document.getElementById('main-content').classList.add('visible'), 50);
-                    render(data);
+                    render(ALL_DATA);
                 }, 600);
-            } catch (e) { document.querySelector('.loader-text').innerText = "Ошибка загрузки"; }
+            } catch (e) {
+                document.querySelector('.loader-text').innerText = "Ошибка сети";
+            }
         }
 
         function getStyle(m) {
             const v = parseFloat(String(m).replace(',', '.'));
-            if (v >= 10) return 'm-gold';
-            if (v >= 7)  return 'm-high';
-            if (v >= 4)  return 'm-warn';
+            if (isNaN(v) || v === 0) return 'm-none';
+            if (v >= 9) return 'm-gold';
+            if (v >= 7) return 'm-high';
+            if (v >= 4) return 'm-warn';
             return 'm-low';
         }
 
@@ -120,51 +118,67 @@
             const container = document.getElementById('content');
             container.innerHTML = '';
             
-            const sorted = [...data].sort((a, b) => parseFloat(String(b.totalAverage).replace(',', '.')) - parseFloat(String(a.totalAverage).replace(',', '.')));
-            const topNames = sorted.slice(0, 3).map(s => s.studentName);
+            // Сортируем по общему среднему баллу
+            const sorted = [...data].sort((a, b) => 
+                parseFloat(String(b.totalAverage).replace(',', '.')) - 
+                parseFloat(String(a.totalAverage).replace(',', '.'))
+            );
 
-            data.forEach(student => {
+            const top3Names = sorted.slice(0, 3).map(s => s.studentName);
+            const crowns = ['🥇', '🥈', '🥉'];
+
+            sorted.forEach(student => {
                 const card = document.createElement('div');
                 card.className = 'card';
-                const isTop = topNames.includes(student.studentName);
                 
-                card.onclick = () => {
-                    if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
-                    card.querySelector('.subs-container').classList.toggle('open');
-                };
-
-                let subs = student.subjects.map(s => {
-                    const marks = Array.isArray(s.marks) ? s.marks : [];
-                    const marksHtml = marks.map(m => `<div class="mark-pill ${getStyle(m)}">${m}</div>`).join('');
-                    return `
-                        <div onclick="event.stopPropagation(); this.querySelector('.marks-container').classList.toggle('open')">
-                            <div class="sub-row">
-                                <span style="font-size:13px; opacity:0.7; font-weight:500;">${s.subject}</span>
-                                <span class="score-pill ${getStyle(s.avg)}">${s.avg}</span>
-                            </div>
-                            <div class="marks-container">${marksHtml || '<small style="font-size:10px; opacity:0.4">Нет оценок</small>'}</div>
-                        </div>`;
-                }).join('');
+                const topIdx = top3Names.indexOf(student.studentName);
+                const isTop = topIdx !== -1;
 
                 card.innerHTML = `
                     <div class="student-header">
-                        <span style="font-weight:700; font-size:17px; display:flex; align-items:center;">
-                            ${student.studentName} ${isTop ? '<span class="crown">👑</span>' : ''}
-                        </span>
-                        <div class="score-pill-large ${getStyle(student.totalAverage)}">${student.totalAverage}</div>
+                        <div class="student-info">
+                            <span class="student-name">${student.studentName}</span>
+                            ${isTop ? `<span class="crown">${crowns[topIdx]}</span>` : ''}
+                        </div>
+                        <span class="score-pill-large ${getStyle(student.totalAverage)}">${student.totalAverage}</span>
                     </div>
-                    <div class="subs-container">${subs}</div>`;
+                    <div class="subs-container">
+                        ${student.subjects.map(s => `
+                            <div class="sub-item" onclick="event.stopPropagation(); toggleMarks(this)">
+                                <div class="sub-row">
+                                    <span class="sub-name">${s.subject}</span>
+                                    <span class="score-pill ${getStyle(s.avg)}">${s.avg}</span>
+                                </div>
+                                <div class="marks-container">
+                                    ${s.marks.map(m => `<div class="mark-pill ${getStyle(m)}">${m}</div>`).join('') || '<span style="font-size:10px; opacity:0.3">Нет оценок</span>'}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+
+                card.onclick = () => {
+                    if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+                    card.querySelector('.subs-container').classList.toggle('open');
+                };
+                
                 container.appendChild(card);
             });
         }
 
-        document.getElementById('search').oninput = (e) => {
-            const val = e.target.value.toLowerCase().trim();
-            document.querySelectorAll('.card').forEach(card => card.style.display = card.innerText.toLowerCase().includes(val) ? 'block' : 'none');
-        };
+        function toggleMarks(el) {
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('soft');
+            el.querySelector('.marks-container').classList.toggle('open');
+        }
+
+        // Логика поиска
+        document.getElementById('search').addEventListener('input', (e) => {
+            const val = e.target.value.toLowerCase();
+            const filtered = ALL_DATA.filter(s => s.studentName.toLowerCase().includes(val));
+            render(filtered);
+        });
 
         init();
-        document.addEventListener('touchstart', () => { if(tg && !tg.isExpanded) tg.expand(); }, {passive: true});
     </script>
 </body>
 </html>
