@@ -12,7 +12,7 @@
         }
         * { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; user-select: none; box-sizing: border-box; }
         html, body { background-color: var(--bg); margin: 0; padding: 0; color: var(--text); overflow-y: auto; min-height: 100vh; }
-        body { padding: 20px; padding-bottom: 120px; }
+        body { padding: 20px; padding-bottom: 40px; }
 
         /* Лоадер */
         #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s; }
@@ -25,24 +25,14 @@
         @keyframes breath { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
         @keyframes blink-red { 0%, 100% { opacity: 1; } 50% { opacity: 0.1; } }
 
-        /* Интерфейс */
+        /* Контент */
         #main-content { opacity: 0; transition: 0.5s; }
         .header-title { font-size: 22px; font-weight: 800; margin-bottom: 15px; }
-        
-        #search { 
-            width: 100%; border: 1px solid rgba(255,255,255,0.1); padding: 14px 18px; border-radius: 15px; 
-            background: rgba(255,255,255,0.05); color: #fff; font-size: 16px; outline: none; margin-bottom: 15px;
-            transition: all 0.3s ease;
-        }
-        #search:focus { border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.08); }
+        #search { width: 100%; border: 1px solid rgba(255,255,255,0.1); padding: 14px 18px; border-radius: 15px; background: rgba(255,255,255,0.05); color: #fff; font-size: 16px; outline: none; margin-bottom: 15px; transition: 0.3s; }
+        #search:focus { border-color: rgba(255,255,255,0.3); }
 
-        /* Карточки с откликом */
-        .card { 
-            background: var(--card); border-radius: 20px; padding: 18px; margin-bottom: 12px; 
-            border: 1px solid rgba(255,255,255,0.05); transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
-        }
+        .card { background: var(--card); border-radius: 20px; padding: 18px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.05); transition: all 0.2s; }
         .card:active { transform: scale(0.96); background: rgba(255,255,255,0.1); }
-        
         .student-header { display: flex; justify-content: space-between; align-items: center; }
         .student-name { font-size: 16px; font-weight: 600; }
         
@@ -53,34 +43,27 @@
 
         .subs-container { display: none; padding-top: 15px; margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.05); }
         .subs-container.open { display: block; }
+        .sub-item { margin-bottom: 12px; transition: 0.1s; }
+        .sub-item:active { opacity: 0.8; }
+        .sub-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
         
-        .sub-item { margin-bottom: 12px; transition: opacity 0.1s; }
-        .sub-item:active { opacity: 0.5; }
-        
-        .sub-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .marks-box { display: none; flex-wrap: wrap; gap: 5px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 12px; margin-top: 5px; }
+        /* Аналитика и Оценки */
+        .marks-box { display: none; background: rgba(0,0,0,0.25); padding: 12px; border-radius: 14px; margin-top: 5px; flex-direction: column; gap: 10px; }
         .marks-box.open { display: flex; }
+        .marks-row { display: flex; flex-wrap: wrap; gap: 5px; }
         .mark { width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; border-radius: 6px; font-size: 11px; font-weight: 800; }
+        
+        .analytic-tip { font-size: 10px; color: var(--accent); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; background: rgba(16, 185, 129, 0.1); padding: 4px 8px; border-radius: 6px; display: inline-block; }
 
-        /* Стеклянные кнопки */
-        .fab-container { position: fixed; bottom: 30px; right: 20px; display: flex; flex-direction: column; gap: 15px; z-index: 999; }
-        .fab { 
-            width: 52px; height: 52px; border-radius: 50%; 
-            background: rgba(255, 255, 255, 0.08); 
-            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-            border: 0.5px solid rgba(255, 255, 255, 0.4); 
-            display: flex; align-items: center; justify-content: center; 
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .fab:active { transform: scale(0.88); background: rgba(255, 255, 255, 0.2); }
-        .fab svg { width: 24px; height: 24px; fill: #fff; }
+        .fab-update { position: fixed; bottom: 30px; right: 20px; width: 52px; height: 52px; border-radius: 50%; background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 0.5px solid rgba(255, 255, 255, 0.4); display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 32px rgba(0,0,0,0.3); z-index: 999; transition: all 0.2s; }
+        .fab-update:active { transform: scale(0.88); background: rgba(255, 255, 255, 0.2); }
+        .fab-update svg { width: 24px; height: 24px; fill: #fff; }
     </style>
 </head>
 <body>
 
     <div id="loader">
-        <div class="loader-text">Загрузка данных</div>
+        <div class="loader-text">Загрузка данных...</div>
         <div class="progress-w"><div class="progress-l"></div></div>
     </div>
 
@@ -90,13 +73,8 @@
         <div id="list"></div>
     </div>
 
-    <div class="fab-container">
-        <div class="fab" onclick="forceUpdate()">
-            <svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z""")/>></svg>
-        </div>
-        <div class="fab" onclick="openDev()">
-            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .33z""")/>></svg>
-        </div>
+    <div class="fab-update" onclick="forceUpdate()">
+        <svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z""")/>></svg>
     </div>
 
     <script>
@@ -113,9 +91,29 @@
             return 'm-low';
         }
 
+        // Функция расчета аналитики
+        function calcNeed(currentAvg, marks) {
+            let avg = parseFloat(String(currentAvg).replace(',', '.'));
+            if (isNaN(avg) || avg >= 10 || marks.length === 0) return null;
+
+            let target = Math.ceil(avg + 0.001); // Следующее целое
+            if (target > 10) target = 10;
+
+            let count = marks.length;
+            let sum = marks.reduce((a, b) => a + (parseFloat(b) || 0), 0);
+            
+            // Считаем сколько "десяток" нужно
+            for (let i = 1; i <= 10; i++) {
+                let newAvg = (sum + (i * 10)) / (count + i);
+                if (newAvg >= target) {
+                    return `До ${target}.0 нужно: ${i} отм. (10)`;
+                }
+            }
+            return null;
+        }
+
         async function init(force = false) {
             if (tg) { tg.ready(); tg.expand(); tg.headerColor = '#2d3735'; }
-            
             const cached = localStorage.getItem('journal_cache');
             const lastUpdate = localStorage.getItem('last_update_time');
             const ONE_WEEK = 7 * 24 * 60 * 60 * 1000;
@@ -123,24 +121,19 @@
 
             if (!force && cached && !isExpired) {
                 ALL_DATA = JSON.parse(cached);
-                render(ALL_DATA);
-                hideLoader();
+                render(ALL_DATA); hideLoader();
             }
 
             try {
                 const res = await fetch(API_URL);
                 const newData = await res.json();
-                if (newData.error) throw new Error();
                 ALL_DATA = newData;
                 localStorage.setItem('journal_cache', JSON.stringify(newData));
                 localStorage.setItem('last_update_time', Date.now().toString());
-                render(ALL_DATA);
-                hideLoader();
+                render(ALL_DATA); hideLoader();
             } catch (e) {
-                if (!ALL_DATA.length) {
-                    document.getElementById('loader').classList.add('error-state');
-                    if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
-                }
+                if (!ALL_DATA.length) document.getElementById('loader').classList.add('error-state');
+                if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
             }
         }
 
@@ -148,21 +141,7 @@
             if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
             const loader = document.getElementById('loader');
             loader.style.display = 'flex'; loader.style.opacity = '1';
-            loader.classList.remove('error-state');
-            init(true);
-        }
-
-        function openDev() {
-            if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
-            
-            // Нативный метод WebApp — самый надежный для открытия профиля внутри ТГ
-            if (window.Telegram?.WebApp?.openTelegramLink) {
-                window.Telegram.WebApp.openTelegramLink('https://t.me');
-            } else {
-                // Прямой протокол для мобильных браузеров
-                window.location.href = 'tg://resolve?domain=skwared';
-                setTimeout(() => { window.open('https://t.me', '_blank'); }, 500);
-            }
+            loader.classList.remove('error-state'); init(true);
         }
 
         function hideLoader() {
@@ -194,10 +173,17 @@
 
                 let subsHtml = validSubjects.map(sub => {
                     const cleanMarks = sub.marks.filter(m => m !== sub.avg);
+                    const tip = calcNeed(sub.avg, sub.marks); // Считаем подсказку
+                    
                     return `
                     <div class="sub-item" onclick="event.stopPropagation(); this.querySelector('.marks-box').classList.toggle('open'); if(tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('soft');">
                         <div class="sub-row"><span style="font-size:13px; opacity:0.7">${sub.subject}</span><span class="score-pill ${getStyle(sub.avg)}">${sub.avg}</span></div>
-                        <div class="marks-box">${cleanMarks.map(m => `<div class="mark ${getStyle(m)}">${m}</div>`).join('') || '<span style="font-size:10px; opacity:0.3">Только итоговая</span>'}</div>
+                        <div class="marks-box">
+                            ${tip ? `<div class="analytic-tip">${tip}</div>` : ''}
+                            <div class="marks-row">
+                                ${cleanMarks.map(m => `<div class="mark ${getStyle(m)}">${m}</div>`).join('') || '<span style="font-size:10px; opacity:0.3">Только итоговая</span>'}
+                            </div>
+                        </div>
                     </div>`;
                 }).join('');
 
