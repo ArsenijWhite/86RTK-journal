@@ -9,176 +9,130 @@
         :root {
             --bg: #2d3735; --card: #3a4744; --accent: #10b981; --text: #e2e8f0; --muted: #94a3b8;
         }
+        * { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; user-select: none; box-sizing: border-box; }
+        html, body { background-color: var(--bg); margin: 0; padding: 0; color: var(--text); overflow-y: auto; min-height: 100vh; }
+        body { padding: 20px; }
 
-        * { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; user-select: none; }
-        html, body { background-color: var(--bg) !important; margin: 0; padding: 0; color: var(--text); overflow-y: auto; }
-        body { padding: 20px; box-sizing: border-box; min-height: 100vh; }
+        /* Лоадер */
+        #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s; }
+        .loader-text { font-size: 11px; font-weight: 700; color: #fff; text-transform: uppercase; letter-spacing: 0.4em; margin-bottom: 25px; animation: breath 2s infinite; }
+        .progress-w { width: 150px; height: 2px; background: rgba(255,255,255,0.1); border-radius: 10px; overflow: hidden; position: relative; }
+        .progress-l { width: 70px; height: 100%; background: #fff; position: absolute; left: -70px; animation: move 2s infinite; box-shadow: 0 0 10px #fff; }
+        @keyframes move { 0% { left: -70px; } 100% { left: 150px; } }
+        @keyframes breath { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
 
-        /* --- ЛОАДЕР --- */
-        #loader { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: var(--bg); z-index: 1000; 
-            display: flex; flex-direction: column; align-items: center; justify-content: center; 
-            transition: opacity 0.6s ease, visibility 0.6s; 
-        }
-        .loader-text { font-size: 12px; font-weight: 700; color: #ffffff; text-transform: uppercase; letter-spacing: 0.4em; margin-bottom: 30px; animation: textBreath 2s infinite ease-in-out; }
-        .progress-wrapper { width: 180px; height: 2px; background: rgba(255, 255, 255, 0.1); border-radius: 10px; position: relative; overflow: hidden; }
-        .progress-line { width: 80px; height: 100%; background: #ffffff; position: absolute; left: -80px; animation: moveLine 2.2s infinite; }
-        @keyframes moveLine { 0% { transform: translateX(0); } 50% { transform: translateX(260px); } 100% { transform: translateX(0); } }
-        @keyframes textBreath { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
+        /* Интерфейс */
+        #main-content { display: none; opacity: 0; transition: 0.5s; }
+        .header-title { font-size: 22px; font-weight: 800; margin-bottom: 15px; }
+        #search { width: 100%; border: 1px solid rgba(255,255,255,0.1); padding: 14px 18px; border-radius: 15px; background: rgba(255,255,255,0.05); color: #fff; font-size: 16px; outline: none; margin-bottom: 15px; }
 
-        /* --- КОНТЕНТ --- */
-        #main-content { opacity: 0; transform: translateY(10px); transition: all 0.6s ease-out; display: none; }
-        #main-content.visible { opacity: 1; transform: translateY(0); display: block; }
-        
-        .header-title { font-size: 24px; font-weight: 700; margin-bottom: 20px; }
-        #search { width: 100%; border: none; padding: 16px 20px; border-radius: 16px; background: rgba(255, 255, 255, 0.08); color: #fff; font-size: 17px; outline: none; box-sizing: border-box; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.05); }
-
-        .card { background: var(--card); border-radius: 24px; padding: 20px; margin-bottom: 16px; border: 1px solid rgba(255, 255, 255, 0.05); cursor: pointer; transition: transform 0.1s; }
-        .card:active { transform: scale(0.98); }
-        
+        .card { background: var(--card); border-radius: 20px; padding: 18px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.05); }
         .student-header { display: flex; justify-content: space-between; align-items: center; }
-        .student-info { display: flex; align-items: center; gap: 8px; }
-        .student-name { font-size: 17px; font-weight: 600; }
-
-        .score-pill { font-size: 11px; font-weight: 800; padding: 4px 8px; border-radius: 8px; min-width: 28px; text-align: center; }
-        .score-pill-large { font-size: 14px; font-weight: 800; padding: 6px 12px; border-radius: 10px; }
-
-        /* ОЦЕНКИ ЦВЕТА */
-        .m-low  { background: #ff3b30; color: #fff; } 
-        .m-warn { background: #ff9f0a; color: #fff; } 
-        .m-high { background: #248a3d; color: #fff; } 
-        .m-gold { background: linear-gradient(145deg, #ffea00, #ff9500); color: #000; font-weight: 900; }
+        .student-name { font-size: 16px; font-weight: 600; }
+        
+        .score-pill { font-size: 11px; font-weight: 800; padding: 4px 8px; border-radius: 8px; min-width: 32px; text-align: center; }
+        .m-low { background: #ff3b30; } .m-warn { background: #ff9f0a; } .m-high { background: #34c759; }
+        .m-gold { background: linear-gradient(135deg, #ffd700, #ff9500); color: #000; }
         .m-none { background: rgba(255,255,255,0.1); color: var(--muted); }
 
-        /* ПРЕДМЕТЫ ВНУТРИ */
-        .subs-container { display: none; margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 10px; }
+        .subs-container { display: none; padding-top: 15px; margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.05); }
         .subs-container.open { display: block; }
+        .sub-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         
-        .sub-item { margin-bottom: 12px; }
-        .sub-row { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; }
-        .sub-name { font-size: 13px; color: var(--muted); font-weight: 500; }
-
-        .marks-container { display: none; flex-wrap: wrap; gap: 6px; margin-top: 8px; padding: 10px; background: rgba(0,0,0,0.15); border-radius: 12px; }
-        .marks-container.open { display: flex; }
-        .mark-pill { width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; border-radius: 6px; font-size: 11px; font-weight: 800; }
-        
-        .crown { font-size: 16px; }
+        .marks-box { display: none; flex-wrap: wrap; gap: 5px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 12px; margin-top: 5px; margin-bottom: 10px; }
+        .marks-box.open { display: flex; }
+        .mark { width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; border-radius: 6px; font-size: 11px; font-weight: 800; }
     </style>
 </head>
 <body>
 
     <div id="loader">
         <div class="loader-text">Загрузка</div>
-        <div class="progress-wrapper"><div class="progress-line"></div></div>
+        <div class="progress-w"><div class="progress-l"></div></div>
     </div>
 
     <div id="main-content">
-        <div class="header-title">Журнал группы</div>
-        <input type="text" id="search" placeholder="Поиск по фамилии...">
-        <div id="content"></div>
+        <div class="header-title">Журнал Э-24</div>
+        <input type="text" id="search" placeholder="Поиск по фамилии">
+        <div id="list"></div>
     </div>
 
     <script>
-        const API_URL = 'https://script.google.com/macros/s/AKfycbzSdD7jveUFnXFqU9uPzB0SFIZvowSK2VW4QcWaSsSjLXUwNgi4cONtDBIuy99QlXnH/exec'; 
-        const tg = window.Telegram.WebApp;
-        let ALL_DATA = [];
-
-        async function init() {
-            tg.ready();
-            tg.expand();
-            tg.headerColor = '#2d3735';
-            
-            try {
-                const res = await fetch(API_URL);
-                ALL_DATA = await res.json();
-                
-                document.getElementById('loader').style.opacity = '0';
-                setTimeout(() => {
-                    document.getElementById('loader').style.visibility = 'hidden';
-                    document.getElementById('main-content').style.display = 'block';
-                    setTimeout(() => document.getElementById('main-content').classList.add('visible'), 50);
-                    render(ALL_DATA);
-                }, 600);
-            } catch (e) {
-                document.querySelector('.loader-text').innerText = "Ошибка сети";
-            }
-        }
+        const API_URL = 'https://script.google.com/macros/s/AKfycbzSdD7jveUFnXFqU9uPzB0SFIZvowSK2VW4QcWaSsSjLXUwNgi4cONtDBIuy99QlXnH/exec';
+        const tg = window.Telegram?.WebApp;
+        let DATA = [];
 
         function getStyle(m) {
             const v = parseFloat(String(m).replace(',', '.'));
-            if (isNaN(v) || v === 0) return 'm-none';
+            if (isNaN(v) || v <= 0) return 'm-none';
             if (v >= 9) return 'm-gold';
             if (v >= 7) return 'm-high';
             if (v >= 4) return 'm-warn';
             return 'm-low';
         }
 
-        function render(data) {
-            const container = document.getElementById('content');
+        async function load() {
+            if (tg) { tg.ready(); tg.expand(); }
+            try {
+                const r = await fetch(API_URL);
+                DATA = await r.json();
+                render(DATA);
+                document.getElementById('loader').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('loader').style.display = 'none';
+                    const mc = document.getElementById('main-content');
+                    mc.style.display = 'block';
+                    setTimeout(() => mc.style.opacity = '1', 50);
+                }, 500);
+            } catch (e) { document.querySelector('.loader-text').innerText = "Ошибка API"; }
+        }
+
+        function render(items) {
+            const container = document.getElementById('list');
             container.innerHTML = '';
             
-            // Сортируем по общему среднему баллу
-            const sorted = [...data].sort((a, b) => 
-                parseFloat(String(b.totalAverage).replace(',', '.')) - 
-                parseFloat(String(a.totalAverage).replace(',', '.'))
+            // Сортировка по убыванию
+            const sorted = [...items].sort((a, b) => 
+                parseFloat(b.totalAverage.replace(',','.')) - parseFloat(a.totalAverage.replace(',','.'))
             );
 
-            const top3Names = sorted.slice(0, 3).map(s => s.studentName);
-            const crowns = ['🥇', '🥈', '🥉'];
-
-            sorted.forEach(student => {
+            sorted.forEach(s => {
                 const card = document.createElement('div');
                 card.className = 'card';
-                
-                const topIdx = top3Names.indexOf(student.studentName);
-                const isTop = topIdx !== -1;
+                card.onclick = () => {
+                    if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+                    card.querySelector('.subs-container').classList.toggle('open');
+                };
+
+                const subsHtml = s.subjects.map(sub => `
+                    <div onclick="event.stopPropagation(); this.querySelector('.marks-box').classList.toggle('open');">
+                        <div class="sub-row">
+                            <span style="font-size:13px; opacity:0.7">${sub.subject}</span>
+                            <span class="score-pill ${getStyle(sub.avg)}">${sub.avg}</span>
+                        </div>
+                        <div class="marks-box">
+                            ${sub.marks.map(m => `<div class="mark ${getStyle(m)}">${m}</div>`).join('') || '—'}
+                        </div>
+                    </div>
+                `).join('');
 
                 card.innerHTML = `
                     <div class="student-header">
-                        <div class="student-info">
-                            <span class="student-name">${student.studentName}</span>
-                            ${isTop ? `<span class="crown">${crowns[topIdx]}</span>` : ''}
-                        </div>
-                        <span class="score-pill-large ${getStyle(student.totalAverage)}">${student.totalAverage}</span>
+                        <span class="student-name">${s.studentName}</span>
+                        <span class="score-pill ${getStyle(s.totalAverage)}" style="padding:6px 12px; font-size:13px">${s.totalAverage}</span>
                     </div>
-                    <div class="subs-container">
-                        ${student.subjects.map(s => `
-                            <div class="sub-item" onclick="event.stopPropagation(); toggleMarks(this)">
-                                <div class="sub-row">
-                                    <span class="sub-name">${s.subject}</span>
-                                    <span class="score-pill ${getStyle(s.avg)}">${s.avg}</span>
-                                </div>
-                                <div class="marks-container">
-                                    ${s.marks.map(m => `<div class="mark-pill ${getStyle(m)}">${m}</div>`).join('') || '<span style="font-size:10px; opacity:0.3">Нет оценок</span>'}
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
+                    <div class="subs-container">${subsHtml}</div>
                 `;
-
-                card.onclick = () => {
-                    if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
-                    card.querySelector('.subs-container').classList.toggle('open');
-                };
-                
                 container.appendChild(card);
             });
         }
 
-        function toggleMarks(el) {
-            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('soft');
-            el.querySelector('.marks-container').classList.toggle('open');
-        }
-
-        // Логика поиска
-        document.getElementById('search').addEventListener('input', (e) => {
+        document.getElementById('search').oninput = (e) => {
             const val = e.target.value.toLowerCase();
-            const filtered = ALL_DATA.filter(s => s.studentName.toLowerCase().includes(val));
-            render(filtered);
-        });
+            render(DATA.filter(x => x.studentName.toLowerCase().includes(val)));
+        };
 
-        init();
+        load();
     </script>
 </body>
 </html>
