@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Журнал 86РТК</title>
+    <title>Журнал Э-24</title>
     <script src="https://telegram.org"></script>
     <style>
         :root {
@@ -12,7 +12,7 @@
         }
         * { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; user-select: none; box-sizing: border-box; }
         html, body { background-color: var(--bg); margin: 0; padding: 0; color: var(--text); overflow-y: auto; min-height: 100vh; }
-        body { padding: 20px; padding-bottom: 110px; }
+        body { padding: 20px; padding-bottom: 120px; }
 
         /* Лоадер */
         #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s; }
@@ -20,19 +20,29 @@
         .progress-w { width: 150px; height: 2px; background: rgba(255,255,255,0.1); border-radius: 10px; overflow: hidden; position: relative; }
         .progress-l { width: 70px; height: 100%; background: #fff; position: absolute; left: -70px; animation: move 2s infinite; box-shadow: 0 0 10px #fff; }
         #loader.error-state .progress-l { animation: blink-red 3s infinite !important; width: 100% !important; left: 0 !important; background: var(--error) !important; box-shadow: 0 0 20px var(--error) !important; }
-        #loader.error-state .loader-text { color: var(--error) !important; animation: none !important; }
 
         @keyframes move { 0% { left: -70px; } 100% { left: 150px; } }
         @keyframes breath { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
         @keyframes blink-red { 0%, 100% { opacity: 1; } 50% { opacity: 0.1; } }
 
-        /* Контент */
+        /* Интерфейс */
         #main-content { opacity: 0; transition: 0.5s; }
         .header-title { font-size: 22px; font-weight: 800; margin-bottom: 15px; }
-        #search { width: 100%; border: 1px solid rgba(255,255,255,0.1); padding: 14px 18px; border-radius: 15px; background: rgba(255,255,255,0.05); color: #fff; font-size: 16px; outline: none; margin-bottom: 15px; }
+        
+        #search { 
+            width: 100%; border: 1px solid rgba(255,255,255,0.1); padding: 14px 18px; border-radius: 15px; 
+            background: rgba(255,255,255,0.05); color: #fff; font-size: 16px; outline: none; margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+        #search:focus { border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.08); box-shadow: 0 0 15px rgba(255,255,255,0.05); }
 
-        .card { background: var(--card); border-radius: 20px; padding: 18px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.05); transition: transform 0.1s; }
-        .card:active { transform: scale(0.98); }
+        /* Визуальный отклик карточек */
+        .card { 
+            background: var(--card); border-radius: 20px; padding: 18px; margin-bottom: 12px; 
+            border: 1px solid rgba(255,255,255,0.05); transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
+        }
+        .card:active { transform: scale(0.96); background: rgba(255,255,255,0.1); }
+        
         .student-header { display: flex; justify-content: space-between; align-items: center; }
         .student-name { font-size: 16px; font-weight: 600; }
         
@@ -43,44 +53,48 @@
 
         .subs-container { display: none; padding-top: 15px; margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.05); }
         .subs-container.open { display: block; }
+        
+        .sub-item { margin-bottom: 12px; transition: opacity 0.1s; }
+        .sub-item:active { opacity: 0.6; }
+        
         .sub-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .marks-box { display: none; flex-wrap: wrap; gap: 5px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 12px; margin-top: 5px; }
         .marks-box.open { display: flex; }
         .mark { width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; border-radius: 6px; font-size: 11px; font-weight: 800; }
 
-        /* Floating Buttons */
+        /* Кнопки управления */
         .fab-container { position: fixed; bottom: 30px; right: 20px; display: flex; flex-direction: column; gap: 15px; z-index: 999; }
         .fab { 
-            width: 48px; height: 48px; border-radius: 50%; 
+            width: 52px; height: 52px; border-radius: 50%; 
             background: rgba(255, 255, 255, 0.08); 
-            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
             border: 0.5px solid rgba(255, 255, 255, 0.4); 
             display: flex; align-items: center; justify-content: center; 
             box-shadow: 0 8px 32px rgba(0,0,0,0.3);
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .fab:active { transform: scale(0.85); background: rgba(255, 255, 255, 0.15); }
-        .fab svg { width: 22px; height: 22px; fill: #fff; }
+        .fab:active { transform: scale(0.88) rotate(5deg); background: rgba(255, 255, 255, 0.2); }
+        .fab svg { width: 24px; height: 24px; fill: #fff; }
     </style>
 </head>
 <body>
 
     <div id="loader">
-        <div class="loader-text">Загрузка данных</div>
+        <div class="loader-text">Синхронизация</div>
         <div class="progress-w"><div class="progress-l"></div></div>
     </div>
 
     <div id="main-content">
-        <div class="header-title">Журнал группы 86РТК</div>
-        <input type="text" id="search" placeholder="Поиск по фамилии...">
+        <div class="header-title">Журнал группы</div>
+        <input type="text" id="search" placeholder="Поиск по фамилии..." autocomplete="off">
         <div id="list"></div>
     </div>
 
     <div class="fab-container">
-        <div class="fab" onclick="forceUpdate()">
+        <div class="fab" onclick="forceUpdate()" title="Обновить">
             <svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z""")/>></svg>
         </div>
-        <div class="fab" onclick="openDev()">
+        <div class="fab" onclick="openDev()" title="Связь">
             <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .33z""")/>></svg>
         </div>
     </div>
@@ -101,13 +115,11 @@
 
         async function init(force = false) {
             if (tg) { tg.ready(); tg.expand(); tg.headerColor = '#2d3735'; }
-
+            
             const cached = localStorage.getItem('journal_cache');
             const lastUpdate = localStorage.getItem('last_update_time');
-            const now = Date.now();
             const ONE_WEEK = 7 * 24 * 60 * 60 * 1000;
-
-            const isExpired = lastUpdate && (now - lastUpdate > ONE_WEEK);
+            const isExpired = lastUpdate && (Date.now() - lastUpdate > ONE_WEEK);
 
             if (!force && cached && !isExpired) {
                 ALL_DATA = JSON.parse(cached);
@@ -119,7 +131,6 @@
                 const res = await fetch(API_URL);
                 const newData = await res.json();
                 if (newData.error) throw new Error();
-
                 ALL_DATA = newData;
                 localStorage.setItem('journal_cache', JSON.stringify(newData));
                 localStorage.setItem('last_update_time', Date.now().toString());
@@ -127,9 +138,7 @@
                 hideLoader();
             } catch (e) {
                 if (!ALL_DATA.length) {
-                    const loader = document.getElementById('loader');
-                    loader.classList.add('error-state');
-                    document.querySelector('.loader-text').innerText = "Ошибка загрузки";
+                    document.getElementById('loader').classList.add('error-state');
                     if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
                 }
             }
@@ -140,17 +149,16 @@
             const loader = document.getElementById('loader');
             loader.style.display = 'flex'; loader.style.opacity = '1';
             loader.classList.remove('error-state');
-            document.querySelector('.loader-text').innerText = "Обновление...";
             init(true);
         }
 
         function openDev() {
-            const username = 'skwared';
-            const link = `https://t.me{username}`;
-            if (tg && tg.openTelegramLink) {
-                tg.openTelegramLink(link);
+            const link = 'https://t.me';
+            if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+            if (window.Telegram?.WebApp?.openTelegramLink) {
+                window.Telegram.WebApp.openTelegramLink(link);
             } else {
-                window.location.href = `tg://resolve?domain=${username}`;
+                window.location.href = 'tg://resolve?domain=skwared';
                 setTimeout(() => { window.open(link, '_blank'); }, 500);
             }
         }
@@ -164,18 +172,14 @@
         function render(items) {
             const container = document.getElementById('list');
             container.innerHTML = '';
-            
             const sorted = [...items].sort((a, b) => a.studentName.localeCompare(b.studentName));
-            const topByScore = [...items].sort((a, b) => 
-                parseFloat(b.totalAverage.replace(',','.')) - parseFloat(a.totalAverage.replace(',','.'))
-            ).slice(0, 3).map(s => s.studentName);
-            
+            const topByScore = [...items].sort((a, b) => parseFloat(b.totalAverage.replace(',','.')) - parseFloat(a.totalAverage.replace(',','.'))).slice(0, 3).map(s => s.studentName);
             const crowns = ['🥇', '🥈', '🥉'];
 
             sorted.forEach(s => {
                 const validSubjects = s.subjects.filter(sub => {
                     const avgV = parseFloat(sub.avg.replace(',', '.'));
-                    return sub.marks.length > 0 && !isNaN(avgV) && avgV > 0;
+                    return (sub.marks.length > 0 || avgV > 0) && !sub.avg.includes('#');
                 });
 
                 const card = document.createElement('div');
@@ -190,26 +194,17 @@
                     const cleanMarks = sub.marks.filter(m => m !== sub.avg);
                     return `
                     <div class="sub-item" onclick="event.stopPropagation(); this.querySelector('.marks-box').classList.toggle('open'); if(tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('soft');">
-                        <div class="sub-row">
-                            <span style="font-size:13px; opacity:0.7">${sub.subject}</span>
-                            <span class="score-pill ${getStyle(sub.avg)}">${sub.avg}</span>
-                        </div>
-                        <div class="marks-box">
-                            ${cleanMarks.map(m => `<div class="mark ${getStyle(m)}">${m}</div>`).join('') || '<span style="font-size:10px; opacity:0.3">Только итоговая</span>'}
-                        </div>
+                        <div class="sub-row"><span style="font-size:13px; opacity:0.7">${sub.subject}</span><span class="score-pill ${getStyle(sub.avg)}">${sub.avg}</span></div>
+                        <div class="marks-box">${cleanMarks.map(m => `<div class="mark ${getStyle(m)}">${m}</div>`).join('') || '<span style="font-size:10px; opacity:0.3">Только итоговая</span>'}</div>
                     </div>`;
                 }).join('');
 
                 card.innerHTML = `
                     <div class="student-header">
-                        <div style="display:flex; align-items:center; gap:8px;">
-                            <span class="student-name">${s.studentName}</span>
-                            ${tIdx !== -1 ? `<span>${crowns[tIdx]}</span>` : ''}
-                        </div>
+                        <div style="display:flex; align-items:center; gap:8px;"><span class="student-name">${s.studentName}</span>${tIdx !== -1 ? `<span>${crowns[tIdx]}</span>` : ''}</div>
                         <span class="score-pill ${getStyle(s.totalAverage)}" style="padding:6px 12px; font-size:13px">${s.totalAverage}</span>
                     </div>
-                    <div class="subs-container">${subsHtml || '<div style="font-size:11px; opacity:0.3; text-align:center; padding:10px">Нет данных по предметам</div>'}</div>
-                `;
+                    <div class="subs-container">${subsHtml || '<div style="font-size:11px; opacity:0.3; text-align:center; padding:10px">Нет данных</div>'}</div>`;
                 container.appendChild(card);
             });
         }
