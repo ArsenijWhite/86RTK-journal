@@ -17,29 +17,24 @@
         /* --- ЛОАДЕР --- */
         #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s; }
         .loader-text { font-size: 11px; font-weight: 700; color: #fff; text-transform: uppercase; letter-spacing: 0.4em; margin-bottom: 25px; animation: breath 2s infinite; }
-        
         .progress-w { width: 150px; height: 2px; background: rgba(255,255,255,0.1); border-radius: 10px; overflow: hidden; position: relative; }
         .progress-l { width: 70px; height: 100%; background: #fff; position: absolute; left: -70px; animation: move 2s infinite; box-shadow: 0 0 10px #fff; }
 
-        /* --- СОСТОЯНИЕ ОШИБКИ --- */
+        /* МЕДЛЕННАЯ ОШИБКА (3 секунды) */
         #loader.error-state .progress-l {
-            animation: blink-red 0.8s infinite !important;
-            width: 100% !important;
-            left: 0 !important;
+            animation: blink-red 3s infinite !important;
+            width: 100% !important; left: 0 !important;
             background: var(--error) !important;
-            box-shadow: 0 0 15px var(--error) !important;
+            box-shadow: 0 0 20px var(--error) !important;
         }
-        #loader.error-state .loader-text {
-            color: var(--error) !important;
-            animation: none !important;
-        }
+        #loader.error-state .loader-text { color: var(--error) !important; animation: none !important; }
 
         @keyframes move { 0% { left: -70px; } 100% { left: 150px; } }
         @keyframes breath { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
-        @keyframes blink-red { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        @keyframes blink-red { 0%, 100% { opacity: 1; } 50% { opacity: 0.1; } }
 
-        /* --- ИНТЕРФЕЙС --- */
-        #main-content { display: none; opacity: 0; transition: 0.5s; }
+        /* --- КОНТЕНТ --- */
+        #main-content { opacity: 0; transition: 0.5s; }
         .header-title { font-size: 22px; font-weight: 800; margin-bottom: 15px; }
         #search { width: 100%; border: 1px solid rgba(255,255,255,0.1); padding: 14px 18px; border-radius: 15px; background: rgba(255,255,255,0.05); color: #fff; font-size: 16px; outline: none; margin-bottom: 15px; }
 
@@ -50,7 +45,7 @@
         
         .score-pill { font-size: 11px; font-weight: 800; padding: 4px 8px; border-radius: 8px; min-width: 32px; text-align: center; }
         .m-low { background: #ff3b30; } .m-warn { background: #ff9f0a; } .m-high { background: #34c759; }
-        .m-gold { background: linear-gradient(135deg, #ffd700, #ff9500); color: #000; }
+        .m-gold { background: linear-gradient(135deg, #ffd700, #ff9500); color: #000; box-shadow: 0 0 12px rgba(255, 215, 0, 0.4); }
         .m-none { background: rgba(255,255,255,0.1); color: var(--muted); }
 
         .subs-container { display: none; padding-top: 15px; margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.05); }
@@ -66,7 +61,7 @@
 <body>
 
     <div id="loader">
-        <div class="loader-text">Загрузка данных</div>
+        <div class="loader-text">Синхронизация</div>
         <div class="progress-w"><div class="progress-l"></div></div>
     </div>
 
@@ -77,64 +72,78 @@
     </div>
 
     <script>
-        const API_URL = 'https://script.google.com/macros/s/AKfycbzSdD7jveUFnXFqU9uPzB0SFIZvowSK2VW4QcWaSsSjLXUwNgi4cONtDBIuy99QlXnH/exec';
+        const API_URL = 'ССЫЛКА_ИЗ_GAS';
         const tg = window.Telegram?.WebApp;
         let ALL_DATA = [];
 
+        // Золото для 9.5 и выше
         function getStyle(m) {
             const v = parseFloat(String(m).replace(',', '.'));
             if (isNaN(v) || v <= 0) return 'm-none';
-            if (v >= 9) return 'm-gold';
+            if (v >= 9.5) return 'm-gold'; 
             if (v >= 7) return 'm-high';
             if (v >= 4) return 'm-warn';
             return 'm-low';
         }
 
         async function init() {
-            if (tg) {
-                tg.ready();
-                tg.expand();
-                tg.headerColor = '#2d3735';
-                tg.backgroundColor = '#2d3735';
+            if (tg) { tg.ready(); tg.expand(); tg.headerColor = '#2d3735'; }
+
+            // Мгновенная загрузка из кэша (храним ФИО в боте)
+            const cached = localStorage.getItem('journal_cache');
+            if (cached) {
+                ALL_DATA = JSON.parse(cached);
+                render(ALL_DATA);
+                hideLoader();
             }
+
             try {
                 const res = await fetch(API_URL);
-                if (!res.ok) throw new Error(); // Проверка на статус ответа
-                ALL_DATA = await res.json();
-                
-                if (ALL_DATA.error) throw new Error(); // Если GAS вернул объект с ошибкой
+                const newData = await res.json();
+                if (newData.error) throw new Error();
 
+                ALL_DATA = newData;
+                localStorage.setItem('journal_cache', JSON.stringify(newData));
                 render(ALL_DATA);
-                
-                document.getElementById('loader').style.opacity = '0';
-                setTimeout(() => {
-                    document.getElementById('loader').style.display = 'none';
-                    const mc = document.getElementById('main-content');
-                    mc.style.display = 'block';
-                    setTimeout(() => mc.style.opacity = '1', 50);
-                }, 500);
+                hideLoader();
             } catch (e) {
-                // АКТИВАЦИЯ ОШИБКИ
-                const loader = document.getElementById('loader');
-                loader.classList.add('error-state');
-                document.querySelector('.loader-text').innerText = "Ошибка загрузки";
-                if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
+                // Если кэша нет, а интернет подвел — показываем долгую красную анимацию
+                if (!ALL_DATA.length) {
+                    document.getElementById('loader').classList.add('error-state');
+                    document.querySelector('.loader-text').innerText = "Ошибка сети";
+                    if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
+                }
             }
+        }
+
+        function hideLoader() {
+            const loader = document.getElementById('loader');
+            loader.style.opacity = '0';
+            setTimeout(() => {
+                loader.style.display = 'none';
+                const mc = document.getElementById('main-content');
+                mc.style.opacity = '1';
+            }, 500);
         }
 
         function render(items) {
             const container = document.getElementById('list');
             container.innerHTML = '';
             
-            const sortedAlphabet = [...items].sort((a, b) => a.studentName.localeCompare(b.studentName));
-            const topByScore = [...items].sort((a, b) => parseFloat(b.totalAverage.replace(',','.')) - parseFloat(a.totalAverage.replace(',','.'))).slice(0, 3).map(s => s.studentName);
+            // Сортировка по алфавиту
+            const sorted = [...items].sort((a, b) => a.studentName.localeCompare(b.studentName));
+            
+            // Расчет ТОП-3 для медалек
+            const topByScore = [...items].sort((a, b) => 
+                parseFloat(b.totalAverage.replace(',','.')) - parseFloat(a.totalAverage.replace(',','.'))
+            ).slice(0, 3).map(s => s.studentName);
+            
             const crowns = ['🥇', '🥈', '🥉'];
 
-            sortedAlphabet.forEach(s => {
+            sorted.forEach(s => {
                 const card = document.createElement('div');
                 card.className = 'card';
                 const topIdx = topByScore.indexOf(s.studentName);
-                const isTop = topIdx !== -1;
 
                 card.onclick = () => {
                     if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
@@ -148,7 +157,7 @@
                             <span class="score-pill ${getStyle(sub.avg)}">${sub.avg}</span>
                         </div>
                         <div class="marks-box">
-                            ${sub.marks.map(m => `<div class="mark ${getStyle(m)}">${m}</div>`).join('') || '<span style="font-size:10px; opacity:0.3">Оценок нет</span>'}
+                            ${sub.marks.map(m => `<div class="mark ${getStyle(m)}">${m}</div>`).join('') || '<span style="font-size:10px; opacity:0.3">Нет оценок</span>'}
                         </div>
                     </div>
                 `).join('');
@@ -157,7 +166,7 @@
                     <div class="student-header">
                         <div style="display:flex; align-items:center; gap:8px;">
                             <span class="student-name">${s.studentName}</span>
-                            ${isTop ? `<span style="font-size:14px">${crowns[topIdx]}</span>` : ''}
+                            ${topIdx !== -1 ? `<span style="font-size:14px">${crowns[topIdx]}</span>` : ''}
                         </div>
                         <span class="score-pill ${getStyle(s.totalAverage)}" style="padding:6px 12px; font-size:13px">${s.totalAverage}</span>
                     </div>
