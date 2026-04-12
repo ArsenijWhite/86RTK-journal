@@ -26,7 +26,8 @@
         .header-title { font-size: 22px; font-weight: 800; margin-bottom: 15px; }
         #search { width: 100%; border: 1px solid rgba(255,255,255,0.1); padding: 14px 18px; border-radius: 15px; background: rgba(255,255,255,0.05); color: #fff; font-size: 16px; outline: none; margin-bottom: 15px; }
 
-        .card { background: var(--card); border-radius: 20px; padding: 18px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.05); }
+        .card { background: var(--card); border-radius: 20px; padding: 18px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.05); transition: transform 0.1s; }
+        .card:active { transform: scale(0.98); }
         .student-header { display: flex; justify-content: space-between; align-items: center; }
         .student-name { font-size: 16px; font-weight: 600; }
         
@@ -37,9 +38,10 @@
 
         .subs-container { display: none; padding-top: 15px; margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.05); }
         .subs-container.open { display: block; }
-        .sub-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .sub-item { margin-bottom: 12px; }
+        .sub-row { display: flex; justify-content: space-between; align-items: center; }
         
-        .marks-box { display: none; flex-wrap: wrap; gap: 5px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 12px; margin-top: 5px; margin-bottom: 10px; }
+        .marks-box { display: none; flex-wrap: wrap; gap: 5px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 12px; margin-top: 8px; }
         .marks-box.open { display: flex; }
         .mark { width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; border-radius: 6px; font-size: 11px; font-weight: 800; }
     </style>
@@ -47,20 +49,20 @@
 <body>
 
     <div id="loader">
-        <div class="loader-text">Загрузка</div>
+        <div class="loader-text">Загрузка данных</div>
         <div class="progress-w"><div class="progress-l"></div></div>
     </div>
 
     <div id="main-content">
-        <div class="header-title">Журнал Э-24</div>
-        <input type="text" id="search" placeholder="Поиск по фамилии">
+        <div class="header-title">Журнал группы</div>
+        <input type="text" id="search" placeholder="Поиск по фамилии...">
         <div id="list"></div>
     </div>
 
     <script>
-        const API_URL = 'https://script.google.com/macros/s/AKfycbzSdD7jveUFnXFqU9uPzB0SFIZvowSK2VW4QcWaSsSjLXUwNgi4cONtDBIuy99QlXnH/exec';
+        const API_URL = 'ССЫЛКА_ИЗ_GAS';
         const tg = window.Telegram?.WebApp;
-        let DATA = [];
+        let ALL_DATA = [];
 
         function getStyle(m) {
             const v = parseFloat(String(m).replace(',', '.'));
@@ -71,12 +73,18 @@
             return 'm-low';
         }
 
-        async function load() {
-            if (tg) { tg.ready(); tg.expand(); }
+        async function init() {
+            if (tg) {
+                tg.ready();
+                tg.expand();
+                tg.headerColor = '#2d3735';
+                tg.backgroundColor = '#2d3735';
+            }
             try {
-                const r = await fetch(API_URL);
-                DATA = await r.json();
-                render(DATA);
+                const res = await fetch(API_URL);
+                ALL_DATA = await res.json();
+                render(ALL_DATA);
+                
                 document.getElementById('loader').style.opacity = '0';
                 setTimeout(() => {
                     document.getElementById('loader').style.display = 'none';
@@ -84,41 +92,58 @@
                     mc.style.display = 'block';
                     setTimeout(() => mc.style.opacity = '1', 50);
                 }, 500);
-            } catch (e) { document.querySelector('.loader-text').innerText = "Ошибка API"; }
+            } catch (e) {
+                document.querySelector('.loader-text').innerText = "Ошибка загрузки";
+            }
         }
 
         function render(items) {
             const container = document.getElementById('list');
             container.innerHTML = '';
             
-            // Сортировка по убыванию
-            const sorted = [...items].sort((a, b) => 
-                parseFloat(b.totalAverage.replace(',','.')) - parseFloat(a.totalAverage.replace(',','.'))
+            // 1. Сортировка ПО АЛФАВИТУ
+            const sortedAlphabet = [...items].sort((a, b) => 
+                a.studentName.localeCompare(b.studentName)
             );
 
-            sorted.forEach(s => {
+            // 2. Поиск ТОП-3 по успеваемости (для медалей)
+            const topByScore = [...items]
+                .sort((a, b) => parseFloat(b.totalAverage.replace(',','.')) - parseFloat(a.totalAverage.replace(',','.')))
+                .slice(0, 3)
+                .map(s => s.studentName);
+
+            const crowns = ['🥇', '🥈', '🥉'];
+
+            sortedAlphabet.forEach(s => {
                 const card = document.createElement('div');
                 card.className = 'card';
+                
+                const topIdx = topByScore.indexOf(s.studentName);
+                const isTop = topIdx !== -1;
+
                 card.onclick = () => {
                     if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
                     card.querySelector('.subs-container').classList.toggle('open');
                 };
 
                 const subsHtml = s.subjects.map(sub => `
-                    <div onclick="event.stopPropagation(); this.querySelector('.marks-box').classList.toggle('open');">
+                    <div class="sub-item" onclick="event.stopPropagation(); this.querySelector('.marks-box').classList.toggle('open'); if(tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('soft');">
                         <div class="sub-row">
                             <span style="font-size:13px; opacity:0.7">${sub.subject}</span>
                             <span class="score-pill ${getStyle(sub.avg)}">${sub.avg}</span>
                         </div>
                         <div class="marks-box">
-                            ${sub.marks.map(m => `<div class="mark ${getStyle(m)}">${m}</div>`).join('') || '—'}
+                            ${sub.marks.map(m => `<div class="mark ${getStyle(m)}">${m}</div>`).join('') || '<span style="font-size:10px; opacity:0.3">Оценок нет</span>'}
                         </div>
                     </div>
                 `).join('');
 
                 card.innerHTML = `
                     <div class="student-header">
-                        <span class="student-name">${s.studentName}</span>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span class="student-name">${s.studentName}</span>
+                            ${isTop ? `<span style="font-size:14px">${crowns[topIdx]}</span>` : ''}
+                        </div>
                         <span class="score-pill ${getStyle(s.totalAverage)}" style="padding:6px 12px; font-size:13px">${s.totalAverage}</span>
                     </div>
                     <div class="subs-container">${subsHtml}</div>
@@ -129,10 +154,11 @@
 
         document.getElementById('search').oninput = (e) => {
             const val = e.target.value.toLowerCase();
-            render(DATA.filter(x => x.studentName.toLowerCase().includes(val)));
+            const filtered = ALL_DATA.filter(x => x.studentName.toLowerCase().includes(val));
+            render(filtered);
         };
 
-        load();
+        init();
     </script>
 </body>
 </html>
