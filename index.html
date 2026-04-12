@@ -14,13 +14,11 @@
         html, body { background-color: var(--bg); margin: 0; padding: 0; color: var(--text); overflow-y: auto; min-height: 100vh; }
         body { padding: 20px; padding-bottom: 100px; }
 
-        /* Лоадер */
         #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s; }
         .loader-text { font-size: 11px; font-weight: 700; color: #fff; text-transform: uppercase; letter-spacing: 0.4em; margin-bottom: 25px; animation: breath 2s infinite; }
         .progress-w { width: 150px; height: 2px; background: rgba(255,255,255,0.1); border-radius: 10px; overflow: hidden; position: relative; }
         .progress-l { width: 70px; height: 100%; background: #fff; position: absolute; left: -70px; animation: move 2s infinite; box-shadow: 0 0 10px #fff; }
 
-        /* Ошибка (3 секунды) */
         #loader.error-state .progress-l { animation: blink-red 3s infinite !important; width: 100% !important; left: 0 !important; background: var(--error) !important; box-shadow: 0 0 20px var(--error) !important; }
         #loader.error-state .loader-text { color: var(--error) !important; animation: none !important; }
 
@@ -28,7 +26,6 @@
         @keyframes breath { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
         @keyframes blink-red { 0%, 100% { opacity: 1; } 50% { opacity: 0.1; } }
 
-        /* Интерфейс */
         #main-content { opacity: 0; transition: 0.5s; }
         .header-title { font-size: 22px; font-weight: 800; margin-bottom: 15px; }
         #search { width: 100%; border: 1px solid rgba(255,255,255,0.1); padding: 14px 18px; border-radius: 15px; background: rgba(255,255,255,0.05); color: #fff; font-size: 16px; outline: none; margin-bottom: 15px; }
@@ -45,13 +42,13 @@
 
         .subs-container { display: none; padding-top: 15px; margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.05); }
         .subs-container.open { display: block; }
+        .sub-item { margin-bottom: 12px; }
         .sub-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         
         .marks-box { display: none; flex-wrap: wrap; gap: 5px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 12px; margin-top: 5px; margin-bottom: 10px; }
         .marks-box.open { display: flex; }
         .mark { width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; border-radius: 6px; font-size: 11px; font-weight: 800; }
 
-        /* ПЛАВАЮЩИЕ КНОПКИ */
         .fab-container { position: fixed; bottom: 30px; right: 20px; display: flex; flex-direction: column; gap: 15px; z-index: 999; }
         .fab { 
             width: 48px; height: 48px; border-radius: 50%; 
@@ -79,7 +76,6 @@
         <div id="list"></div>
     </div>
 
-    <!-- Блок кнопок -->
     <div class="fab-container">
         <div class="fab" onclick="forceUpdate()">
             <svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z""")/>></svg>
@@ -105,21 +101,14 @@
 
         async function init(force = false) {
             if (tg) { tg.ready(); tg.expand(); tg.headerColor = '#2d3735'; }
-
             if (!force) {
                 const cached = localStorage.getItem('journal_cache');
-                if (cached) {
-                    ALL_DATA = JSON.parse(cached);
-                    render(ALL_DATA);
-                    hideLoader();
-                }
+                if (cached) { ALL_DATA = JSON.parse(cached); render(ALL_DATA); hideLoader(); }
             }
-
             try {
                 const res = await fetch(API_URL);
                 const newData = await res.json();
                 if (newData.error) throw new Error();
-
                 ALL_DATA = newData;
                 localStorage.setItem('journal_cache', JSON.stringify(newData));
                 render(ALL_DATA);
@@ -137,68 +126,66 @@
         function forceUpdate() {
             if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
             const loader = document.getElementById('loader');
-            loader.style.display = 'flex';
-            loader.style.opacity = '1';
+            loader.style.display = 'flex'; loader.style.opacity = '1';
             loader.classList.remove('error-state');
             document.querySelector('.loader-text').innerText = "Обновление...";
             init(true);
         }
 
         function openDev() {
+            const link = 'https://t.me';
             if (tg && tg.openTelegramLink) {
-                tg.openTelegramLink('https://t.me');
+                tg.openTelegramLink(link);
             } else {
-                window.open('https://t.me', '_blank');
+                window.location.href = 'tg://resolve?domain=skwared';
+                setTimeout(() => { window.open(link, '_blank'); }, 500);
             }
         }
 
         function hideLoader() {
             const loader = document.getElementById('loader');
             loader.style.opacity = '0';
-            setTimeout(() => {
-                loader.style.display = 'none';
-                document.getElementById('main-content').style.opacity = '1';
-            }, 500);
+            setTimeout(() => { loader.style.display = 'none'; document.getElementById('main-content').style.opacity = '1'; }, 500);
         }
 
         function render(items) {
             const container = document.getElementById('list');
             container.innerHTML = '';
-            
             const sorted = [...items].sort((a, b) => a.studentName.localeCompare(b.studentName));
             const topByScore = [...items].sort((a, b) => parseFloat(b.totalAverage.replace(',','.')) - parseFloat(a.totalAverage.replace(',','.'))).slice(0, 3).map(s => s.studentName);
             const crowns = ['🥇', '🥈', '🥉'];
 
             sorted.forEach(s => {
                 const validSubjects = s.subjects.filter(sub => {
-                    const avgV = parseFloat(sub.avg.replace(',', '.'));
-                    return sub.marks.length > 0 && !isNaN(avgV) && avgV > 0;
+                    const hasMarks = sub.marks && sub.marks.length > 0;
+                    const hasAvg = sub.avg !== "—" && sub.avg !== "" && sub.avg !== "0";
+                    return hasMarks || hasAvg;
                 });
-
-                if (validSubjects.length === 0) return;
 
                 const card = document.createElement('div');
                 card.className = 'card';
                 const topIdx = topByScore.indexOf(s.studentName);
-
                 card.onclick = () => {
                     if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
                     card.querySelector('.subs-container').classList.toggle('open');
                 };
 
-                const subsHtml = validSubjects.map(sub => {
-                    const cleanMarks = sub.marks.filter(m => m !== sub.avg);
-                    return `
-                    <div class="sub-item" onclick="event.stopPropagation(); this.querySelector('.marks-box').classList.toggle('open'); if(tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('soft');">
-                        <div class="sub-row">
-                            <span style="font-size:13px; opacity:0.7">${sub.subject}</span>
-                            <span class="score-pill ${getStyle(sub.avg)}">${sub.avg}</span>
-                        </div>
-                        <div class="marks-box">
-                            ${cleanMarks.map(m => `<div class="mark ${getStyle(m)}">${m}</div>`).join('') || '<span style="font-size:10px; opacity:0.3">Итоговая</span>'}
-                        </div>
-                    </div>`;
-                }).join('');
+                let subsHtml = '<div style="font-size:12px; opacity:0.3; padding:10px; text-align:center;">Нет данных по предметам</div>';
+                if (validSubjects.length > 0) {
+                    subsHtml = validSubjects.map(sub => {
+                        const cleanMarks = sub.marks.filter(m => m !== sub.avg);
+                        return `
+                        <div class="sub-item" onclick="event.stopPropagation(); this.querySelector('.marks-box').classList.toggle('open'); if(tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('soft');">
+                            <div class="sub-row">
+                                <span style="font-size:13px; opacity:0.7">${sub.subject}</span>
+                                <span class="score-pill ${getStyle(sub.avg)}">${sub.avg}</span>
+                            </div>
+                            <div class="marks-box">
+                                ${cleanMarks.map(m => `<div class="mark ${getStyle(m)}">${m}</div>`).join('') || '<span style="font-size:10px; opacity:0.3">Только итоговая</span>'}
+                            </div>
+                        </div>`;
+                    }).join('');
+                }
 
                 card.innerHTML = `
                     <div class="student-header">
