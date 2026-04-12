@@ -12,7 +12,7 @@
         }
         * { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; user-select: none; box-sizing: border-box; }
         html, body { background-color: var(--bg); margin: 0; padding: 0; color: var(--text); overflow-y: auto; min-height: 100vh; }
-        body { padding: 20px; padding-bottom: 40px; }
+        body { padding: 20px; padding-bottom: 50px; }
 
         /* Лоадер */
         #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s; }
@@ -25,7 +25,7 @@
         @keyframes breath { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
         @keyframes blink-red { 0%, 100% { opacity: 1; } 50% { opacity: 0.1; } }
 
-        /* Контент */
+        /* Интерфейс */
         #main-content { opacity: 0; transition: 0.5s; }
         .header-title { font-size: 22px; font-weight: 800; margin-bottom: 15px; }
         #search { width: 100%; border: 1px solid rgba(255,255,255,0.1); padding: 14px 18px; border-radius: 15px; background: rgba(255,255,255,0.05); color: #fff; font-size: 16px; outline: none; margin-bottom: 15px; transition: 0.3s; }
@@ -47,7 +47,6 @@
         .sub-item:active { opacity: 0.8; }
         .sub-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
         
-        /* Аналитика и Оценки */
         .marks-box { display: none; background: rgba(0,0,0,0.25); padding: 12px; border-radius: 14px; margin-top: 5px; flex-direction: column; gap: 10px; }
         .marks-box.open { display: flex; }
         .marks-row { display: flex; flex-wrap: wrap; gap: 5px; }
@@ -78,7 +77,7 @@
     </div>
 
     <script>
-        const API_URL = 'https://script.google.com/macros/s/AKfycbzjpF_8Fifa2jRlBpUPDK2-459JlCqfH8IIvxNxZdfTlBakTdC_RYNDMSj3zERiY-dT/exec';
+        const API_URL = 'https://script.google.com/macros/s/AKfycbzQgXUtvEEh7B8W0xeso898NLrb3HptMMNHqDvTXX7tPC2zWeGYkNXkJ9S2vr7cbRNp/exec';
         const tg = window.Telegram?.WebApp;
         let ALL_DATA = [];
 
@@ -91,22 +90,17 @@
             return 'm-low';
         }
 
-        // Функция расчета аналитики
         function calcNeed(currentAvg, marks) {
             let avg = parseFloat(String(currentAvg).replace(',', '.'));
             if (isNaN(avg) || avg >= 10 || marks.length === 0) return null;
-
-            let target = Math.ceil(avg + 0.001); // Следующее целое
-            if (target > 10) target = 10;
-
-            let count = marks.length;
-            let sum = marks.reduce((a, b) => a + (parseFloat(b) || 0), 0);
-            
-            // Считаем сколько "десяток" нужно
-            for (let i = 1; i <= 10; i++) {
-                let newAvg = (sum + (i * 10)) / (count + i);
-                if (newAvg >= target) {
-                    return `До ${target}.0 нужно: ${i} отм. (10)`;
+            let decimal = avg - Math.floor(avg);
+            if (decimal >= 0.29 && decimal <= 0.51) {
+                let target = Math.ceil(avg + 0.001); 
+                let count = marks.length;
+                let sum = marks.reduce((a, b) => a + (parseFloat(b) || 0), 0);
+                for (let i = 1; i <= 15; i++) {
+                    let newAvg = (sum + (i * 10)) / (count + i);
+                    if (newAvg >= target) return `До ${target}.0 нужно: ${i} отм. (10)`;
                 }
             }
             return null;
@@ -162,7 +156,6 @@
                     const avgV = parseFloat(sub.avg.replace(',', '.'));
                     return (sub.marks.length > 0 || avgV > 0) && !sub.avg.includes('#');
                 });
-
                 const card = document.createElement('div');
                 card.className = 'card';
                 const tIdx = topByScore.indexOf(s.studentName);
@@ -170,38 +163,28 @@
                     if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
                     card.querySelector('.subs-container').classList.toggle('open');
                 };
-
                 let subsHtml = validSubjects.map(sub => {
                     const cleanMarks = sub.marks.filter(m => m !== sub.avg);
-                    const tip = calcNeed(sub.avg, sub.marks); // Считаем подсказку
-                    
-                    return `
-                    <div class="sub-item" onclick="event.stopPropagation(); this.querySelector('.marks-box').classList.toggle('open'); if(tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('soft');">
-                        <div class="sub-row"><span style="font-size:13px; opacity:0.7">${sub.subject}</span><span class="score-pill ${getStyle(sub.avg)}">${sub.avg}</span></div>
+                    const tip = calcNeed(sub.avg, sub.marks);
+                    return `<div class="sub-item" onclick="event.stopPropagation(); this.querySelector('.marks-box').classList.toggle('open'); if(tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('soft');">
+                        <div class="sub-row"><span>${sub.subject}</span><span class="score-pill ${getStyle(sub.avg)}">${sub.avg}</span></div>
                         <div class="marks-box">
                             ${tip ? `<div class="analytic-tip">${tip}</div>` : ''}
-                            <div class="marks-row">
-                                ${cleanMarks.map(m => `<div class="mark ${getStyle(m)}">${m}</div>`).join('') || '<span style="font-size:10px; opacity:0.3">Только итоговая</span>'}
-                            </div>
+                            <div class="marks-row">${cleanMarks.map(m => `<div class="mark ${getStyle(m)}">${m}</div>`).join('') || '—'}</div>
                         </div>
                     </div>`;
                 }).join('');
-
-                card.innerHTML = `
-                    <div class="student-header">
-                        <div style="display:flex; align-items:center; gap:8px;"><span class="student-name">${s.studentName}</span>${tIdx !== -1 ? `<span>${crowns[tIdx]}</span>` : ''}</div>
-                        <span class="score-pill ${getStyle(s.totalAverage)}" style="padding:6px 12px; font-size:13px">${s.totalAverage}</span>
-                    </div>
-                    <div class="subs-container">${subsHtml || '<div style="font-size:11px; opacity:0.3; text-align:center; padding:10px">Нет данных</div>'}</div>`;
+                card.innerHTML = `<div class="student-header">
+                    <div><span>${s.studentName}</span>${tIdx !== -1 ? ` <span>${crowns[tIdx]}</span>` : ''}</div>
+                    <span class="score-pill ${getStyle(s.totalAverage)}">${s.totalAverage}</span>
+                </div>
+                <div class="subs-container">${subsHtml || '<div style="font-size:11px; opacity:0.3; text-align:center;">Нет данных</div>'}</div>`;
                 container.appendChild(card);
             });
         }
-
         document.getElementById('search').oninput = (e) => {
-            const val = e.target.value.toLowerCase();
-            render(ALL_DATA.filter(x => x.studentName.toLowerCase().includes(val)));
+            render(ALL_DATA.filter(x => x.studentName.toLowerCase().includes(e.target.value.toLowerCase())));
         };
-
         init();
     </script>
 </body>
