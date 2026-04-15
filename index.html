@@ -7,86 +7,119 @@
     <script src="https://telegram.org"></script>
     <style>
         :root {
-            --bg: #2d3735; --card: #3a4744; --accent: #10b981; --text: #e2e8f0; --muted: #94a3b8;
-            --error: #ff3b30;
+            /* Синяя палитра */
+            --bg: #0f172a;        /* Глубокий синий фон */
+            --card: #1e293b;      /* Цвет карточек (Navy) */
+            --accent: #38bdf8;    /* Небесно-голубой акцент */
+            --text: #f1f5f9;      /* Светлый текст */
+            --muted: #94a3b8;     /* Приглушенный текст */
+            --error: #ef4444; 
+            --gold: #fbbf24;
         }
         * { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; user-select: none; box-sizing: border-box; }
-        html, body { background-color: var(--bg); margin: 0; padding: 0; color: var(--text); overflow-y: auto; min-height: 100vh; }
+        html, body { background-color: var(--bg); margin: 0; padding: 0; color: var(--text); min-height: 100vh; }
         body { padding: 20px; padding-bottom: 50px; }
 
-        /* Лоадер */
-        #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s; }
-        .loader-text { font-size: 11px; font-weight: 700; color: #fff; text-transform: uppercase; letter-spacing: 0.4em; margin-bottom: 25px; animation: breath 2s infinite; }
-        .progress-w { width: 150px; height: 2px; background: rgba(255,255,255,0.1); border-radius: 10px; overflow: hidden; position: relative; }
-        .progress-l { width: 70px; height: 100%; background: #fff; position: absolute; left: -70px; animation: move 2s infinite; box-shadow: 0 0 10px #fff; }
-        #loader.error-state .progress-l { animation: blink-red 3s infinite !important; width: 100% !important; left: 0 !important; background: var(--error) !important; box-shadow: 0 0 20px var(--error) !important; }
-
-        @keyframes move { 0% { left: -70px; } 100% { left: 150px; } }
-        @keyframes breath { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
-        @keyframes blink-red { 0%, 100% { opacity: 1; } 50% { opacity: 0.1; } }
-
-        /* Интерфейс */
-        #main-content { opacity: 0; transition: 0.5s; }
-        .header-title { font-size: 22px; font-weight: 800; margin-bottom: 15px; }
-        #search { width: 100%; border: 1px solid rgba(255,255,255,0.1); padding: 14px 18px; border-radius: 15px; background: rgba(255,255,255,0.05); color: #fff; font-size: 16px; outline: none; margin-bottom: 15px; transition: 0.3s; }
-        #search:focus { border-color: rgba(255,255,255,0.3); }
-
-        .card { background: var(--card); border-radius: 20px; padding: 18px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.05); transition: all 0.2s; }
-        .card:active { transform: scale(0.96); background: rgba(255,255,255,0.1); }
-        .student-header { display: flex; justify-content: space-between; align-items: center; }
-        .student-name { font-size: 16px; font-weight: 600; }
+        /* ЛОАДЕР С НЕОНОВЫМ КОНТУРОМ */
+        #loader { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: var(--bg); z-index: 2000; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1); 
+        }
+        .logo-container { position: relative; width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; margin-bottom: 25px; }
         
-        .score-pill { font-size: 11px; font-weight: 800; padding: 4px 8px; border-radius: 8px; min-width: 32px; text-align: center; }
-        .m-low { background: #ff3b30; } .m-warn { background: #ff9f0a; } .m-high { background: #34c759; }
-        .m-gold { background: linear-gradient(135deg, #ffd700, #ff9500); color: #000; box-shadow: 0 0 10px rgba(255, 215, 0, 0.3); }
+        .logo-outline {
+            position: absolute; width: 100%; height: 100%;
+            border-radius: 50%; border: 2px solid rgba(56, 189, 248, 0.1);
+            border-top: 2px solid var(--accent);
+            box-shadow: 0 -5px 15px rgba(56, 189, 248, 0.3);
+            animation: spin 1.5s linear infinite;
+        }
+        .logo-icon {
+            width: 45px; height: 60px; background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+            border-radius: 5px 12px 12px 5px; position: relative; z-index: 2;
+            animation: pulse-inner 2s infinite ease-in-out;
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.2);
+        }
+        .logo-icon::before {
+            content: ""; position: absolute; top: 12px; left: 8px;
+            width: 25px; height: 3px; background: rgba(255,255,255,0.4);
+            border-radius: 2px; box-shadow: 0 8px 0 rgba(255,255,255,0.4), 0 16px 0 rgba(255,255,255,0.4);
+        }
+        .loader-text { font-size: 10px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.4em; margin-bottom: 35px; animation: glow-text 2s infinite ease-in-out; }
+        .copyright { font-size: 9px; font-weight: 500; color: rgba(255,255,255,0.1); margin-top: 15px; letter-spacing: 1px; }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes pulse-inner { 0%, 100% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.05); opacity: 1; } }
+        @keyframes glow-text { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
+
+        /* ИНТЕРФЕЙС */
+        #main-content { opacity: 0; transition: 0.5s; }
+        .header-title { font-size: 22px; font-weight: 800; margin-bottom: 5px; }
+        .header-sub { font-size: 12px; color: var(--muted); margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; }
+        #search { width: 100%; border: 1px solid rgba(255,255,255,0.1); padding: 14px 18px; border-radius: 15px; background: rgba(255,255,255,0.05); color: #fff; font-size: 16px; outline: none; margin-bottom: 20px; transition: 0.3s; }
+        #search:focus { border-color: var(--accent); background: rgba(255,255,255,0.08); }
+
+        .card { background: var(--card); border-radius: 20px; padding: 18px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.05); transition: all 0.2s; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .card:active { transform: scale(0.97); background: #2d3a4f; }
+        .student-header { display: flex; justify-content: space-between; align-items: center; }
+        .student-name { font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .abs-badge { font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 6px; background: rgba(255,255,255,0.05); color: var(--muted); border: 1px solid rgba(255,255,255,0.03); }
+
+        .score-pill { font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 8px; min-width: 38px; text-align: center; }
+        .m-low { background: #ef4444; } .m-warn { background: #f59e0b; } .m-high { background: #10b981; }
+        .m-gold { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #000; }
         .m-none { background: rgba(255,255,255,0.1); color: var(--muted); }
 
         .subs-container { display: none; padding-top: 15px; margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.05); }
         .subs-container.open { display: block; }
-        .sub-item { margin-bottom: 12px; transition: 0.1s; }
-        .sub-item:active { opacity: 0.8; }
+        .sub-item { margin-bottom: 12px; }
         .sub-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        
-        .marks-box { display: none; background: rgba(0,0,0,0.25); padding: 12px; border-radius: 14px; margin-top: 5px; flex-direction: column; gap: 10px; }
+        .marks-box { display: none; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 12px; margin-top: 5px; flex-direction: column; gap: 8px; }
         .marks-box.open { display: flex; }
-        .marks-row { display: flex; flex-wrap: wrap; gap: 5px; }
-        .mark { width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; border-radius: 6px; font-size: 11px; font-weight: 800; }
-        
-        .analytic-tip { font-size: 10px; color: var(--accent); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; background: rgba(16, 185, 129, 0.1); padding: 4px 8px; border-radius: 6px; display: inline-block; }
+        .marks-row { display: flex; flex-wrap: wrap; gap: 4px; }
+        .mark { width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; border-radius: 6px; font-size: 10px; font-weight: 800; }
+        .analytic-tip { font-size: 9px; color: var(--accent); font-weight: 700; text-transform: uppercase; background: rgba(56, 189, 248, 0.1); padding: 4px 8px; border-radius: 6px; align-self: flex-start; }
 
-        .fab-update { position: fixed; bottom: 30px; right: 20px; width: 52px; height: 52px; border-radius: 50%; background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 0.5px solid rgba(255, 255, 255, 0.4); display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 32px rgba(0,0,0,0.3); z-index: 999; transition: all 0.2s; }
-        .fab-update:active { transform: scale(0.88); background: rgba(255, 255, 255, 0.2); }
-        .fab-update svg { width: 24px; height: 24px; fill: #fff; }
+        .fab-update { position: fixed; bottom: 25px; right: 20px; width: 50px; height: 50px; border-radius: 50%; background: rgba(30, 41, 59, 0.6); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; z-index: 999; box-shadow: 0 8px 20px rgba(0,0,0,0.3); }
     </style>
 </head>
 <body>
 
     <div id="loader">
         <div class="loader-text">Загрузка данных...</div>
-        <div class="progress-w"><div class="progress-l"></div></div>
+        <div class="logo-container">
+            <div class="logo-outline"></div>
+            <div class="logo-icon"></div>
+        </div>
+        <div class="copyright">by @skwared</div>
     </div>
 
     <div id="main-content">
-        <div class="header-title">Журнал группы 86РТК</div>
+        <div class="header-title">Журнал 86РТК</div>
         <input type="text" id="search" placeholder="Поиск по фамилии..." autocomplete="off">
         <div id="list"></div>
     </div>
 
     <div class="fab-update" onclick="forceUpdate()">
-        <svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z""")/>></svg>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z""")/>></svg>
     </div>
 
     <script>
-        const API_URL = 'https://script.google.com/macros/s/AKfycbwt1vwTw5fVSNXW_aGEnn5Ly1aVwGzmkFv0YPxDZZt6Jf8UOBPcM0PxZHm_oazlJ-i-/exec';
+        // ССЫЛКИ
+        const API_JOURNAL = 'https://script.google.com/macros/s/AKfycbzrbDXKkZhKJohza3bbsUF1eoDb9WbLcdfdfheog9cpsPpVHrScR0qb2TVc9JTGtN0b/exec';
+        const API_ABSENCES = 'https://script.google.com/macros/s/AKfycbyux4wfN_lVoodDq-JHHjbYAGuJys_DsZ2mADyUGdw1MERG-iZK833dN0tSzI7lq_QeZg/exec';
+        
         const tg = window.Telegram?.WebApp;
-        let ALL_DATA = [];
+        let ALL_DATA = { journal: [], absences: {} };
 
         function getStyle(m) {
             const v = parseFloat(String(m).replace(',', '.'));
             if (isNaN(v) || v <= 0) return 'm-none';
             if (v >= 9.5) return 'm-gold'; 
-            if (v >= 7) return 'm-high';
-            if (v >= 4) return 'm-warn';
+            if (v >= 7.5) return 'm-high';
+            if (v >= 5) return 'm-warn';
             return 'm-low';
         }
 
@@ -95,96 +128,104 @@
             if (isNaN(avg) || avg >= 10 || marks.length === 0) return null;
             let decimal = avg - Math.floor(avg);
             if (decimal >= 0.29 && decimal <= 0.51) {
-                let target = Math.ceil(avg + 0.001); 
-                let count = marks.length;
-                let sum = marks.reduce((a, b) => a + (parseFloat(b) || 0), 0);
-                for (let i = 1; i <= 15; i++) {
-                    let newAvg = (sum + (i * 10)) / (count + i);
-                    if (newAvg >= target) return `До ${target}.0 нужно: ${i} отм. (10)`;
+                let target = Math.ceil(avg + 0.001);
+                let sum = marks.reduce((a, b) => a + (parseFloat(String(b).replace(',','.')) || 0), 0);
+                for (let i = 1; i <= 10; i++) {
+                    if ((sum + i * 10) / (marks.length + i) >= target) return `Нужно ${i} отм. (10) до ${target}.0`;
                 }
             }
             return null;
         }
 
         async function init(force = false) {
-            if (tg) { tg.ready(); tg.expand(); tg.headerColor = '#2d3735'; }
-            const cached = localStorage.getItem('journal_cache');
-            const lastUpdate = localStorage.getItem('last_update_time');
-            const ONE_WEEK = 7 * 24 * 60 * 60 * 1000;
-            const isExpired = lastUpdate && (Date.now() - lastUpdate > ONE_WEEK);
-
-            if (!force && cached && !isExpired) {
-                ALL_DATA = JSON.parse(cached);
-                render(ALL_DATA); hideLoader();
+            if (tg) { 
+                tg.ready(); 
+                tg.expand(); 
+                tg.headerColor = '#0f172a'; // Цвет шапки в синий
+                tg.backgroundColor = '#0f172a'; 
             }
+            const cached = localStorage.getItem('journal_blue_v5');
+            if (!force && cached) { ALL_DATA = JSON.parse(cached); render(); hideLoader(); }
 
             try {
-                const res = await fetch(API_URL);
-                const newData = await res.json();
-                ALL_DATA = newData;
-                localStorage.setItem('journal_cache', JSON.stringify(newData));
-                localStorage.setItem('last_update_time', Date.now().toString());
-                render(ALL_DATA); hideLoader();
+                const [resJ, resA] = await Promise.all([
+                    fetch(API_JOURNAL).then(r => r.json()),
+                    fetch(API_ABSENCES).then(r => r.json())
+                ]);
+                const absMap = {};
+                if (Array.isArray(resA)) resA.forEach(a => { if(a.name) absMap[a.name.trim()] = a.count; });
+                ALL_DATA = { journal: Array.isArray(resJ) ? resJ : (resJ.journal || []), absences: absMap };
+                localStorage.setItem('journal_blue_v5', JSON.stringify(ALL_DATA));
+                render(); hideLoader();
             } catch (e) {
-                if (!ALL_DATA.length) document.getElementById('loader').classList.add('error-state');
-                if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
+                if (!ALL_DATA.journal.length) document.querySelector('.loader-text').innerText = "Ошибка сети";
             }
+        }
+
+        function render() {
+            const container = document.getElementById('list');
+            container.innerHTML = '';
+            const query = document.getElementById('search').value.toLowerCase();
+
+            const sortedByScore = [...ALL_DATA.journal].sort((a,b) => parseFloat(b.totalAverage.replace(',','.')) - parseFloat(a.totalAverage.replace(',','.')));
+            const topNames = sortedByScore.slice(0, 3).map(s => s.studentName);
+            const crowns = ['🥇', '🥈', '🥉'];
+
+            const list = ALL_DATA.journal.filter(s => s.studentName.toLowerCase().includes(query)).sort((a,b) => a.studentName.localeCompare(b.studentName));
+            
+            list.forEach(s => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                const absCount = ALL_DATA.absences[s.studentName] || "0";
+                const tIdx = topNames.indexOf(s.studentName);
+
+                card.onclick = () => {
+                    card.querySelector('.subs-container').classList.toggle('open');
+                    if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('soft');
+                };
+                
+                let subsHtml = s.subjects.map(sub => {
+                    const tip = calcNeed(sub.avg, sub.marks);
+                    return `<div class="sub-item" onclick="event.stopPropagation(); this.querySelector('.marks-box').classList.toggle('open');">
+                        <div class="sub-row"><span>${sub.subject}</span><span class="score-pill ${getStyle(sub.avg)}">${sub.avg}</span></div>
+                        <div class="marks-box">
+                            ${tip ? `<div class="analytic-tip">${tip}</div>` : ''}
+                            <div class="marks-row">${sub.marks.map(m => `<div class="mark ${getStyle(m)}">${m}</div>`).join('')}</div>
+                        </div>
+                    </div>`;
+                }).join('');
+
+                card.innerHTML = `
+                    <div class="student-header">
+                        <span class="student-name">
+                            ${s.studentName} ${tIdx !== -1 ? crowns[tIdx] : ''}
+                            <span class="abs-badge">⏳ ${absCount}</span>
+                        </span>
+                        <span class="score-pill ${getStyle(s.totalAverage)}">${s.totalAverage}</span>
+                    </div>
+                    <div class="subs-container">${subsHtml || '<div style="font-size:11px; opacity:0.3; text-align:center;">Нет данных</div>'}</div>`;
+                container.appendChild(card);
+            });
         }
 
         function forceUpdate() {
             if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
-            const loader = document.getElementById('loader');
-            loader.style.display = 'flex'; loader.style.opacity = '1';
-            loader.classList.remove('error-state'); init(true);
+            const l = document.getElementById('loader');
+            l.style.opacity = '0';
+            l.style.display = 'flex';
+            setTimeout(() => {
+                l.style.opacity = '1';
+                init(true);
+            }, 10);
         }
 
         function hideLoader() {
-            const loader = document.getElementById('loader');
-            loader.style.opacity = '0';
-            setTimeout(() => { loader.style.display = 'none'; document.getElementById('main-content').style.opacity = '1'; }, 500);
+            const l = document.getElementById('loader');
+            l.style.opacity = '0';
+            setTimeout(() => { l.style.display = 'none'; document.getElementById('main-content').style.opacity = '1'; }, 600);
         }
 
-        function render(items) {
-            const container = document.getElementById('list');
-            container.innerHTML = '';
-            const sorted = [...items].sort((a, b) => a.studentName.localeCompare(b.studentName));
-            const topByScore = [...items].sort((a, b) => parseFloat(b.totalAverage.replace(',','.')) - parseFloat(a.totalAverage.replace(',','.'))).slice(0, 3).map(s => s.studentName);
-            const crowns = ['🥇', '🥈', '🥉'];
-
-            sorted.forEach(s => {
-                const validSubjects = s.subjects.filter(sub => {
-                    const avgV = parseFloat(sub.avg.replace(',', '.'));
-                    return (sub.marks.length > 0 || avgV > 0) && !sub.avg.includes('#');
-                });
-                const card = document.createElement('div');
-                card.className = 'card';
-                const tIdx = topByScore.indexOf(s.studentName);
-                card.onclick = () => {
-                    if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
-                    card.querySelector('.subs-container').classList.toggle('open');
-                };
-                let subsHtml = validSubjects.map(sub => {
-                    const cleanMarks = sub.marks.filter(m => m !== sub.avg);
-                    const tip = calcNeed(sub.avg, sub.marks);
-                    return `<div class="sub-item" onclick="event.stopPropagation(); this.querySelector('.marks-box').classList.toggle('open'); if(tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('soft');">
-                        <div class="sub-row"><span>${sub.subject}</span><span class="score-pill ${getStyle(sub.avg)}">${sub.avg}</span></div>
-                        <div class="marks-box">
-                            ${tip ? `<div class="analytic-tip">${tip}</div>` : ''}
-                            <div class="marks-row">${cleanMarks.map(m => `<div class="mark ${getStyle(m)}">${m}</div>`).join('') || '—'}</div>
-                        </div>
-                    </div>`;
-                }).join('');
-                card.innerHTML = `<div class="student-header">
-                    <div><span>${s.studentName}</span>${tIdx !== -1 ? ` <span>${crowns[tIdx]}</span>` : ''}</div>
-                    <span class="score-pill ${getStyle(s.totalAverage)}">${s.totalAverage}</span>
-                </div>
-                <div class="subs-container">${subsHtml || '<div style="font-size:11px; opacity:0.3; text-align:center;">Нет данных</div>'}</div>`;
-                container.appendChild(card);
-            });
-        }
-        document.getElementById('search').oninput = (e) => {
-            render(ALL_DATA.filter(x => x.studentName.toLowerCase().includes(e.target.value.toLowerCase())));
-        };
+        document.getElementById('search').oninput = render;
         init();
     </script>
 </body>
