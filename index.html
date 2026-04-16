@@ -224,6 +224,23 @@
             l.style.opacity = '0';
             setTimeout(() => { l.style.display = 'none'; document.getElementById('main-content').style.opacity = '1'; }, 600);
         }
+        // Функция экскурсии
+function runTour() {
+    const isFirstTime = !localStorage.getItem('tour_completed');
+    if (isFirstTime && tg) {
+        tg.showPopup({
+            title: 'Добро пожаловать в электронный журнал 86РТК!',
+            message: 'Давай быстро пройдемся по функциям:\n\n' +
+                     '🔹 Нажми на карточку, чтобы увидеть оценки по предметам.\n' +
+                     '🔹 Внутри предмета ты найдешь расчет: сколько нужно 10-ток до след. балла.\n' +
+                     '🔹 Значок ⏳ показывает твои накопленные отгулы.\n' +
+                     '🔹 Медали 🥇🥈🥉 отмечают лидеров рейтинга.\n\n' +
+                     'Данные обновляются автоматически, но ты всегда можешь нажать кнопку в углу для принудительного обновления.',
+            buttons: [{type: 'ok', text: 'Понятно!'}]
+        });
+        localStorage.setItem('tour_completed', 'true');
+    }
+}
 
         document.getElementById('search').oninput = render;
         init();
