@@ -220,27 +220,39 @@
         }
 
         function hideLoader() {
-            const l = document.getElementById('loader');
-            l.style.opacity = '0';
-            setTimeout(() => { l.style.display = 'none'; document.getElementById('main-content').style.opacity = '1'; }, 600);
-        }
-        // Функция экскурсии
+    const l = document.getElementById('loader');
+    l.style.opacity = '0';
+    setTimeout(() => { 
+        l.style.display = 'none'; 
+        document.getElementById('main-content').style.opacity = '1'; 
+        
+        // Запускаем экскурсию сразу после открытия интерфейса
+        runTour(); 
+    }, 600);
+}
+
 function runTour() {
-    const isFirstTime = !localStorage.getItem('tour_completed');
-    if (isFirstTime && tg) {
-        tg.showPopup({
-            title: 'Добро пожаловать в электронный журнал 86РТК!',
-            message: 'Давай быстро пройдемся по функциям:\n\n' +
-                     '🔹 Нажми на карточку, чтобы увидеть оценки по предметам.\n' +
-                     '🔹 Внутри предмета ты найдешь расчет: сколько нужно 10-ток до след. балла.\n' +
-                     '🔹 Значок ⏳ показывает твои накопленные отгулы.\n' +
-                     '🔹 Медали 🥇🥈🥉 отмечают лидеров рейтинга.\n\n' +
-                     'Данные обновляются автоматически, но ты всегда можешь нажать кнопку в углу для принудительного обновления.',
-            buttons: [{type: 'ok', text: 'Понятно!'}]
+    // ВРЕМЕННО УБРАЛИ ПРОВЕРКУ localStorage, чтобы окно появлялось всегда
+    if (window.Telegram && window.Telegram.WebApp) {
+        window.Telegram.WebApp.showPopup({
+            title: '👋 Привет, 86РТК!',
+            message: 'Краткий гайд:\n\n' +
+                     '📊 Жми на студента — увидишь оценки.\n' +
+                     '🎯 Внутри оценок есть расчет «пути к 10-ке».\n' +
+                     '⏳ ⏳ — это твои отгулы из второй таблицы.\n' +
+                     '🥇 — так отмечен ТОП-3 группы.\n\n' +
+                     'Обновляй данные кнопкой в углу!',
+            buttons: [{id: 'check', type: 'default', text: 'Погнали!'}]
+        }, function(id) {
+            // Оставляем запись в памяти, но пока она не блокирует повторный показ
+            localStorage.setItem('tour_completed_v1', 'true');
+            if (window.Telegram.WebApp.HapticFeedback) {
+                window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+            }
         });
-        localStorage.setItem('tour_completed', 'true');
     }
 }
+
 
         document.getElementById('search').oninput = render;
         init();
