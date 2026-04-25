@@ -46,8 +46,8 @@
             try {
                 const ts = Date.now();
                 const [resJ, resA] = await Promise.all([
-                    fetch(`${API_JOURNAL}?t=${ts}`).then(r => r.json()),
-                    fetch(`${API_ABSENCES}?t=${ts}`).then(r => r.json())
+                    fetch(API_JOURNAL + '?t=' + Date.now()) 
+                    fetch(API_ABSENCES + '?t=' + Date.now()) 
                 ]);
                 ALL_DATA.journal = Array.isArray(resJ) ? resJ : [];
                 ALL_DATA.absences = {};
