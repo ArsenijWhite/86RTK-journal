@@ -78,11 +78,7 @@
             transition: all 0.3s ease;
         }
         
-        /* Обычный режим - вращение + дыхание */
-        #loader:not(.error-mode) .logo-container {
-            animation: breathe 2s ease-in-out infinite;
-        }
-        
+        /* Обычный режим - вращение + пульсация прозрачности */
         #loader:not(.error-mode) .logo-outline {
             border: 2px solid rgba(56, 189, 248, 0.15);
             border-top: 2px solid var(--accent);
@@ -92,15 +88,11 @@
         
         #loader:not(.error-mode) .logo-icon {
             background: linear-gradient(135deg, #38bdf8, #0ea5e9);
-            animation: breatheIcon 2s ease-in-out infinite;
+            animation: fadePulseIcon 2s ease-in-out infinite;
             box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
         }
         
-        /* Режим ошибки - ТОТ ЖЕ РИТМ, но красный и круг статичный */
-        #loader.error-mode .logo-container {
-            animation: breathe 2s ease-in-out infinite;
-        }
-        
+        /* Режим ошибки - ТА ЖЕ АНИМАЦИЯ затухания, но красный и круг статичный */
         #loader.error-mode .logo-outline {
             border: 2px solid var(--error);
             box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
@@ -110,7 +102,7 @@
         
         #loader.error-mode .logo-icon {
             background: linear-gradient(135deg, #ef4444, #dc2626);
-            animation: breatheIcon 2s ease-in-out infinite;
+            animation: fadePulseIcon 2s ease-in-out infinite;
             box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
         }
         
@@ -201,31 +193,19 @@
             letter-spacing: 1px;
         }
 
-        /* Анимации — ОДИНАКОВЫЕ для обычного режима и ошибки */
-        @keyframes breathe {
+        /* Анимация затухания и появления — оригинальная, без изменения размера */
+        @keyframes fadePulseIcon {
             0% {
-                transform: scale(0.94);
+                opacity: 0.5;
+                box-shadow: 0 0 5px rgba(56, 189, 248, 0.1);
             }
             50% {
-                transform: scale(1.06);
-            }
-            100% {
-                transform: scale(0.94);
-            }
-        }
-        
-        @keyframes breatheIcon {
-            0% {
-                transform: scale(0.92);
-                opacity: 0.85;
-            }
-            50% {
-                transform: scale(1.08);
                 opacity: 1;
+                box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
             }
             100% {
-                transform: scale(0.92);
-                opacity: 0.85;
+                opacity: 0.5;
+                box-shadow: 0 0 5px rgba(56, 189, 248, 0.1);
             }
         }
         
@@ -245,14 +225,55 @@
             opacity: 1;
         }
         
-        .header-title { 
-            font-size: 24px; 
-            font-weight: 700; 
-            margin-bottom: 6px; 
+        /* Мини-логотип рядом с заголовком */
+        .header-logo {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        
+        .mini-journal-icon {
+            width: 28px;
+            height: 36px;
+            background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+            border-radius: 3px 8px 8px 3px;
+            position: relative;
+            display: inline-block;
+            box-shadow: 0 2px 6px rgba(56, 189, 248, 0.3);
+        }
+        
+        .mini-journal-icon::before {
+            content: "";
+            position: absolute;
+            top: 7px;
+            left: 5px;
+            width: 18px;
+            height: 2px;
+            background: rgba(255,255,255,0.6);
+            border-radius: 1px;
+            box-shadow: 0 7px 0 rgba(255,255,255,0.6), 0 14px 0 rgba(255,255,255,0.6);
+        }
+        
+        .mini-journal-icon::after {
+            content: "";
+            position: absolute;
+            bottom: 5px;
+            right: 4px;
+            width: 6px;
+            height: 6px;
+            background: rgba(255,255,255,0.25);
+            border-radius: 1px;
+        }
+        
+        .header-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 6px;
             letter-spacing: -0.3px;
             display: flex;
             align-items: center;
-            gap: 8px;
         }
         
         .header-sub { 
@@ -463,7 +484,10 @@
 
     <div id="main-content">
         <div class="header-title">
-            <span>📚</span> Журнал 86РТК
+            <span class="header-logo">
+                <span class="mini-journal-icon"></span>
+            </span>
+            Журнал 86РТК
         </div>
         <div class="header-sub">Электронный журнал успеваемости</div>
         <input type="text" id="search" placeholder="Поиск по фамилии" autocomplete="off">
@@ -478,7 +502,6 @@
     </div>
 
     <script>
-        // Telegram WebApp
         let tg = null;
         try {
             if (window.Telegram && window.Telegram.WebApp) {
@@ -488,11 +511,8 @@
                 tg.setHeaderColor('#0f172a');
                 tg.setBackgroundColor('#0f172a');
             }
-        } catch(e) {
-            console.log('Telegram WebApp not available');
-        }
+        } catch(e) {}
         
-        // API endpoints
         const API_JOURNAL = 'https://script.google.com/macros/s/AKfycbzrbDXKkZhKJohza3bbsUF1eoDb9WbLcdfdfheog9cpsPpVHrScR0qb2TVc9JTGtN0b/exec';
         const API_ABSENCES = 'https://script.google.com/macros/s/AKfycbyux4wfN_lVoodDq-JHHjbYAGuJys_DsZ2mADyUGdw1MERG-iZK833dN0tSzI7lq_QeZg/exec';
         
@@ -568,7 +588,7 @@
                 }
             }, 20000);
             
-            const cached = localStorage.getItem('journal_blue_final');
+            const cached = localStorage.getItem('journal_final');
             if (!force && cached) {
                 try {
                     ALL_DATA = JSON.parse(cached);
@@ -619,7 +639,7 @@
                     absences: absMap 
                 };
                 
-                localStorage.setItem('journal_blue_final', JSON.stringify(ALL_DATA));
+                localStorage.setItem('journal_final', JSON.stringify(ALL_DATA));
                 render();
                 hideLoader();
                 
@@ -688,10 +708,10 @@
                             ? sub.marks.map(m => `<div class="mark ${getStyle(m)}">${m}</div>`).join('')
                             : '<div style="font-size:11px; opacity:0.4; text-align:center; padding:8px;">Нет оценок</div>';
                         
+                        // Средний балл по предмету не показываем
                         return `<div class="sub-item">
                             <div class="sub-row">
                                 <span>${escapeHtml(sub.subject || 'Без названия')}</span>
-                                <span class="score-pill ${getStyle(sub.avg)}">${sub.avg || '—'}</span>
                             </div>
                             <div class="marks-box">
                                 ${tip ? `<div class="analytic-tip">${tip}</div>` : ''}
@@ -754,7 +774,7 @@
             if (tg && tg.HapticFeedback) {
                 tg.HapticFeedback.impactOccurred('medium');
             }
-            localStorage.removeItem('journal_blue_final');
+            localStorage.removeItem('journal_final');
             init(true);
         }
         
