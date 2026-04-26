@@ -78,7 +78,11 @@
             transition: all 0.3s ease;
         }
         
-        /* Обычный режим - вращение */
+        /* Обычный режим - вращение + дыхание */
+        #loader:not(.error-mode) .logo-container {
+            animation: breathe 2s ease-in-out infinite;
+        }
+        
         #loader:not(.error-mode) .logo-outline {
             border: 2px solid rgba(56, 189, 248, 0.15);
             border-top: 2px solid var(--accent);
@@ -88,30 +92,30 @@
         
         #loader:not(.error-mode) .logo-icon {
             background: linear-gradient(135deg, #38bdf8, #0ea5e9);
-            animation: pulse-inner 2s infinite ease-in-out;
+            animation: breatheIcon 2s ease-in-out infinite;
             box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
         }
         
-        /* Режим ошибки - дыхание + затухание */
+        /* Режим ошибки - ТОТ ЖЕ РИТМ, но красный и круг статичный */
         #loader.error-mode .logo-container {
             animation: breathe 2s ease-in-out infinite;
         }
         
         #loader.error-mode .logo-outline {
             border: 2px solid var(--error);
-            animation: fadePulse 2s ease-in-out infinite;
-            transform-origin: center;
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
+            animation: none;
+            transform: rotate(0deg);
         }
         
         #loader.error-mode .logo-icon {
             background: linear-gradient(135deg, #ef4444, #dc2626);
-            animation: fadePulseIcon 2s ease-in-out infinite;
-            transform-origin: center;
+            animation: breatheIcon 2s ease-in-out infinite;
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
         }
         
         #loader.error-mode .loader-status {
             color: var(--error);
-            animation: fadePulseText 2s ease-in-out infinite;
         }
         
         .logo-icon {
@@ -197,73 +201,37 @@
             letter-spacing: 1px;
         }
 
-        /* Анимации для обычного режима */
-        @keyframes spin { 
-            0% { transform: rotate(0deg); } 
-            100% { transform: rotate(360deg); } 
-        }
-        
-        @keyframes pulse-inner { 
-            0%, 100% { transform: scale(1); opacity: 0.8; } 
-            50% { transform: scale(1.05); opacity: 1; } 
-        }
-        
-        /* Анимации для режима ошибки */
+        /* Анимации — ОДИНАКОВЫЕ для обычного режима и ошибки */
         @keyframes breathe {
             0% {
+                transform: scale(0.94);
+            }
+            50% {
+                transform: scale(1.06);
+            }
+            100% {
+                transform: scale(0.94);
+            }
+        }
+        
+        @keyframes breatheIcon {
+            0% {
                 transform: scale(0.92);
+                opacity: 0.85;
             }
             50% {
                 transform: scale(1.08);
+                opacity: 1;
             }
             100% {
                 transform: scale(0.92);
+                opacity: 0.85;
             }
         }
         
-        @keyframes fadePulse {
-            0% {
-                opacity: 0.3;
-                box-shadow: 0 0 5px rgba(239, 68, 68, 0.1);
-            }
-            50% {
-                opacity: 1;
-                box-shadow: 0 0 30px rgba(239, 68, 68, 0.6);
-            }
-            100% {
-                opacity: 0.3;
-                box-shadow: 0 0 5px rgba(239, 68, 68, 0.1);
-            }
-        }
-        
-        @keyframes fadePulseIcon {
-            0% {
-                opacity: 0.3;
-                transform: scale(0.88);
-                box-shadow: 0 0 5px rgba(239, 68, 68, 0.1);
-            }
-            50% {
-                opacity: 1;
-                transform: scale(1.02);
-                box-shadow: 0 0 25px rgba(239, 68, 68, 0.5);
-            }
-            100% {
-                opacity: 0.3;
-                transform: scale(0.88);
-                box-shadow: 0 0 5px rgba(239, 68, 68, 0.1);
-            }
-        }
-        
-        @keyframes fadePulseText {
-            0% {
-                opacity: 0.4;
-            }
-            50% {
-                opacity: 1;
-            }
-            100% {
-                opacity: 0.4;
-            }
+        @keyframes spin { 
+            0% { transform: rotate(0deg); } 
+            100% { transform: rotate(360deg); } 
         }
 
         /* ИНТЕРФЕЙС */
@@ -277,55 +245,14 @@
             opacity: 1;
         }
         
-        /* CSS логотип в заголовке */
-        .header-logo {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 8px;
-            vertical-align: middle;
-        }
-        
-        .journal-icon {
-            width: 28px;
-            height: 28px;
-            background: linear-gradient(135deg, var(--accent), #0ea5e9);
-            border-radius: 6px;
-            position: relative;
-            display: inline-block;
-            box-shadow: 0 2px 8px rgba(56, 189, 248, 0.3);
-        }
-        
-        .journal-icon::before {
-            content: "";
-            position: absolute;
-            top: 6px;
-            left: 7px;
-            width: 14px;
-            height: 2px;
-            background: rgba(255,255,255,0.7);
-            border-radius: 1px;
-            box-shadow: 0 6px 0 rgba(255,255,255,0.7), 0 12px 0 rgba(255,255,255,0.7);
-        }
-        
-        .journal-icon::after {
-            content: "";
-            position: absolute;
-            bottom: 6px;
-            right: 6px;
-            width: 8px;
-            height: 8px;
-            background: rgba(255,255,255,0.3);
-            border-radius: 1px;
-        }
-        
-        .header-title {
-            font-size: 24px;
-            font-weight: 700;
-            margin-bottom: 6px;
+        .header-title { 
+            font-size: 24px; 
+            font-weight: 700; 
+            margin-bottom: 6px; 
             letter-spacing: -0.3px;
             display: flex;
             align-items: center;
+            gap: 8px;
         }
         
         .header-sub { 
@@ -335,83 +262,6 @@
             text-transform: uppercase; 
             letter-spacing: 1px; 
             margin-left: 36px;
-        }
-        
-        /* CSS иконка прогулов (песочные часы) */
-        .abs-icon {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 4px;
-            vertical-align: middle;
-        }
-        
-        .hourglass-icon {
-            width: 12px;
-            height: 16px;
-            position: relative;
-            display: inline-block;
-        }
-        
-        .hourglass-icon::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 12px;
-            height: 6px;
-            border-top: 2px solid var(--muted);
-            border-left: 2px solid var(--muted);
-            border-right: 2px solid var(--muted);
-            border-radius: 2px 2px 0 0;
-        }
-        
-        .hourglass-icon::after {
-            content: "";
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 12px;
-            height: 6px;
-            border-bottom: 2px solid var(--muted);
-            border-left: 2px solid var(--muted);
-            border-right: 2px solid var(--muted);
-            border-radius: 0 0 2px 2px;
-        }
-        
-        .hourglass-icon .sand-top {
-            position: absolute;
-            top: 2px;
-            left: 3px;
-            width: 6px;
-            height: 3px;
-            background: var(--muted);
-            border-radius: 1px;
-            opacity: 0.5;
-        }
-        
-        .hourglass-icon .sand-bottom {
-            position: absolute;
-            bottom: 2px;
-            left: 3px;
-            width: 6px;
-            height: 3px;
-            background: var(--muted);
-            border-radius: 1px;
-            opacity: 0.5;
-        }
-        
-        .abs-badge {
-            font-size: 10px;
-            font-weight: 600;
-            padding: 3px 8px;
-            border-radius: 6px;
-            background: rgba(255,255,255,0.04);
-            color: var(--muted);
-            border: 1px solid rgba(255,255,255,0.05);
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
         }
         
         #search { 
@@ -461,6 +311,19 @@
             align-items: center; 
             gap: 8px; 
             flex-wrap: wrap; 
+        }
+        
+        .abs-badge {
+            font-size: 10px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.04);
+            color: var(--muted);
+            border: 1px solid rgba(255,255,255,0.05);
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
         }
 
         .score-pill { 
@@ -600,10 +463,7 @@
 
     <div id="main-content">
         <div class="header-title">
-            <span class="header-logo">
-                <span class="journal-icon"></span>
-            </span>
-            Журнал 86РТК
+            <span>📚</span> Журнал 86РТК
         </div>
         <div class="header-sub">Электронный журнал успеваемости</div>
         <input type="text" id="search" placeholder="Поиск по фамилии" autocomplete="off">
@@ -708,7 +568,7 @@
                 }
             }, 20000);
             
-            const cached = localStorage.getItem('journal_blue_v11');
+            const cached = localStorage.getItem('journal_blue_final');
             if (!force && cached) {
                 try {
                     ALL_DATA = JSON.parse(cached);
@@ -759,7 +619,7 @@
                     absences: absMap 
                 };
                 
-                localStorage.setItem('journal_blue_v11', JSON.stringify(ALL_DATA));
+                localStorage.setItem('journal_blue_final', JSON.stringify(ALL_DATA));
                 render();
                 hideLoader();
                 
@@ -820,14 +680,6 @@
                 const absCount = ALL_DATA.absences[s.studentName] || "0";
                 const tIdx = topNames.indexOf(s.studentName);
                 
-                // Создаем HTML для иконки прогулов
-                const absIconHtml = `<span class="abs-icon">
-                    <span class="hourglass-icon">
-                        <span class="sand-top"></span>
-                        <span class="sand-bottom"></span>
-                    </span>
-                </span>`;
-                
                 let subsHtml = '';
                 if (s.subjects && Array.isArray(s.subjects)) {
                     subsHtml = s.subjects.map(sub => {
@@ -856,8 +708,7 @@
                         <span class="student-name">
                             ${escapeHtml(s.studentName)} ${tIdx !== -1 ? crowns[tIdx] : ''}
                             <span class="abs-badge">
-                                ${absIconHtml}
-                                ${absCount}
+                                ⏳ ${absCount}
                             </span>
                         </span>
                         <span class="score-pill ${getStyle(s.totalAverage)}">${s.totalAverage || '—'}</span>
@@ -903,7 +754,7 @@
             if (tg && tg.HapticFeedback) {
                 tg.HapticFeedback.impactOccurred('medium');
             }
-            localStorage.removeItem('journal_blue_v11');
+            localStorage.removeItem('journal_blue_final');
             init(true);
         }
         
