@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Журнал 86РТК</title>
-    <!-- Правильное подключение Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js?56"></script>
     <style>
         :root {
@@ -32,7 +31,7 @@
         }
         body { 
             padding: 20px; 
-            padding-bottom: 50px; 
+            padding-bottom: 80px; 
         }
 
         /* ЛОАДЕР */
@@ -69,7 +68,27 @@
             border-top: 2px solid var(--accent);
             box-shadow: 0 -5px 15px rgba(56, 189, 248, 0.3);
             animation: spin 1.5s linear infinite;
+            transition: all 0.3s ease;
         }
+        
+        /* Красный режим для долгой загрузки */
+        #loader.timeout-mode .logo-outline {
+            border: 2px solid rgba(239, 68, 68, 0.1);
+            border-top: 2px solid var(--error);
+            box-shadow: 0 -5px 15px rgba(239, 68, 68, 0.3);
+            animation: pulse-red 1s ease-in-out infinite;
+        }
+        
+        #loader.timeout-mode .logo-icon {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+        }
+        
+        #loader.timeout-mode .loader-text {
+            color: var(--error);
+            animation: glow-red-text 1s ease-in-out infinite;
+        }
+        
         .logo-icon {
             width: 45px; 
             height: 60px; 
@@ -79,6 +98,7 @@
             z-index: 2;
             animation: pulse-inner 2s infinite ease-in-out;
             box-shadow: 0 0 20px rgba(56, 189, 248, 0.2);
+            transition: all 0.3s ease;
         }
         .logo-icon::before {
             content: ""; 
@@ -98,7 +118,9 @@
             text-transform: uppercase; 
             letter-spacing: 0.4em; 
             margin-bottom: 35px; 
-            animation: glow-text 2s infinite ease-in-out; 
+            animation: glow-text 2s infinite ease-in-out;
+            transition: all 0.3s ease;
+            text-align: center;
         }
         .copyright { 
             font-size: 9px; 
@@ -114,10 +136,29 @@
             text-align: center;
             max-width: 80%;
         }
+        .retry-btn {
+            background: var(--accent);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            color: var(--bg);
+            font-weight: 700;
+            margin-top: 15px;
+            cursor: pointer;
+            font-size: 14px;
+        }
 
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         @keyframes pulse-inner { 0%, 100% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.05); opacity: 1; } }
         @keyframes glow-text { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
+        @keyframes pulse-red { 
+            0%, 100% { transform: rotate(0deg); opacity: 0.6; } 
+            50% { transform: rotate(180deg); opacity: 1; } 
+        }
+        @keyframes glow-red-text { 
+            0%, 100% { opacity: 0.4; text-shadow: none; } 
+            50% { opacity: 1; text-shadow: 0 0 8px rgba(239, 68, 68, 0.5); } 
+        }
 
         /* ИНТЕРФЕЙС */
         #main-content { 
@@ -299,6 +340,23 @@
             font-size: 14px;
         }
         
+        .footer-signature {
+            text-align: center;
+            padding: 25px 20px 15px 20px;
+            color: rgba(255,255,255,0.15);
+            font-size: 10px;
+            font-weight: 500;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            border-top: 1px solid rgba(255,255,255,0.03);
+            margin-top: 10px;
+        }
+        
+        .footer-signature a {
+            color: rgba(255,255,255,0.2);
+            text-decoration: none;
+        }
+        
         .retry-btn {
             background: var(--accent);
             border: none;
@@ -309,6 +367,10 @@
             margin-top: 15px;
             cursor: pointer;
             font-size: 14px;
+            transition: 0.2s;
+        }
+        .retry-btn:active {
+            transform: scale(0.95);
         }
     </style>
 </head>
@@ -329,6 +391,7 @@
         <div class="header-sub">Электронный журнал успеваемости</div>
         <input type="text" id="search" placeholder="🔍 Поиск по фамилии..." autocomplete="off">
         <div id="list"></div>
+        <div class="footer-signature">by @skwared</div>
     </div>
 
     <div class="fab-update" onclick="forceUpdate()">
@@ -355,10 +418,12 @@
         
         // Конфигурация API
         const API_JOURNAL = 'https://script.google.com/macros/s/AKfycbzrbDXKkZhKJohza3bbsUF1eoDb9WbLcdfdfheog9cpsPpVHrScR0qb2TVc9JTGtN0b/exec';
-        const API_ABSENCES = 'https://script.google.com/macros/s/AKfycbyux4wfN_lVoodDq-JHHjbYAGuJys_DsZ2mADyUGdw1MERG-iZK833dN0tSzI7lq_QeZg/exec';
+        const API_ABSENCES = 'https://script.google.com/macross/AKfycbyux4wfN_lVoodDq-JHHjbYAGuJys_DsZ2mADyUGdw1MERG-iZK833dN0tSzI7lq_QeZg/exec';
         
         let ALL_DATA = { journal: [], absences: {} };
         let isLoading = false;
+        let timeoutTriggered = false;
+        let timeoutId = null;
         
         // Функция для стилизации оценок
         function getStyle(m) {
@@ -388,19 +453,49 @@
             return null;
         }
         
+        // Функция для активации красного режима при таймауте
+        function activateTimeoutMode() {
+            if (timeoutTriggered) return;
+            timeoutTriggered = true;
+            
+            const loader = document.getElementById('loader');
+            const loaderText = document.getElementById('loaderText');
+            
+            loader.classList.add('timeout-mode');
+            loaderText.textContent = 'Не удалось получить данные';
+            
+            const loaderError = document.getElementById('loaderError');
+            loaderError.style.display = 'block';
+            loaderError.innerHTML = `<div class="error-text">⚠️ Сервер не отвечает более 20 секунд<br>Проверьте подключение к интернету</div>
+                                    <button class="retry-btn" onclick="forceUpdate()">🔄 Повторить попытку</button>`;
+        }
+        
         // Основная функция загрузки данных
         async function init(force = false) {
             if (isLoading) return;
             isLoading = true;
+            timeoutTriggered = false;
             
             const loader = document.getElementById('loader');
             const loaderText = document.getElementById('loaderText');
             const loaderError = document.getElementById('loaderError');
             
+            // Сбрасываем красный режим
+            loader.classList.remove('timeout-mode');
             loader.style.display = 'flex';
             loader.style.opacity = '1';
             loaderError.style.display = 'none';
             loaderText.textContent = 'Загрузка данных...';
+            
+            // Очищаем предыдущий таймаут
+            if (timeoutId) clearTimeout(timeoutId);
+            
+            // Устанавливаем новый таймаут на 20 секунд
+            timeoutId = setTimeout(() => {
+                if (isLoading) {
+                    activateTimeoutMode();
+                }
+            }, 20000);
             
             // Проверяем кэш
             const cached = localStorage.getItem('journal_blue_v6');
@@ -408,6 +503,7 @@
                 try {
                     ALL_DATA = JSON.parse(cached);
                     if (ALL_DATA.journal && ALL_DATA.journal.length > 0) {
+                        clearTimeout(timeoutId);
                         render();
                         hideLoader();
                         isLoading = false;
@@ -421,13 +517,14 @@
                 
                 // Загрузка данных с таймаутом
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 15000);
+                const fetchTimeoutId = setTimeout(() => controller.abort(), 15000);
                 
                 const [resJ, resA] = await Promise.all([
                     fetch(API_JOURNAL, { signal: controller.signal }).then(r => r.json()),
                     fetch(API_ABSENCES, { signal: controller.signal }).then(r => r.json())
                 ]);
                 
+                clearTimeout(fetchTimeoutId);
                 clearTimeout(timeoutId);
                 
                 // Обработка пропусков
@@ -466,10 +563,15 @@
                 
             } catch (e) {
                 console.error('Ошибка загрузки:', e);
-                loaderText.textContent = 'Ошибка соединения';
-                loaderError.style.display = 'block';
-                loaderError.innerHTML = `<div class="error-text">Не удалось загрузить данные<br>Проверьте подключение к интернету</div>
-                                        <button class="retry-btn" onclick="forceUpdate()">🔄 Повторить</button>`;
+                
+                // Если таймаут еще не сработал, показываем ошибку
+                if (!timeoutTriggered) {
+                    clearTimeout(timeoutId);
+                    loaderText.textContent = 'Ошибка соединения';
+                    loaderError.style.display = 'block';
+                    loaderError.innerHTML = `<div class="error-text">❌ Не удалось загрузить данные<br>Проверьте подключение к интернету</div>
+                                            <button class="retry-btn" onclick="forceUpdate()">🔄 Повторить</button>`;
+                }
                 
                 // Если есть кэш, показываем его даже при ошибке
                 if (ALL_DATA.journal && ALL_DATA.journal.length > 0) {
@@ -493,7 +595,7 @@
             const query = document.getElementById('search').value.toLowerCase().trim();
             
             if (!ALL_DATA.journal || ALL_DATA.journal.length === 0) {
-                container.innerHTML = '<div class="empty-state">Нет данных для отображения</div>';
+                container.innerHTML = '<div class="empty-state">📭 Нет данных для отображения</div>';
                 return;
             }
             
@@ -532,7 +634,7 @@
                         
                         return `<div class="sub-item" onclick="event.stopPropagation(); this.querySelector('.marks-box').classList.toggle('open');">
                             <div class="sub-row">
-                                <span>${sub.subject || 'Без названия'}</span>
+                                <span>${escapeHtml(sub.subject || 'Без названия')}</span>
                                 <span class="score-pill ${getStyle(sub.avg)}">${sub.avg || '—'}</span>
                             </div>
                             <div class="marks-box">
@@ -542,7 +644,7 @@
                         </div>`;
                     }).join('');
                 } else {
-                    subsHtml = '<div style="font-size:11px; opacity:0.5; text-align:center; padding:10px;">Нет предметов</div>';
+                    subsHtml = '<div style="font-size:11px; opacity:0.5; text-align:center; padding:10px;">📖 Нет предметов</div>';
                 }
                 
                 card.innerHTML = `
