@@ -96,29 +96,28 @@
             box-shadow: 0 0 15px rgba(56, 189, 248, 0.3);
         }
         
-        /* ===== РЕЖИМ ОШИБКИ ===== */
+        /* ===== РЕЖИМ ОШИБКИ - ВСЁ КРАСНОЕ ===== */
         #loader.error-mode .logo-container {
             animation: breatheContainer 2s ease-in-out infinite;
         }
         
         #loader.error-mode .logo-outline {
             border: 2px solid var(--error);
-            box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.5);
             animation: none;
             transform: rotate(0deg);
         }
         
         #loader.error-mode .logo-icon {
             background: linear-gradient(135deg, #ef4444, #dc2626);
-            animation: breatheIcon 2s ease-in-out infinite;
-            box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
+            animation: breatheIconError 2s ease-in-out infinite;
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.5);
         }
         
         #loader.error-mode .loader-status {
             color: var(--error);
         }
         
-        /* Общие стили иконки */
         .logo-icon {
             width: 45px; 
             height: 60px; 
@@ -202,22 +201,14 @@
             letter-spacing: 1px;
         }
 
-        /* ===== АНИМАЦИИ С УМЕНЬШЕННЫМ ХОДОМ ===== */
+        /* ===== АНИМАЦИИ ===== */
         
-        /* Дыхание контейнера — минимальное (98% → 102%) */
         @keyframes breatheContainer {
-            0% {
-                transform: scale(0.98);
-            }
-            50% {
-                transform: scale(1.02);
-            }
-            100% {
-                transform: scale(0.98);
-            }
+            0% { transform: scale(0.98); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(0.98); }
         }
         
-        /* Дыхание иконки — минимальное + лёгкая пульсация прозрачности */
         @keyframes breatheIcon {
             0% {
                 transform: scale(0.97);
@@ -236,7 +227,25 @@
             }
         }
         
-        /* Вращение круга (только для обычного режима) */
+        /* Красная анимация для ошибки */
+        @keyframes breatheIconError {
+            0% {
+                transform: scale(0.97);
+                opacity: 0.85;
+                box-shadow: 0 0 5px rgba(239, 68, 68, 0.1);
+            }
+            50% {
+                transform: scale(1.03);
+                opacity: 1;
+                box-shadow: 0 0 25px rgba(239, 68, 68, 0.6);
+            }
+            100% {
+                transform: scale(0.97);
+                opacity: 0.85;
+                box-shadow: 0 0 5px rgba(239, 68, 68, 0.1);
+            }
+        }
+        
         @keyframes spin { 
             0% { transform: rotate(0deg); } 
             100% { transform: rotate(360deg); } 
@@ -253,7 +262,6 @@
             opacity: 1;
         }
         
-        /* Мини-логотип рядом с заголовком */
         .header-logo {
             display: inline-flex;
             align-items: center;
@@ -616,7 +624,7 @@
                 }
             }, 20000);
             
-            const cached = localStorage.getItem('journal_final_v3');
+            const cached = localStorage.getItem('journal_final_v4');
             if (!force && cached) {
                 try {
                     ALL_DATA = JSON.parse(cached);
@@ -667,7 +675,7 @@
                     absences: absMap 
                 };
                 
-                localStorage.setItem('journal_final_v3', JSON.stringify(ALL_DATA));
+                localStorage.setItem('journal_final_v4', JSON.stringify(ALL_DATA));
                 render();
                 hideLoader();
                 
@@ -736,9 +744,11 @@
                             ? sub.marks.map(m => `<div class="mark ${getStyle(m)}">${m}</div>`).join('')
                             : '<div style="font-size:11px; opacity:0.4; text-align:center; padding:8px;">Нет оценок</div>';
                         
+                        // ПОКАЗЫВАЕМ СРЕДНИЙ БАЛЛ СПРАВА ОТ НАЗВАНИЯ ПРЕДМЕТА (как в изначальном коде)
                         return `<div class="sub-item">
                             <div class="sub-row">
                                 <span>${escapeHtml(sub.subject || 'Без названия')}</span>
+                                <span class="score-pill ${getStyle(sub.avg)}">${sub.avg || '—'}</span>
                             </div>
                             <div class="marks-box">
                                 ${tip ? `<div class="analytic-tip">${tip}</div>` : ''}
@@ -801,7 +811,7 @@
             if (tg && tg.HapticFeedback) {
                 tg.HapticFeedback.impactOccurred('medium');
             }
-            localStorage.removeItem('journal_final_v3');
+            localStorage.removeItem('journal_final_v4');
             init(true);
         }
         
