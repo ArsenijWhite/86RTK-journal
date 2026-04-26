@@ -78,7 +78,11 @@
             transition: all 0.3s ease;
         }
         
-        /* Обычный режим - вращение + пульсация прозрачности */
+        /* ===== ОБЫЧНЫЙ РЕЖИМ ===== */
+        #loader:not(.error-mode) .logo-container {
+            animation: breatheContainer 2s ease-in-out infinite;
+        }
+        
         #loader:not(.error-mode) .logo-outline {
             border: 2px solid rgba(56, 189, 248, 0.15);
             border-top: 2px solid var(--accent);
@@ -88,11 +92,15 @@
         
         #loader:not(.error-mode) .logo-icon {
             background: linear-gradient(135deg, #38bdf8, #0ea5e9);
-            animation: fadePulseIcon 2s ease-in-out infinite;
-            box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
+            animation: breatheIcon 2s ease-in-out infinite;
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.3);
         }
         
-        /* Режим ошибки - ТА ЖЕ АНИМАЦИЯ затухания, но красный и круг статичный */
+        /* ===== РЕЖИМ ОШИБКИ ===== */
+        #loader.error-mode .logo-container {
+            animation: breatheContainer 2s ease-in-out infinite;
+        }
+        
         #loader.error-mode .logo-outline {
             border: 2px solid var(--error);
             box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
@@ -102,7 +110,7 @@
         
         #loader.error-mode .logo-icon {
             background: linear-gradient(135deg, #ef4444, #dc2626);
-            animation: fadePulseIcon 2s ease-in-out infinite;
+            animation: breatheIcon 2s ease-in-out infinite;
             box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
         }
         
@@ -110,6 +118,7 @@
             color: var(--error);
         }
         
+        /* Общие стили иконки */
         .logo-icon {
             width: 45px; 
             height: 60px; 
@@ -193,22 +202,41 @@
             letter-spacing: 1px;
         }
 
-        /* Анимация затухания и появления — оригинальная, без изменения размера */
-        @keyframes fadePulseIcon {
+        /* ===== АНИМАЦИИ ===== */
+        
+        /* Дыхание контейнера с логотипом */
+        @keyframes breatheContainer {
             0% {
-                opacity: 0.5;
+                transform: scale(0.94);
+            }
+            50% {
+                transform: scale(1.06);
+            }
+            100% {
+                transform: scale(0.94);
+            }
+        }
+        
+        /* Дыхание иконки + пульсация прозрачности */
+        @keyframes breatheIcon {
+            0% {
+                transform: scale(0.92);
+                opacity: 0.7;
                 box-shadow: 0 0 5px rgba(56, 189, 248, 0.1);
             }
             50% {
+                transform: scale(1.08);
                 opacity: 1;
-                box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
+                box-shadow: 0 0 25px rgba(56, 189, 248, 0.5);
             }
             100% {
-                opacity: 0.5;
+                transform: scale(0.92);
+                opacity: 0.7;
                 box-shadow: 0 0 5px rgba(56, 189, 248, 0.1);
             }
         }
         
+        /* Вращение круга (только для обычного режима) */
         @keyframes spin { 
             0% { transform: rotate(0deg); } 
             100% { transform: rotate(360deg); } 
@@ -588,7 +616,7 @@
                 }
             }, 20000);
             
-            const cached = localStorage.getItem('journal_final');
+            const cached = localStorage.getItem('journal_final_v2');
             if (!force && cached) {
                 try {
                     ALL_DATA = JSON.parse(cached);
@@ -639,7 +667,7 @@
                     absences: absMap 
                 };
                 
-                localStorage.setItem('journal_final', JSON.stringify(ALL_DATA));
+                localStorage.setItem('journal_final_v2', JSON.stringify(ALL_DATA));
                 render();
                 hideLoader();
                 
@@ -708,7 +736,6 @@
                             ? sub.marks.map(m => `<div class="mark ${getStyle(m)}">${m}</div>`).join('')
                             : '<div style="font-size:11px; opacity:0.4; text-align:center; padding:8px;">Нет оценок</div>';
                         
-                        // Средний балл по предмету не показываем
                         return `<div class="sub-item">
                             <div class="sub-row">
                                 <span>${escapeHtml(sub.subject || 'Без названия')}</span>
@@ -774,7 +801,7 @@
             if (tg && tg.HapticFeedback) {
                 tg.HapticFeedback.impactOccurred('medium');
             }
-            localStorage.removeItem('journal_final');
+            localStorage.removeItem('journal_final_v2');
             init(true);
         }
         
