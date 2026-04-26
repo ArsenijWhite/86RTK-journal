@@ -13,7 +13,6 @@
             --text: #f1f5f9;
             --muted: #94a3b8;
             --error: #ef4444;
-            --error-dark: #dc2626;
             --gold: #fbbf24;
         }
         * { 
@@ -70,31 +69,52 @@
             margin-bottom: 30px; 
         }
         
+        /* Внешний круг для свечения */
+        .glow-ring {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        
         .logo-outline {
             position: absolute; 
             width: 100%; 
             height: 100%;
             border-radius: 50%; 
-            border: 2px solid rgba(56, 189, 248, 0.15);
-            border-top: 2px solid var(--accent);
-            box-shadow: 0 0 20px rgba(56, 189, 248, 0.2);
-            animation: spin 1.2s linear infinite;
+            box-sizing: border-box;
             transition: all 0.3s ease;
         }
         
-        /* Красный режим для ошибки - только пульсация, без вращения */
+        /* Обычный режим - вращение */
+        #loader:not(.error-mode) .logo-outline {
+            border: 2px solid rgba(56, 189, 248, 0.15);
+            border-top: 2px solid var(--accent);
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
+            animation: spin 1.2s linear infinite;
+        }
+        
+        #loader:not(.error-mode) .logo-icon {
+            background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+            animation: pulse-inner 2s infinite ease-in-out;
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
+        }
+        
+        /* Режим ошибки - круг статичный, только свечение пульсирует */
         #loader.error-mode .logo-outline {
-            border: 2px solid rgba(239, 68, 68, 0.3);
-            border-top: 2px solid var(--error);
-            border-right: 2px solid rgba(239, 68, 68, 0.6);
-            box-shadow: 0 0 25px rgba(239, 68, 68, 0.5);
-            animation: pulse-red 1.2s ease-in-out infinite;
+            border: 2px solid var(--error);
+            animation: none;
+            transform: rotate(0deg);
+        }
+        
+        #loader.error-mode .glow-ring {
+            animation: pulse-glow 1.2s ease-in-out infinite;
         }
         
         #loader.error-mode .logo-icon {
             background: linear-gradient(135deg, #ef4444, #dc2626);
-            box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
-            animation: pulse-icon 1.2s ease-in-out infinite;
+            animation: none;
         }
         
         #loader.error-mode .loader-status {
@@ -104,12 +124,9 @@
         .logo-icon {
             width: 45px; 
             height: 60px; 
-            background: linear-gradient(135deg, #38bdf8, #0ea5e9);
             border-radius: 5px 12px 12px 5px; 
             position: relative; 
             z-index: 2;
-            animation: pulse-inner 2s infinite ease-in-out;
-            box-shadow: 0 0 20px rgba(56, 189, 248, 0.2);
             transition: all 0.3s ease;
         }
         
@@ -198,44 +215,19 @@
             50% { transform: scale(1.05); opacity: 1; } 
         }
         
-        /* Анимации для режима ошибки - только пульсация, без вращения */
-        @keyframes pulse-red { 
-            0% { 
-                transform: scale(0.95); 
+        /* Анимация пульсирующего свечения для режима ошибки */
+        @keyframes pulse-glow {
+            0% {
+                box-shadow: 0 0 5px rgba(239, 68, 68, 0.2), 0 0 10px rgba(239, 68, 68, 0.1);
                 opacity: 0.5;
-                border-top-color: rgba(239, 68, 68, 0.6);
-                border-right-color: rgba(239, 68, 68, 0.3);
             }
-            50% { 
-                transform: scale(1.08); 
+            50% {
+                box-shadow: 0 0 25px rgba(239, 68, 68, 0.6), 0 0 40px rgba(239, 68, 68, 0.3);
                 opacity: 1;
-                border-top-color: #ef4444;
-                border-right-color: rgba(239, 68, 68, 0.7);
-                box-shadow: 0 0 35px rgba(239, 68, 68, 0.7);
             }
-            100% { 
-                transform: scale(0.95); 
+            100% {
+                box-shadow: 0 0 5px rgba(239, 68, 68, 0.2), 0 0 10px rgba(239, 68, 68, 0.1);
                 opacity: 0.5;
-                border-top-color: rgba(239, 68, 68, 0.6);
-                border-right-color: rgba(239, 68, 68, 0.3);
-            }
-        }
-        
-        @keyframes pulse-icon {
-            0% { 
-                transform: scale(0.92); 
-                opacity: 0.7;
-                box-shadow: 0 0 10px rgba(239, 68, 68, 0.2);
-            }
-            50% { 
-                transform: scale(1.1); 
-                opacity: 1;
-                box-shadow: 0 0 30px rgba(239, 68, 68, 0.6);
-            }
-            100% { 
-                transform: scale(0.92); 
-                opacity: 0.7;
-                box-shadow: 0 0 10px rgba(239, 68, 68, 0.2);
             }
         }
 
@@ -445,6 +437,7 @@
     <div id="loader">
         <div class="loader-inner">
             <div class="logo-container">
+                <div class="glow-ring"></div>
                 <div class="logo-outline"></div>
                 <div class="logo-icon"></div>
             </div>
@@ -488,7 +481,7 @@
         
         // API endpoints
         const API_JOURNAL = 'https://script.google.com/macross/AKfycbzrbDXKkZhKJohza3bbsUF1eoDb9WbLcdfdfheog9cpsPpVHrScR0qb2TVc9JTGtN0b/exec';
-        const API_ABSENCES = 'https://script.google.com/macross/AKfycbyux4wfN_lVoodDq-JHHjbYAGuJys_DsZ2mADyUGdw1MERG-iZK833dN0tSzI7lq_QeZg/exec';
+        const API_ABSENCES = 'https://script.google.com/macros//AKfycbyux4wfN_lVoodDq-JHHjbYAGuJys_DsZ2mADyUGdw1MERG-iZK833dN0tSzI7lq_QeZg/exec';
         
         let ALL_DATA = { journal: [], absences: {} };
         let isLoading = false;
@@ -562,7 +555,7 @@
                 }
             }, 20000);
             
-            const cached = localStorage.getItem('journal_blue_v8');
+            const cached = localStorage.getItem('journal_blue_v9');
             if (!force && cached) {
                 try {
                     ALL_DATA = JSON.parse(cached);
@@ -613,7 +606,7 @@
                     absences: absMap 
                 };
                 
-                localStorage.setItem('journal_blue_v8', JSON.stringify(ALL_DATA));
+                localStorage.setItem('journal_blue_v9', JSON.stringify(ALL_DATA));
                 render();
                 hideLoader();
                 
@@ -746,7 +739,7 @@
             if (tg && tg.HapticFeedback) {
                 tg.HapticFeedback.impactOccurred('medium');
             }
-            localStorage.removeItem('journal_blue_v8');
+            localStorage.removeItem('journal_blue_v9');
             init(true);
         }
         
