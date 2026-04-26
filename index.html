@@ -447,15 +447,6 @@
             font-size: 11px; 
             font-weight: 700; 
         }
-        .analytic-tip { 
-            font-size: 10px; 
-            color: var(--accent); 
-            font-weight: 600; 
-            background: rgba(56, 189, 248, 0.1); 
-            padding: 6px 10px; 
-            border-radius: 8px; 
-            align-self: flex-start; 
-        }
 
         .fab-update { 
             position: fixed; 
@@ -565,23 +556,6 @@
             return 'm-low';
         }
         
-        function calcNeed(currentAvg, marks) {
-            if (!marks || marks.length === 0) return null;
-            let avg = parseFloat(String(currentAvg).replace(',', '.'));
-            if (isNaN(avg) || avg >= 10) return null;
-            let decimal = avg - Math.floor(avg);
-            if (decimal >= 0.29 && decimal <= 0.51) {
-                let target = Math.ceil(avg + 0.001);
-                let sum = marks.reduce((a, b) => a + (parseFloat(String(b).replace(',','.')) || 0), 0);
-                for (let i = 1; i <= 10; i++) {
-                    if ((sum + i * 10) / (marks.length + i) >= target) {
-                        return `Нужно ${i} отметок (10) до ${target}.0`;
-                    }
-                }
-            }
-            return null;
-        }
-        
         function showError(message) {
             const loader = document.getElementById('loader');
             const loaderStatus = document.getElementById('loaderStatus');
@@ -624,7 +598,7 @@
                 }
             }, 20000);
             
-            const cached = localStorage.getItem('journal_final_v4');
+            const cached = localStorage.getItem('journal_final_v5');
             if (!force && cached) {
                 try {
                     ALL_DATA = JSON.parse(cached);
@@ -675,7 +649,7 @@
                     absences: absMap 
                 };
                 
-                localStorage.setItem('journal_final_v4', JSON.stringify(ALL_DATA));
+                localStorage.setItem('journal_final_v5', JSON.stringify(ALL_DATA));
                 render();
                 hideLoader();
                 
@@ -739,19 +713,18 @@
                 let subsHtml = '';
                 if (s.subjects && Array.isArray(s.subjects)) {
                     subsHtml = s.subjects.map(sub => {
-                        const tip = calcNeed(sub.avg, sub.marks);
                         const marksHtml = (sub.marks && Array.isArray(sub.marks)) 
                             ? sub.marks.map(m => `<div class="mark ${getStyle(m)}">${m}</div>`).join('')
                             : '<div style="font-size:11px; opacity:0.4; text-align:center; padding:8px;">Нет оценок</div>';
                         
-                        // ПОКАЗЫВАЕМ СРЕДНИЙ БАЛЛ СПРАВА ОТ НАЗВАНИЯ ПРЕДМЕТА (как в изначальном коде)
+                        // Средний балл показываем ТОЛЬКО справа от названия предмета
+                        // Внутри marks-box показываем ТОЛЬКО оценки
                         return `<div class="sub-item">
                             <div class="sub-row">
                                 <span>${escapeHtml(sub.subject || 'Без названия')}</span>
                                 <span class="score-pill ${getStyle(sub.avg)}">${sub.avg || '—'}</span>
                             </div>
                             <div class="marks-box">
-                                ${tip ? `<div class="analytic-tip">${tip}</div>` : ''}
                                 <div class="marks-row">${marksHtml}</div>
                             </div>
                         </div>`;
@@ -811,7 +784,7 @@
             if (tg && tg.HapticFeedback) {
                 tg.HapticFeedback.impactOccurred('medium');
             }
-            localStorage.removeItem('journal_final_v4');
+            localStorage.removeItem('journal_final_v5');
             init(true);
         }
         
@@ -828,9 +801,6 @@
         
         document.getElementById('search').addEventListener('input', () => {
             render();
-            if (tg && tg.HapticFeedback) {
-                tg.HapticFeedback.impactOccurred('light');
-            }
         });
         
         document.getElementById('retryButton').addEventListener('click', () => {
