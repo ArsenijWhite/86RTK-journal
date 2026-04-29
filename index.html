@@ -552,6 +552,9 @@
         const API_JOURNAL = 'https://script.google.com/macros/s/AKfycbwtV3eFenNotdiVr3u1DQPJdOLn2fieHDsvWUwlsQquKURzkLkW4wuTiLqkNFnWCH0v/exec';
         const API_ABSENCES = 'https://script.google.com/macros/s/AKfycbyux4wfN_lVoodDq-JHHjbYAGuJys_DsZ2mADyUGdw1MERG-iZK833dN0tSzI7lq_QeZg/exec';
         
+        // УНИКАЛЬНЫЙ КЛЮЧ ДЛЯ ГРУППЫ 86РТК
+        const CACHE_KEY = 'journal_86rtk_v1';
+        
         let ALL_DATA = { journal: [], absences: {} };
         let isLoading = false;
         let timeoutId = null;
@@ -624,7 +627,8 @@
                 }
             }, 20000);
             
-            const cached = localStorage.getItem('journal_final_v4');
+            // ИСПОЛЬЗУЕМ УНИКАЛЬНЫЙ КЛЮЧ
+            const cached = localStorage.getItem(CACHE_KEY);
             if (!force && cached) {
                 try {
                     ALL_DATA = JSON.parse(cached);
@@ -675,7 +679,8 @@
                     absences: absMap 
                 };
                 
-                localStorage.setItem('journal_final_v4', JSON.stringify(ALL_DATA));
+                // СОХРАНЯЕМ С УНИКАЛЬНЫМ КЛЮЧОМ
+                localStorage.setItem(CACHE_KEY, JSON.stringify(ALL_DATA));
                 render();
                 hideLoader();
                 
@@ -744,7 +749,6 @@
                             ? sub.marks.map(m => `<div class="mark ${getStyle(m)}">${m}</div>`).join('')
                             : '<div style="font-size:11px; opacity:0.4; text-align:center; padding:8px;">Нет оценок</div>';
                         
-                        // ПОКАЗЫВАЕМ СРЕДНИЙ БАЛЛ СПРАВА ОТ НАЗВАНИЯ ПРЕДМЕТА (как в изначальном коде)
                         return `<div class="sub-item">
                             <div class="sub-row">
                                 <span>${escapeHtml(sub.subject || 'Без названия')}</span>
@@ -811,7 +815,8 @@
             if (tg && tg.HapticFeedback) {
                 tg.HapticFeedback.impactOccurred('medium');
             }
-            localStorage.removeItem('journal_final_v4');
+            // Очищаем ТОЛЬКО кэш этой группы
+            localStorage.removeItem(CACHE_KEY);
             init(true);
         }
         
@@ -847,7 +852,8 @@
             });
         }
         
-        init();
+        // Принудительно загружаем свежие данные при первом запуске
+        init(true);
         
         window.forceUpdate = forceUpdate;
     </script>
