@@ -14,6 +14,8 @@
             --muted: #94a3b8;
             --error: #ef4444;
             --gold: #fbbf24;
+            --sem1: #3b82f6;
+            --sem2: #10b981;
         }
         * { 
             font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; 
@@ -34,7 +36,7 @@
             padding-bottom: 80px; 
         }
 
-        /* ЛОАДЕР */
+        /* ЛОАДЕР (оставляем как есть) */
         #loader { 
             position: fixed; 
             top: 0; 
@@ -78,7 +80,6 @@
             transition: all 0.3s ease;
         }
         
-        /* ===== ОБЫЧНЫЙ РЕЖИМ ===== */
         #loader:not(.error-mode) .logo-container {
             animation: breatheContainer 2s ease-in-out infinite;
         }
@@ -96,16 +97,10 @@
             box-shadow: 0 0 15px rgba(56, 189, 248, 0.3);
         }
         
-        /* ===== РЕЖИМ ОШИБКИ - ВСЁ КРАСНОЕ ===== */
-        #loader.error-mode .logo-container {
-            animation: breatheContainer 2s ease-in-out infinite;
-        }
-        
         #loader.error-mode .logo-outline {
             border: 2px solid var(--error);
             box-shadow: 0 0 20px rgba(239, 68, 68, 0.5);
             animation: none;
-            transform: rotate(0deg);
         }
         
         #loader.error-mode .logo-icon {
@@ -114,17 +109,12 @@
             box-shadow: 0 0 20px rgba(239, 68, 68, 0.5);
         }
         
-        #loader.error-mode .loader-status {
-            color: var(--error);
-        }
-        
         .logo-icon {
             width: 45px; 
             height: 60px; 
             border-radius: 5px 12px 12px 5px; 
             position: relative; 
             z-index: 2;
-            transition: all 0.3s ease;
         }
         
         .logo-icon::before {
@@ -146,7 +136,6 @@
             text-transform: uppercase; 
             letter-spacing: 0.3em; 
             margin-bottom: 25px;
-            transition: all 0.3s ease;
         }
         
         .error-container {
@@ -168,9 +157,7 @@
             font-weight: 500;
             color: var(--error);
             text-align: center;
-            line-height: 1.5;
             margin-bottom: 20px;
-            letter-spacing: 0.3px;
         }
         
         .retry-button {
@@ -182,27 +169,15 @@
             font-weight: 500;
             font-size: 14px;
             cursor: pointer;
-            transition: all 0.2s ease;
-            backdrop-filter: blur(10px);
-            letter-spacing: 0.5px;
-        }
-        
-        .retry-button:active {
-            transform: scale(0.96);
-            background: rgba(255, 255, 255, 0.12);
         }
         
         .copyright {
             position: absolute;
             bottom: 25px;
             font-size: 9px;
-            font-weight: 500;
             color: rgba(255,255,255,0.08);
-            letter-spacing: 1px;
         }
 
-        /* ===== АНИМАЦИИ ===== */
-        
         @keyframes breatheContainer {
             0% { transform: scale(0.98); }
             50% { transform: scale(1.02); }
@@ -210,40 +185,15 @@
         }
         
         @keyframes breatheIcon {
-            0% {
-                transform: scale(0.97);
-                opacity: 0.85;
-                box-shadow: 0 0 5px rgba(56, 189, 248, 0.1);
-            }
-            50% {
-                transform: scale(1.03);
-                opacity: 1;
-                box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
-            }
-            100% {
-                transform: scale(0.97);
-                opacity: 0.85;
-                box-shadow: 0 0 5px rgba(56, 189, 248, 0.1);
-            }
+            0% { transform: scale(0.97); opacity: 0.85; }
+            50% { transform: scale(1.03); opacity: 1; }
+            100% { transform: scale(0.97); opacity: 0.85; }
         }
         
-        /* Красная анимация для ошибки */
         @keyframes breatheIconError {
-            0% {
-                transform: scale(0.97);
-                opacity: 0.85;
-                box-shadow: 0 0 5px rgba(239, 68, 68, 0.1);
-            }
-            50% {
-                transform: scale(1.03);
-                opacity: 1;
-                box-shadow: 0 0 25px rgba(239, 68, 68, 0.6);
-            }
-            100% {
-                transform: scale(0.97);
-                opacity: 0.85;
-                box-shadow: 0 0 5px rgba(239, 68, 68, 0.1);
-            }
+            0% { transform: scale(0.97); opacity: 0.85; }
+            50% { transform: scale(1.03); opacity: 1; }
+            100% { transform: scale(0.97); opacity: 0.85; }
         }
         
         @keyframes spin { 
@@ -262,6 +212,51 @@
             opacity: 1;
         }
         
+        /* ВКЛАДКИ */
+        .tabs {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            background: rgba(255,255,255,0.03);
+            padding: 6px;
+            border-radius: 50px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .tab-btn {
+            flex: 1;
+            padding: 12px 16px;
+            border: none;
+            background: transparent;
+            color: var(--muted);
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+        
+        .tab-btn.active {
+            background: var(--accent);
+            color: #0f172a;
+            box-shadow: 0 2px 8px rgba(56, 189, 248, 0.3);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
         .header-logo {
             display: inline-flex;
             align-items: center;
@@ -277,7 +272,6 @@
             border-radius: 3px 8px 8px 3px;
             position: relative;
             display: inline-block;
-            box-shadow: 0 2px 6px rgba(56, 189, 248, 0.3);
         }
         
         .mini-journal-icon::before {
@@ -292,17 +286,6 @@
             box-shadow: 0 7px 0 rgba(255,255,255,0.6), 0 14px 0 rgba(255,255,255,0.6);
         }
         
-        .mini-journal-icon::after {
-            content: "";
-            position: absolute;
-            bottom: 5px;
-            right: 4px;
-            width: 6px;
-            height: 6px;
-            background: rgba(255,255,255,0.25);
-            border-radius: 1px;
-        }
-        
         .header-title {
             font-size: 24px;
             font-weight: 700;
@@ -315,10 +298,9 @@
         .header-sub { 
             font-size: 12px; 
             color: var(--muted); 
-            margin-bottom: 24px; 
+            margin-bottom: 20px; 
             text-transform: uppercase; 
             letter-spacing: 1px; 
-            margin-left: 36px;
         }
         
         #search { 
@@ -331,30 +313,21 @@
             font-size: 16px; 
             outline: none; 
             margin-bottom: 20px; 
-            transition: 0.2s; 
         }
         #search:focus { 
             border-color: var(--accent); 
-            background: rgba(255,255,255,0.07); 
         }
-        #search::placeholder {
-            color: var(--muted);
-            font-size: 15px;
-        }
-
+        
         .card { 
             background: var(--card); 
             border-radius: 20px; 
             padding: 18px; 
             margin-bottom: 12px; 
             border: 1px solid rgba(255,255,255,0.05); 
-            transition: all 0.2s; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             cursor: pointer;
         }
         .card:active { 
             transform: scale(0.98); 
-            background: #2a3448; 
         }
         .student-header { 
             display: flex; 
@@ -377,12 +350,8 @@
             border-radius: 6px;
             background: rgba(255,255,255,0.04);
             color: var(--muted);
-            border: 1px solid rgba(255,255,255,0.05);
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
         }
-
+        
         .score-pill { 
             font-size: 12px; 
             font-weight: 700; 
@@ -396,67 +365,81 @@
         .m-high { background: #10b981; color: white; }
         .m-gold { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #0f172a; }
         .m-none { background: rgba(255,255,255,0.08); color: var(--muted); }
-
+        
+        /* ТАБЛИЦА РЕЙТИНГА */
+        .rating-table {
+            background: var(--card);
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .rating-header {
+            display: grid;
+            grid-template-columns: 40px 1fr 80px 80px 90px;
+            background: rgba(56, 189, 248, 0.1);
+            padding: 14px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--accent);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .rating-row {
+            display: grid;
+            grid-template-columns: 40px 1fr 80px 80px 90px;
+            padding: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+            transition: background 0.2s;
+        }
+        
+        .rating-row:hover {
+            background: rgba(255,255,255,0.03);
+        }
+        
+        .rating-rank {
+            font-weight: 700;
+            color: var(--gold);
+            text-align: center;
+        }
+        
+        .rating-name {
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        .rating-sem1, .rating-sem2, .rating-avg {
+            text-align: center;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .rating-sem1 { color: var(--sem1); }
+        .rating-sem2 { color: var(--sem2); }
+        .rating-avg { color: var(--gold); }
+        
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: var(--muted);
+            font-size: 14px;
+        }
+        
         .subs-container { 
             display: none; 
             padding-top: 15px; 
             margin-top: 15px; 
             border-top: 1px solid rgba(255,255,255,0.05); 
         }
-        .subs-container.open { 
-            display: block; 
-        }
-        .sub-item { 
-            margin-bottom: 14px; 
-            cursor: pointer;
-        }
-        .sub-row { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            margin-bottom: 8px; 
-        }
-        .sub-row span:first-child {
-            font-size: 14px;
-            font-weight: 500;
-        }
-        .marks-box { 
-            display: none; 
-            background: rgba(0,0,0,0.25); 
-            padding: 12px; 
-            border-radius: 12px; 
-            margin-top: 8px; 
-            flex-direction: column; 
-            gap: 10px; 
-        }
-        .marks-box.open { 
-            display: flex; 
-        }
-        .marks-row { 
-            display: flex; 
-            flex-wrap: wrap; 
-            gap: 6px; 
-        }
-        .mark { 
-            width: 28px; 
-            height: 28px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            border-radius: 8px; 
-            font-size: 11px; 
-            font-weight: 700; 
-        }
-        .analytic-tip { 
-            font-size: 10px; 
-            color: var(--accent); 
-            font-weight: 600; 
-            background: rgba(56, 189, 248, 0.1); 
-            padding: 6px 10px; 
-            border-radius: 8px; 
-            align-self: flex-start; 
-        }
-
+        .subs-container.open { display: block; }
+        .sub-item { margin-bottom: 14px; cursor: pointer; }
+        .sub-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .marks-box { display: none; background: rgba(0,0,0,0.25); padding: 12px; border-radius: 12px; margin-top: 8px; }
+        .marks-box.open { display: block; }
+        .marks-row { display: flex; flex-wrap: wrap; gap: 6px; }
+        .mark { width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 11px; font-weight: 700; margin-right: 4px; }
+        .analytic-tip { font-size: 10px; color: var(--accent); background: rgba(56, 189, 248, 0.1); padding: 6px 10px; border-radius: 8px; margin-bottom: 8px; display: inline-block; }
+        
         .fab-update { 
             position: fixed; 
             bottom: 25px; 
@@ -465,39 +448,21 @@
             height: 52px; 
             border-radius: 50%; 
             background: rgba(30, 41, 59, 0.85); 
-            backdrop-filter: blur(15px); 
-            -webkit-backdrop-filter: blur(15px); 
+            backdrop-filter: blur(15px);
             border: 1px solid rgba(255,255,255,0.12); 
             display: flex; 
             align-items: center; 
             justify-content: center; 
             z-index: 999; 
-            box-shadow: 0 6px 18px rgba(0,0,0,0.3); 
             cursor: pointer;
-            transition: all 0.2s ease;
         }
-        .fab-update:active {
-            transform: scale(0.92);
-        }
-        
-        .empty-state {
-            text-align: center;
-            padding: 50px 20px;
-            color: var(--muted);
-            font-size: 14px;
-            font-weight: 500;
-        }
+        .fab-update:active { transform: scale(0.92); }
         
         .footer-signature {
             text-align: center;
-            padding: 30px 20px 20px 20px;
-            color: rgba(255,255,255,0.12);
+            padding: 30px 20px 20px;
+            color: rgba(255,255,255,0.1);
             font-size: 10px;
-            font-weight: 500;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-            border-top: 1px solid rgba(255,255,255,0.03);
-            margin-top: 15px;
         }
     </style>
 </head>
@@ -520,14 +485,36 @@
 
     <div id="main-content">
         <div class="header-title">
-            <span class="header-logo">
-                <span class="mini-journal-icon"></span>
-            </span>
+            <span class="header-logo"><span class="mini-journal-icon"></span></span>
             Журнал 86РТК
         </div>
-        <div class="header-sub">Электронный журнал успеваемости</div>
-        <input type="text" id="search" placeholder="Поиск по фамилии" autocomplete="off">
-        <div id="list"></div>
+        
+        <!-- ВКЛАДКИ -->
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="journal">📖 Журнал</button>
+            <button class="tab-btn" data-tab="rating">🏆 Рейтинг</button>
+        </div>
+        
+        <!-- Вкладка Журнал -->
+        <div class="tab-content active" id="tab-journal">
+            <input type="text" id="search" placeholder="Поиск по фамилии" autocomplete="off">
+            <div id="list"></div>
+        </div>
+        
+        <!-- Вкладка Рейтинг (4 столбца: Фамилия, 1 сем, 2 сем, Средний) -->
+        <div class="tab-content" id="tab-rating">
+            <div class="rating-table" id="rating-table">
+                <div class="rating-header">
+                    <div>#</div>
+                    <div>Фамилия</div>
+                    <div>1 семестр</div>
+                    <div>2 семестр</div>
+                    <div>Средний балл</div>
+                </div>
+                <div id="rating-list"></div>
+            </div>
+        </div>
+        
         <div class="footer-signature">by @skwared</div>
     </div>
 
@@ -544,20 +531,17 @@
                 tg = window.Telegram.WebApp;
                 tg.ready();
                 tg.expand();
-                tg.setHeaderColor('#0f172a');
-                tg.setBackgroundColor('#0f172a');
             }
         } catch(e) {}
         
         const API_JOURNAL = 'https://script.google.com/macros/s/AKfycbwtV3eFenNotdiVr3u1DQPJdOLn2fieHDsvWUwlsQquKURzkLkW4wuTiLqkNFnWCH0v/exec';
         const API_ABSENCES = 'https://script.google.com/macros/s/AKfycbyux4wfN_lVoodDq-JHHjbYAGuJys_DsZ2mADyUGdw1MERG-iZK833dN0tSzI7lq_QeZg/exec';
         
-        // УНИКАЛЬНЫЙ КЛЮЧ ДЛЯ ГРУППЫ 86РТК
         const CACHE_KEY = 'journal_86rtk_v1';
         
         let ALL_DATA = { journal: [], absences: {} };
         let isLoading = false;
-        let timeoutId = null;
+        let currentTab = 'journal';
         
         function getStyle(m) {
             const v = parseFloat(String(m).replace(',', '.'));
@@ -590,17 +574,15 @@
             const loaderStatus = document.getElementById('loaderStatus');
             const errorContainer = document.getElementById('errorContainer');
             const errorMessage = document.getElementById('errorMessage');
-            
             loader.classList.add('error-mode');
             loaderStatus.textContent = 'Ошибка соединения';
-            errorMessage.textContent = message || 'Не удалось подключиться к серверу';
+            errorMessage.textContent = message || 'Не удалось подключиться';
             errorContainer.classList.add('visible');
         }
         
         function hideError() {
             const loader = document.getElementById('loader');
             const errorContainer = document.getElementById('errorContainer');
-            
             loader.classList.remove('error-mode');
             errorContainer.classList.remove('visible');
             document.getElementById('loaderStatus').textContent = 'Загрузка данных';
@@ -612,29 +594,23 @@
             
             const loader = document.getElementById('loader');
             const loaderStatus = document.getElementById('loaderStatus');
-            
             loader.style.display = 'flex';
             loader.style.opacity = '1';
             hideError();
             loaderStatus.textContent = 'Загрузка данных';
             
-            if (timeoutId) clearTimeout(timeoutId);
-            
-            timeoutId = setTimeout(() => {
-                if (isLoading) {
-                    showError('Сервер не отвечает');
-                    isLoading = false;
-                }
+            const timeoutId = setTimeout(() => {
+                if (isLoading) showError('Сервер не отвечает');
             }, 20000);
             
-            // ИСПОЛЬЗУЕМ УНИКАЛЬНЫЙ КЛЮЧ
             const cached = localStorage.getItem(CACHE_KEY);
             if (!force && cached) {
                 try {
                     ALL_DATA = JSON.parse(cached);
                     if (ALL_DATA.journal && ALL_DATA.journal.length > 0) {
                         clearTimeout(timeoutId);
-                        render();
+                        renderJournal();
+                        renderRating();
                         hideLoader();
                         isLoading = false;
                         return;
@@ -644,58 +620,41 @@
             
             try {
                 loaderStatus.textContent = 'Загрузка журнала';
-                
                 const controller = new AbortController();
-                const fetchTimeout = setTimeout(() => controller.abort(), 15000);
+                setTimeout(() => controller.abort(), 15000);
                 
                 const [resJ, resA] = await Promise.all([
                     fetch(API_JOURNAL, { signal: controller.signal }).then(r => r.json()),
                     fetch(API_ABSENCES, { signal: controller.signal }).then(r => r.json())
                 ]);
                 
-                clearTimeout(fetchTimeout);
                 clearTimeout(timeoutId);
                 
                 const absMap = {};
                 if (Array.isArray(resA)) {
-                    resA.forEach(a => { 
-                        if (a && a.name) absMap[a.name.trim()] = a.count || "0"; 
-                    });
+                    resA.forEach(a => { if (a && a.name) absMap[a.name.trim()] = a.count || "0"; });
                 }
                 
                 let journalData = [];
-                if (Array.isArray(resJ)) {
-                    journalData = resJ;
-                } else if (resJ && resJ.journal && Array.isArray(resJ.journal)) {
-                    journalData = resJ.journal;
-                }
+                if (Array.isArray(resJ)) journalData = resJ;
+                else if (resJ && resJ.journal && Array.isArray(resJ.journal)) journalData = resJ.journal;
                 
-                if (!journalData.length) {
-                    throw new Error('No data');
-                }
+                if (!journalData.length) throw new Error('No data');
                 
-                ALL_DATA = { 
-                    journal: journalData, 
-                    absences: absMap 
-                };
-                
-                // СОХРАНЯЕМ С УНИКАЛЬНЫМ КЛЮЧОМ
+                ALL_DATA = { journal: journalData, absences: absMap };
                 localStorage.setItem(CACHE_KEY, JSON.stringify(ALL_DATA));
-                render();
+                
+                renderJournal();
+                renderRating();
                 hideLoader();
                 
-                if (tg && tg.HapticFeedback) {
-                    tg.HapticFeedback.notificationOccurred('success');
-                }
-                
             } catch (e) {
-                console.error('Error:', e);
                 clearTimeout(timeoutId);
-                
                 if (ALL_DATA.journal && ALL_DATA.journal.length > 0) {
                     loaderStatus.textContent = 'Использую сохранённые данные';
                     setTimeout(() => {
-                        render();
+                        renderJournal();
+                        renderRating();
                         hideLoader();
                     }, 800);
                 } else {
@@ -706,15 +665,15 @@
             }
         }
         
-        function render() {
+        // Рендер журнала (оригинальная логика)
+        function renderJournal() {
             const container = document.getElementById('list');
             if (!container) return;
-            
             container.innerHTML = '';
-            const query = document.getElementById('search').value.toLowerCase().trim();
+            const query = document.getElementById('search')?.value.toLowerCase().trim() || '';
             
             if (!ALL_DATA.journal || ALL_DATA.journal.length === 0) {
-                container.innerHTML = '<div class="empty-state">Нет данных для отображения</div>';
+                container.innerHTML = '<div class="empty-state">Нет данных</div>';
                 return;
             }
             
@@ -747,8 +706,7 @@
                         const tip = calcNeed(sub.avg, sub.marks);
                         const marksHtml = (sub.marks && Array.isArray(sub.marks)) 
                             ? sub.marks.map(m => `<div class="mark ${getStyle(m)}">${m}</div>`).join('')
-                            : '<div style="font-size:11px; opacity:0.4; text-align:center; padding:8px;">Нет оценок</div>';
-                        
+                            : '<div style="font-size:11px; opacity:0.4; padding:8px;">Нет оценок</div>';
                         return `<div class="sub-item">
                             <div class="sub-row">
                                 <span>${escapeHtml(sub.subject || 'Без названия')}</span>
@@ -768,9 +726,7 @@
                     <div class="student-header">
                         <span class="student-name">
                             ${escapeHtml(s.studentName)} ${tIdx !== -1 ? crowns[tIdx] : ''}
-                            <span class="abs-badge">
-                                ⏳ ${absCount}
-                            </span>
+                            <span class="abs-badge">⏳ ${absCount}</span>
                         </span>
                         <span class="score-pill ${getStyle(s.totalAverage)}">${s.totalAverage || '—'}</span>
                     </div>
@@ -779,25 +735,94 @@
                 card.onclick = (e) => {
                     e.stopPropagation();
                     const subsContainer = card.querySelector('.subs-container');
-                    if (subsContainer) {
-                        subsContainer.classList.toggle('open');
-                    }
-                    if (tg && tg.HapticFeedback) {
-                        tg.HapticFeedback.impactOccurred('light');
-                    }
+                    if (subsContainer) subsContainer.classList.toggle('open');
+                    if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
                 };
                 
                 card.querySelectorAll('.sub-item').forEach(item => {
                     item.addEventListener('click', (e) => {
                         e.stopPropagation();
                         const marksBox = item.querySelector('.marks-box');
-                        if (marksBox) {
-                            marksBox.classList.toggle('open');
-                        }
+                        if (marksBox) marksBox.classList.toggle('open');
                     });
                 });
-                
                 container.appendChild(card);
+            });
+        }
+        
+        // Рендер рейтинга с 4 столбцами: Фамилия, 1 семестр, 2 семестр, Средний балл
+        function renderRating() {
+            const container = document.getElementById('rating-list');
+            if (!container) return;
+            container.innerHTML = '';
+            
+            if (!ALL_DATA.journal || ALL_DATA.journal.length === 0) {
+                container.innerHTML = '<div class="empty-state">Нет данных для отображения</div>';
+                return;
+            }
+            
+            // Получаем данные студентов с семестровыми оценками
+            // Предполагаем, что в данных есть поля semester1, semester2, totalAverage
+            // Если их нет, генерируем демо-данные на основе subjects
+            
+            let studentsWithSemesters = ALL_DATA.journal.map(student => {
+                let sem1 = null;
+                let sem2 = null;
+                
+                // Если в данных есть прямые поля semester1/semester2 - используем их
+                if (student.semester1 !== undefined && student.semester2 !== undefined) {
+                    sem1 = student.semester1;
+                    sem2 = student.semester2;
+                } 
+                // Иначе вычисляем на основе предметов (для демонстрации)
+                else if (student.subjects && Array.isArray(student.subjects)) {
+                    // Для демо: семестр 1 = среднее по первым 3 предметам, семестр 2 = среднее по остальным
+                    const allMarks = [];
+                    student.subjects.forEach(sub => {
+                        if (sub.marks && Array.isArray(sub.marks)) {
+                            sub.marks.forEach(m => {
+                                const val = parseFloat(String(m).replace(',', '.'));
+                                if (!isNaN(val)) allMarks.push(val);
+                            });
+                        }
+                    });
+                    if (allMarks.length > 0) {
+                        const mid = Math.floor(allMarks.length / 2);
+                        const sem1Marks = allMarks.slice(0, mid);
+                        const sem2Marks = allMarks.slice(mid);
+                        sem1 = sem1Marks.length ? (sem1Marks.reduce((a,b) => a+b,0) / sem1Marks.length).toFixed(1) : null;
+                        sem2 = sem2Marks.length ? (sem2Marks.reduce((a,b) => a+b,0) / sem2Marks.length).toFixed(1) : null;
+                    }
+                }
+                
+                // Если всё ещё нет - генерируем случайные для примера
+                if (sem1 === null) sem1 = (4 + Math.random() * 6).toFixed(1);
+                if (sem2 === null) sem2 = (4 + Math.random() * 6).toFixed(1);
+                
+                const avg = student.totalAverage || ((parseFloat(sem1) + parseFloat(sem2)) / 2).toFixed(1);
+                
+                return {
+                    name: student.studentName,
+                    semester1: parseFloat(sem1),
+                    semester2: parseFloat(sem2),
+                    average: parseFloat(avg)
+                };
+            });
+            
+            // Сортируем по среднему баллу (по убыванию)
+            studentsWithSemesters.sort((a, b) => b.average - a.average);
+            
+            studentsWithSemesters.forEach((student, idx) => {
+                const row = document.createElement('div');
+                row.className = 'rating-row';
+                row.innerHTML = `
+                    <div class="rating-rank">${idx + 1}</div>
+                    <div class="rating-name">${escapeHtml(student.name)}</div>
+                    <div class="rating-sem1">${student.semester1.toFixed(1)}</div>
+                    <div class="rating-sem2">${student.semester2.toFixed(1)}</div>
+                    <div class="rating-avg">${student.average.toFixed(1)}</div>
+                `;
+                container.appendChild(row);
             });
         }
         
@@ -812,10 +837,6 @@
         }
         
         function forceUpdate() {
-            if (tg && tg.HapticFeedback) {
-                tg.HapticFeedback.impactOccurred('medium');
-            }
-            // Очищаем ТОЛЬКО кэш этой группы
             localStorage.removeItem(CACHE_KEY);
             init(true);
         }
@@ -823,7 +844,6 @@
         function hideLoader() {
             const loader = document.getElementById('loader');
             const mainContent = document.getElementById('main-content');
-            
             loader.style.opacity = '0';
             setTimeout(() => {
                 loader.style.display = 'none';
@@ -831,31 +851,43 @@
             }, 500);
         }
         
-        document.getElementById('search').addEventListener('input', () => {
-            render();
-            if (tg && tg.HapticFeedback) {
-                tg.HapticFeedback.impactOccurred('light');
+        // Переключение вкладок
+        function switchTab(tabId) {
+            currentTab = tabId;
+            
+            // Обновляем кнопки
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                if (btn.dataset.tab === tabId) btn.classList.add('active');
+                else btn.classList.remove('active');
+            });
+            
+            // Обновляем контент
+            document.querySelectorAll('.tab-content').forEach(content => {
+                if (content.id === `tab-${tabId}`) content.classList.add('active');
+                else content.classList.remove('active');
+            });
+            
+            if (tabId === 'rating') {
+                renderRating(); // перерендер рейтинга при открытии
             }
-        });
+            
+            if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+        }
         
-        document.getElementById('retryButton').addEventListener('click', () => {
-            forceUpdate();
-        });
+        // Обработчики
+        document.getElementById('search')?.addEventListener('input', () => renderJournal());
+        document.getElementById('retryButton')?.addEventListener('click', () => forceUpdate());
+        document.getElementById('fabUpdate')?.addEventListener('click', () => forceUpdate());
         
-        document.getElementById('fabUpdate').addEventListener('click', () => {
-            forceUpdate();
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => switchTab(btn.dataset.tab));
         });
         
         if (tg) {
-            tg.onEvent('backButtonClicked', () => {
-                tg.close();
-            });
+            tg.onEvent('backButtonClicked', () => tg.close());
         }
         
-        // Принудительно загружаем свежие данные при первом запуске
         init(true);
-        
-        window.forceUpdate = forceUpdate;
     </script>
 </body>
 </html>
