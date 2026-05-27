@@ -31,7 +31,7 @@
         }
         body { 
             padding: 20px; 
-            padding-bottom: 80px; 
+            padding-bottom: 85px; 
         }
 
         /* ЛОАДЕР */
@@ -78,7 +78,6 @@
             transition: all 0.3s ease;
         }
         
-        /* ===== ОБЫЧНЫЙ РЕЖИМ ===== */
         #loader:not(.error-mode) .logo-container {
             animation: breatheContainer 2s ease-in-out infinite;
         }
@@ -96,16 +95,10 @@
             box-shadow: 0 0 15px rgba(56, 189, 248, 0.3);
         }
         
-        /* ===== РЕЖИМ ОШИБКИ - ВСЁ КРАСНОЕ ===== */
-        #loader.error-mode .logo-container {
-            animation: breatheContainer 2s ease-in-out infinite;
-        }
-        
         #loader.error-mode .logo-outline {
             border: 2px solid var(--error);
             box-shadow: 0 0 20px rgba(239, 68, 68, 0.5);
             animation: none;
-            transform: rotate(0deg);
         }
         
         #loader.error-mode .logo-icon {
@@ -114,17 +107,12 @@
             box-shadow: 0 0 20px rgba(239, 68, 68, 0.5);
         }
         
-        #loader.error-mode .loader-status {
-            color: var(--error);
-        }
-        
         .logo-icon {
             width: 45px; 
             height: 60px; 
             border-radius: 5px 12px 12px 5px; 
             position: relative; 
             z-index: 2;
-            transition: all 0.3s ease;
         }
         
         .logo-icon::before {
@@ -146,7 +134,6 @@
             text-transform: uppercase; 
             letter-spacing: 0.3em; 
             margin-bottom: 25px;
-            transition: all 0.3s ease;
         }
         
         .error-container {
@@ -168,9 +155,7 @@
             font-weight: 500;
             color: var(--error);
             text-align: center;
-            line-height: 1.5;
             margin-bottom: 20px;
-            letter-spacing: 0.3px;
         }
         
         .retry-button {
@@ -182,27 +167,15 @@
             font-weight: 500;
             font-size: 14px;
             cursor: pointer;
-            transition: all 0.2s ease;
-            backdrop-filter: blur(10px);
-            letter-spacing: 0.5px;
-        }
-        
-        .retry-button:active {
-            transform: scale(0.96);
-            background: rgba(255, 255, 255, 0.12);
         }
         
         .copyright {
             position: absolute;
             bottom: 25px;
             font-size: 9px;
-            font-weight: 500;
             color: rgba(255,255,255,0.08);
-            letter-spacing: 1px;
         }
 
-        /* ===== АНИМАЦИИ ===== */
-        
         @keyframes breatheContainer {
             0% { transform: scale(0.98); }
             50% { transform: scale(1.02); }
@@ -210,40 +183,15 @@
         }
         
         @keyframes breatheIcon {
-            0% {
-                transform: scale(0.97);
-                opacity: 0.85;
-                box-shadow: 0 0 5px rgba(56, 189, 248, 0.1);
-            }
-            50% {
-                transform: scale(1.03);
-                opacity: 1;
-                box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
-            }
-            100% {
-                transform: scale(0.97);
-                opacity: 0.85;
-                box-shadow: 0 0 5px rgba(56, 189, 248, 0.1);
-            }
+            0% { transform: scale(0.97); opacity: 0.85; }
+            50% { transform: scale(1.03); opacity: 1; }
+            100% { transform: scale(0.97); opacity: 0.85; }
         }
         
-        /* Красная анимация для ошибки */
         @keyframes breatheIconError {
-            0% {
-                transform: scale(0.97);
-                opacity: 0.85;
-                box-shadow: 0 0 5px rgba(239, 68, 68, 0.1);
-            }
-            50% {
-                transform: scale(1.03);
-                opacity: 1;
-                box-shadow: 0 0 25px rgba(239, 68, 68, 0.6);
-            }
-            100% {
-                transform: scale(0.97);
-                opacity: 0.85;
-                box-shadow: 0 0 5px rgba(239, 68, 68, 0.1);
-            }
+            0% { transform: scale(0.97); opacity: 0.85; }
+            50% { transform: scale(1.03); opacity: 1; }
+            100% { transform: scale(0.97); opacity: 0.85; }
         }
         
         @keyframes spin { 
@@ -277,7 +225,6 @@
             border-radius: 3px 8px 8px 3px;
             position: relative;
             display: inline-block;
-            box-shadow: 0 2px 6px rgba(56, 189, 248, 0.3);
         }
         
         .mini-journal-icon::before {
@@ -292,17 +239,6 @@
             box-shadow: 0 7px 0 rgba(255,255,255,0.6), 0 14px 0 rgba(255,255,255,0.6);
         }
         
-        .mini-journal-icon::after {
-            content: "";
-            position: absolute;
-            bottom: 5px;
-            right: 4px;
-            width: 6px;
-            height: 6px;
-            background: rgba(255,255,255,0.25);
-            border-radius: 1px;
-        }
-        
         .header-title {
             font-size: 24px;
             font-weight: 700;
@@ -315,10 +251,23 @@
         .header-sub { 
             font-size: 12px; 
             color: var(--muted); 
-            margin-bottom: 24px; 
+            margin-bottom: 20px; 
             text-transform: uppercase; 
             letter-spacing: 1px; 
-            margin-left: 36px;
+        }
+        
+        .tab-page {
+            display: none;
+        }
+        
+        .tab-page.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
         #search { 
@@ -331,30 +280,21 @@
             font-size: 16px; 
             outline: none; 
             margin-bottom: 20px; 
-            transition: 0.2s; 
         }
         #search:focus { 
             border-color: var(--accent); 
-            background: rgba(255,255,255,0.07); 
         }
-        #search::placeholder {
-            color: var(--muted);
-            font-size: 15px;
-        }
-
+        
         .card { 
             background: var(--card); 
             border-radius: 20px; 
             padding: 18px; 
             margin-bottom: 12px; 
             border: 1px solid rgba(255,255,255,0.05); 
-            transition: all 0.2s; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             cursor: pointer;
         }
         .card:active { 
             transform: scale(0.98); 
-            background: #2a3448; 
         }
         .student-header { 
             display: flex; 
@@ -382,7 +322,7 @@
             align-items: center;
             gap: 4px;
         }
-
+        
         .score-pill { 
             font-size: 12px; 
             font-weight: 700; 
@@ -390,94 +330,213 @@
             border-radius: 8px; 
             min-width: 42px; 
             text-align: center; 
+            display: inline-block;
         }
         .m-low { background: #ef4444; color: white; } 
         .m-warn { background: #f59e0b; color: white; } 
         .m-high { background: #10b981; color: white; }
         .m-gold { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #0f172a; }
         .m-none { background: rgba(255,255,255,0.08); color: var(--muted); }
-
+        
+        .rating-table {
+            background: var(--card);
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .rating-header {
+            display: grid;
+            grid-template-columns: 45px 1fr 85px 85px 95px;
+            background: rgba(56, 189, 248, 0.08);
+            padding: 14px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--accent);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .rating-row {
+            display: grid;
+            grid-template-columns: 45px 1fr 85px 85px 95px;
+            padding: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+            transition: background 0.2s;
+            align-items: center;
+        }
+        
+        .rating-row:hover {
+            background: rgba(255,255,255,0.03);
+        }
+        
+        .rating-rank {
+            font-weight: 700;
+            text-align: center;
+            font-size: 16px;
+        }
+        
+        .rating-name {
+            font-weight: 500;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        
+        .rating-sem1, .rating-sem2, .rating-avg {
+            text-align: center;
+        }
+        
+        .medal {
+            font-size: 14px;
+        }
+        
         .subs-container { 
             display: none; 
             padding-top: 15px; 
             margin-top: 15px; 
             border-top: 1px solid rgba(255,255,255,0.05); 
         }
-        .subs-container.open { 
-            display: block; 
+        .subs-container.open { display: block; }
+        .sub-item { margin-bottom: 14px; cursor: pointer; }
+        .sub-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .marks-box { display: none; background: rgba(0,0,0,0.25); padding: 12px; border-radius: 12px; margin-top: 8px; }
+        .marks-box.open { display: block; }
+        .marks-row { display: flex; flex-wrap: wrap; gap: 6px; }
+        .mark { width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 11px; font-weight: 700; margin-right: 4px; }
+        
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(30, 41, 59, 0.75);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 0.5px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 8px 20px 12px;
+            z-index: 1000;
         }
-        .sub-item { 
-            margin-bottom: 14px; 
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            background: transparent;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 30px;
             cursor: pointer;
+            transition: all 0.2s ease;
+            flex: 1;
+            max-width: 140px;
         }
-        .sub-row { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            margin-bottom: 8px; 
+        
+        .nav-item:active {
+            transform: scale(0.95);
+            background: rgba(255, 255, 255, 0.05);
         }
-        .sub-row span:first-child {
-            font-size: 14px;
+        
+        .nav-icon {
+            width: 24px;
+            height: 24px;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+        
+        .icon-journal {
+            width: 22px;
+            height: 28px;
+            background: linear-gradient(135deg, #94a3b8, #64748b);
+            border-radius: 2px 6px 6px 2px;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+        
+        .icon-journal::before {
+            content: "";
+            position: absolute;
+            top: 5px;
+            left: 4px;
+            width: 14px;
+            height: 2px;
+            background: rgba(255,255,255,0.5);
+            border-radius: 1px;
+            box-shadow: 0 6px 0 rgba(255,255,255,0.5), 0 12px 0 rgba(255,255,255,0.5);
+        }
+        
+        .icon-stats {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: flex-end;
+            gap: 3px;
+        }
+        
+        .icon-stats .bar {
+            width: 6px;
+            background: linear-gradient(135deg, #94a3b8, #64748b);
+            border-radius: 3px 3px 2px 2px;
+            transition: all 0.2s ease;
+        }
+        
+        .icon-stats .bar1 { height: 14px; }
+        .icon-stats .bar2 { height: 20px; }
+        .icon-stats .bar3 { height: 10px; }
+        
+        .nav-item.active .icon-journal {
+            background: linear-gradient(135deg, var(--accent), #0ea5e9);
+            box-shadow: 0 0 8px rgba(56, 189, 248, 0.4);
+        }
+        
+        .nav-item.active .icon-stats .bar {
+            background: linear-gradient(135deg, var(--accent), #0ea5e9);
+            box-shadow: 0 0 6px rgba(56, 189, 248, 0.4);
+        }
+        
+        .nav-label {
+            font-size: 11px;
             font-weight: 500;
+            color: var(--muted);
+            transition: all 0.2s ease;
         }
-        .marks-box { 
-            display: none; 
-            background: rgba(0,0,0,0.25); 
-            padding: 12px; 
-            border-radius: 12px; 
-            margin-top: 8px; 
-            flex-direction: column; 
-            gap: 10px; 
+        
+        .nav-item.active .nav-label {
+            color: var(--accent);
         }
-        .marks-box.open { 
-            display: flex; 
-        }
-        .marks-row { 
-            display: flex; 
-            flex-wrap: wrap; 
-            gap: 6px; 
-        }
-        .mark { 
-            width: 28px; 
-            height: 28px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            border-radius: 8px; 
-            font-size: 11px; 
-            font-weight: 700; 
-        }
-        .analytic-tip { 
-            font-size: 10px; 
-            color: var(--accent); 
-            font-weight: 600; 
-            background: rgba(56, 189, 248, 0.1); 
-            padding: 6px 10px; 
-            border-radius: 8px; 
-            align-self: flex-start; 
-        }
-
+        
         .fab-update { 
             position: fixed; 
-            bottom: 25px; 
+            bottom: 85px; 
             right: 20px; 
-            width: 52px; 
-            height: 52px; 
+            width: 48px; 
+            height: 48px; 
             border-radius: 50%; 
             background: rgba(30, 41, 59, 0.85); 
-            backdrop-filter: blur(15px); 
-            -webkit-backdrop-filter: blur(15px); 
+            backdrop-filter: blur(15px);
             border: 1px solid rgba(255,255,255,0.12); 
             display: flex; 
             align-items: center; 
             justify-content: center; 
             z-index: 999; 
-            box-shadow: 0 6px 18px rgba(0,0,0,0.3); 
             cursor: pointer;
             transition: all 0.2s ease;
         }
-        .fab-update:active {
-            transform: scale(0.92);
+        
+        .fab-update:active { 
+            transform: scale(0.92); 
+        }
+        
+        .footer-signature {
+            text-align: center;
+            padding: 20px 20px 30px;
+            color: rgba(255,255,255,0.08);
+            font-size: 10px;
         }
         
         .empty-state {
@@ -485,19 +544,18 @@
             padding: 50px 20px;
             color: var(--muted);
             font-size: 14px;
-            font-weight: 500;
         }
         
-        .footer-signature {
-            text-align: center;
-            padding: 30px 20px 20px 20px;
-            color: rgba(255,255,255,0.12);
-            font-size: 10px;
-            font-weight: 500;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-            border-top: 1px solid rgba(255,255,255,0.03);
-            margin-top: 15px;
+        @supports (padding-bottom: env(safe-area-inset-bottom)) {
+            .bottom-nav {
+                padding-bottom: calc(12px + env(safe-area-inset-bottom));
+            }
+            body {
+                padding-bottom: calc(85px + env(safe-area-inset-bottom));
+            }
+            .fab-update {
+                bottom: calc(85px + env(safe-area-inset-bottom));
+            }
         }
     </style>
 </head>
@@ -520,19 +578,52 @@
 
     <div id="main-content">
         <div class="header-title">
-            <span class="header-logo">
-                <span class="mini-journal-icon"></span>
-            </span>
+            <span class="header-logo"><span class="mini-journal-icon"></span></span>
             Журнал 86РТК
         </div>
-        <div class="header-sub">Электронный журнал успеваемости</div>
-        <input type="text" id="search" placeholder="Поиск по фамилии" autocomplete="off">
-        <div id="list"></div>
+        
+        <div class="tab-page active" id="page-journal">
+            <div class="header-sub">Электронный журнал успеваемости</div>
+            <input type="text" id="search" placeholder="Поиск по фамилии" autocomplete="off">
+            <div id="list"></div>
+        </div>
+        
+        <div class="tab-page" id="page-rating">
+            <div class="header-sub">Сводная ведомость (по алфавиту)</div>
+            <div class="rating-table">
+                <div class="rating-header">
+                    <div>#</div>
+                    <div>Фамилия</div>
+                    <div>1 семестр</div>
+                    <div>2 семестр</div>
+                    <div>Средний балл</div>
+                </div>
+                <div id="rating-list"></div>
+            </div>
+        </div>
+        
         <div class="footer-signature">by @skwared</div>
     </div>
 
+    <div class="bottom-nav">
+        <button class="nav-item active" data-page="journal">
+            <div class="nav-icon"><div class="icon-journal"></div></div>
+            <span class="nav-label">Журнал</span>
+        </button>
+        <button class="nav-item" data-page="rating">
+            <div class="nav-icon">
+                <div class="icon-stats">
+                    <div class="bar bar1"></div>
+                    <div class="bar bar2"></div>
+                    <div class="bar bar3"></div>
+                </div>
+            </div>
+            <span class="nav-label">Итоги</span>
+        </button>
+    </div>
+
     <div class="fab-update" id="fabUpdate">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
         </svg>
     </div>
@@ -544,45 +635,79 @@
                 tg = window.Telegram.WebApp;
                 tg.ready();
                 tg.expand();
-                tg.setHeaderColor('#0f172a');
-                tg.setBackgroundColor('#0f172a');
             }
         } catch(e) {}
         
         const API_JOURNAL = 'https://script.google.com/macros/s/AKfycbwtV3eFenNotdiVr3u1DQPJdOLn2fieHDsvWUwlsQquKURzkLkW4wuTiLqkNFnWCH0v/exec';
         const API_ABSENCES = 'https://script.google.com/macros/s/AKfycbyux4wfN_lVoodDq-JHHjbYAGuJys_DsZ2mADyUGdw1MERG-iZK833dN0tSzI7lq_QeZg/exec';
         
-        // УНИКАЛЬНЫЙ КЛЮЧ ДЛЯ ГРУППЫ 86РТК
-        const CACHE_KEY = 'journal_86rtk_v1';
+        const CACHE_KEY = 'journal_86rtk_v5';
+        const EXCLUDED_NAME = "Доревский";
         
         let ALL_DATA = { journal: [], absences: {} };
         let isLoading = false;
-        let timeoutId = null;
         
-        function getStyle(m) {
-            const v = parseFloat(String(m).replace(',', '.'));
-            if (isNaN(v) || v <= 0) return 'm-none';
-            if (v >= 9.5) return 'm-gold'; 
-            if (v >= 7.5) return 'm-high';
-            if (v >= 5) return 'm-warn';
-            return 'm-low';
+        // Функция для вычисления среднего балла по массиву отметок
+        function calculateAverage(marks) {
+            if (!marks || marks.length === 0) return null;
+            let sum = 0;
+            let count = 0;
+            for (let m of marks) {
+                let val = parseFloat(String(m).replace(',', '.'));
+                if (!isNaN(val) && val > 0) {
+                    sum += val;
+                    count++;
+                }
+            }
+            if (count === 0) return null;
+            let avg = sum / count;
+            return avg.toFixed(1).replace('.', ',');
         }
         
-        function calcNeed(currentAvg, marks) {
-            if (!marks || marks.length === 0) return null;
-            let avg = parseFloat(String(currentAvg).replace(',', '.'));
-            if (isNaN(avg) || avg >= 10) return null;
-            let decimal = avg - Math.floor(avg);
-            if (decimal >= 0.29 && decimal <= 0.51) {
-                let target = Math.ceil(avg + 0.001);
-                let sum = marks.reduce((a, b) => a + (parseFloat(String(b).replace(',','.')) || 0), 0);
-                for (let i = 1; i <= 10; i++) {
-                    if ((sum + i * 10) / (marks.length + i) >= target) {
-                        return `Нужно ${i} отметок (10) до ${target}.0`;
+        // Функция для вычисления общего среднего балла студента по всем предметам
+        function calculateTotalAverage(subjects) {
+            if (!subjects || subjects.length === 0) return null;
+            let sum = 0;
+            let count = 0;
+            for (let sub of subjects) {
+                if (sub.avg && sub.avg !== '—') {
+                    let val = parseFloat(String(sub.avg).replace(',', '.'));
+                    if (!isNaN(val) && val > 0) {
+                        sum += val;
+                        count++;
                     }
                 }
             }
+            if (count === 0) return null;
+            let avg = sum / count;
+            return avg.toFixed(1).replace('.', ',');
+        }
+        
+        // Функция для вычисления среднего между 1 и 2 семестром
+        function calculateAverageBetweenSemesters(sem1, sem2) {
+            if (!sem1 && !sem2) return null;
+            let val1 = sem1 ? parseFloat(String(sem1).replace(',', '.')) : null;
+            let val2 = sem2 ? parseFloat(String(sem2).replace(',', '.')) : null;
+            
+            if (val1 !== null && val2 !== null) {
+                let avg = (val1 + val2) / 2;
+                return avg.toFixed(1).replace('.', ',');
+            } else if (val1 !== null) {
+                return sem1;
+            } else if (val2 !== null) {
+                return sem2;
+            }
             return null;
+        }
+        
+        function getStyleForScore(score) {
+            if (!score || score === '—' || score === '0,0') return 'm-none';
+            const v = parseFloat(String(score).replace(',', '.'));
+            if (isNaN(v)) return 'm-none';
+            if (v >= 9.5) return 'm-gold';
+            if (v >= 7.5) return 'm-high';
+            if (v >= 5) return 'm-warn';
+            return 'm-low';
         }
         
         function showError(message) {
@@ -590,7 +715,6 @@
             const loaderStatus = document.getElementById('loaderStatus');
             const errorContainer = document.getElementById('errorContainer');
             const errorMessage = document.getElementById('errorMessage');
-            
             loader.classList.add('error-mode');
             loaderStatus.textContent = 'Ошибка соединения';
             errorMessage.textContent = message || 'Не удалось подключиться к серверу';
@@ -600,10 +724,14 @@
         function hideError() {
             const loader = document.getElementById('loader');
             const errorContainer = document.getElementById('errorContainer');
-            
             loader.classList.remove('error-mode');
             errorContainer.classList.remove('visible');
             document.getElementById('loaderStatus').textContent = 'Загрузка данных';
+        }
+        
+        // Фильтрация студентов (исключаем Доревского)
+        function filterStudents(students) {
+            return students.filter(s => s && s.studentName && !s.studentName.includes(EXCLUDED_NAME));
         }
         
         async function init(force = false) {
@@ -612,29 +740,24 @@
             
             const loader = document.getElementById('loader');
             const loaderStatus = document.getElementById('loaderStatus');
-            
             loader.style.display = 'flex';
             loader.style.opacity = '1';
             hideError();
             loaderStatus.textContent = 'Загрузка данных';
             
-            if (timeoutId) clearTimeout(timeoutId);
-            
-            timeoutId = setTimeout(() => {
-                if (isLoading) {
-                    showError('Сервер не отвечает');
-                    isLoading = false;
-                }
+            const timeoutId = setTimeout(() => {
+                if (isLoading) showError('Сервер не отвечает');
             }, 20000);
             
-            // ИСПОЛЬЗУЕМ УНИКАЛЬНЫЙ КЛЮЧ
             const cached = localStorage.getItem(CACHE_KEY);
             if (!force && cached) {
                 try {
                     ALL_DATA = JSON.parse(cached);
                     if (ALL_DATA.journal && ALL_DATA.journal.length > 0) {
                         clearTimeout(timeoutId);
-                        render();
+                        processAllAverages();
+                        renderJournal();
+                        renderRating();
                         hideLoader();
                         isLoading = false;
                         return;
@@ -644,16 +767,14 @@
             
             try {
                 loaderStatus.textContent = 'Загрузка журнала';
-                
                 const controller = new AbortController();
-                const fetchTimeout = setTimeout(() => controller.abort(), 15000);
+                setTimeout(() => controller.abort(), 15000);
                 
                 const [resJ, resA] = await Promise.all([
                     fetch(API_JOURNAL, { signal: controller.signal }).then(r => r.json()),
                     fetch(API_ABSENCES, { signal: controller.signal }).then(r => r.json())
                 ]);
                 
-                clearTimeout(fetchTimeout);
                 clearTimeout(timeoutId);
                 
                 const absMap = {};
@@ -664,24 +785,20 @@
                 }
                 
                 let journalData = [];
-                if (Array.isArray(resJ)) {
-                    journalData = resJ;
-                } else if (resJ && resJ.journal && Array.isArray(resJ.journal)) {
-                    journalData = resJ.journal;
-                }
+                if (Array.isArray(resJ)) journalData = resJ;
+                else if (resJ && resJ.journal && Array.isArray(resJ.journal)) journalData = resJ.journal;
+                else if (resJ && !resJ.error) journalData = resJ;
                 
-                if (!journalData.length) {
-                    throw new Error('No data');
-                }
+                if (!journalData.length) throw new Error('No data');
                 
-                ALL_DATA = { 
-                    journal: journalData, 
-                    absences: absMap 
-                };
+                ALL_DATA = { journal: journalData, absences: absMap };
                 
-                // СОХРАНЯЕМ С УНИКАЛЬНЫМ КЛЮЧОМ
+                processAllAverages();
+                
                 localStorage.setItem(CACHE_KEY, JSON.stringify(ALL_DATA));
-                render();
+                
+                renderJournal();
+                renderRating();
                 hideLoader();
                 
                 if (tg && tg.HapticFeedback) {
@@ -695,7 +812,9 @@
                 if (ALL_DATA.journal && ALL_DATA.journal.length > 0) {
                     loaderStatus.textContent = 'Использую сохранённые данные';
                     setTimeout(() => {
-                        render();
+                        processAllAverages();
+                        renderJournal();
+                        renderRating();
                         hideLoader();
                     }, 800);
                 } else {
@@ -706,27 +825,54 @@
             }
         }
         
-        function render() {
+        // Вычисляем все средние баллы (по предметам и общие)
+        function processAllAverages() {
+            for (let student of ALL_DATA.journal) {
+                if (student.subjects && Array.isArray(student.subjects)) {
+                    for (let subject of student.subjects) {
+                        const calculatedAvg = calculateAverage(subject.marks);
+                        if (calculatedAvg) {
+                            subject.avg = calculatedAvg;
+                        } else if (!subject.avg || subject.avg === '—') {
+                            subject.avg = '—';
+                        }
+                    }
+                    const totalAvg = calculateTotalAverage(student.subjects);
+                    if (totalAvg) {
+                        student.totalAverage = totalAvg;
+                    } else if (!student.totalAverage || student.totalAverage === '0,0') {
+                        student.totalAverage = '—';
+                    }
+                }
+            }
+        }
+        
+        function renderJournal() {
             const container = document.getElementById('list');
             if (!container) return;
-            
             container.innerHTML = '';
-            const query = document.getElementById('search').value.toLowerCase().trim();
+            const query = document.getElementById('search')?.value.toLowerCase().trim() || '';
             
             if (!ALL_DATA.journal || ALL_DATA.journal.length === 0) {
-                container.innerHTML = '<div class="empty-state">Нет данных для отображения</div>';
+                container.innerHTML = '<div class="empty-state">Нет данных</div>';
                 return;
             }
             
-            const sortedByScore = [...ALL_DATA.journal].sort((a,b) => {
+            // Фильтруем Доревского
+            let filteredStudents = filterStudents(ALL_DATA.journal);
+            
+            // Топ-3 по общему баллу для медалей
+            const sortedByTotal = [...filteredStudents].sort((a, b) => {
                 const avgA = parseFloat(String(a.totalAverage).replace(',', '.'));
                 const avgB = parseFloat(String(b.totalAverage).replace(',', '.'));
+                if (isNaN(avgA)) return 1;
+                if (isNaN(avgB)) return -1;
                 return avgB - avgA;
             });
-            const topNames = sortedByScore.slice(0, 3).map(s => s.studentName);
+            const topNames = sortedByTotal.slice(0, 3).map(s => s.studentName);
             const crowns = ['🥇', '🥈', '🥉'];
             
-            const list = ALL_DATA.journal
+            const list = filteredStudents
                 .filter(s => s && s.studentName && s.studentName.toLowerCase().includes(query))
                 .sort((a, b) => a.studentName.localeCompare(b.studentName));
             
@@ -744,18 +890,18 @@
                 let subsHtml = '';
                 if (s.subjects && Array.isArray(s.subjects)) {
                     subsHtml = s.subjects.map(sub => {
-                        const tip = calcNeed(sub.avg, sub.marks);
-                        const marksHtml = (sub.marks && Array.isArray(sub.marks)) 
-                            ? sub.marks.map(m => `<div class="mark ${getStyle(m)}">${m}</div>`).join('')
-                            : '<div style="font-size:11px; opacity:0.4; text-align:center; padding:8px;">Нет оценок</div>';
+                        const marksHtml = (sub.marks && Array.isArray(sub.marks) && sub.marks.length > 0)
+                            ? sub.marks.map(m => `<div class="mark ${getStyleForScore(m)}">${m}</div>`).join('')
+                            : '<div style="font-size:11px; opacity:0.4; padding:8px;">Нет отметок</div>';
+                        
+                        const avgDisplay = sub.avg && sub.avg !== '—' ? sub.avg : '—';
                         
                         return `<div class="sub-item">
                             <div class="sub-row">
                                 <span>${escapeHtml(sub.subject || 'Без названия')}</span>
-                                <span class="score-pill ${getStyle(sub.avg)}">${sub.avg || '—'}</span>
+                                <span class="score-pill ${getStyleForScore(avgDisplay)}">${avgDisplay}</span>
                             </div>
                             <div class="marks-box">
-                                ${tip ? `<div class="analytic-tip">${tip}</div>` : ''}
                                 <div class="marks-row">${marksHtml}</div>
                             </div>
                         </div>`;
@@ -764,40 +910,97 @@
                     subsHtml = '<div style="font-size:12px; opacity:0.4; text-align:center; padding:12px;">Нет предметов</div>';
                 }
                 
+                const totalDisplay = s.totalAverage && s.totalAverage !== '—' ? s.totalAverage : '—';
+                
                 card.innerHTML = `
                     <div class="student-header">
                         <span class="student-name">
                             ${escapeHtml(s.studentName)} ${tIdx !== -1 ? crowns[tIdx] : ''}
-                            <span class="abs-badge">
-                                ⏳ ${absCount}
-                            </span>
+                            <span class="abs-badge">⏳ ${absCount}</span>
                         </span>
-                        <span class="score-pill ${getStyle(s.totalAverage)}">${s.totalAverage || '—'}</span>
+                        <span class="score-pill ${getStyleForScore(totalDisplay)}">${totalDisplay}</span>
                     </div>
                     <div class="subs-container">${subsHtml}</div>`;
                 
                 card.onclick = (e) => {
                     e.stopPropagation();
                     const subsContainer = card.querySelector('.subs-container');
-                    if (subsContainer) {
-                        subsContainer.classList.toggle('open');
-                    }
-                    if (tg && tg.HapticFeedback) {
-                        tg.HapticFeedback.impactOccurred('light');
-                    }
+                    if (subsContainer) subsContainer.classList.toggle('open');
+                    if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
                 };
                 
                 card.querySelectorAll('.sub-item').forEach(item => {
                     item.addEventListener('click', (e) => {
                         e.stopPropagation();
                         const marksBox = item.querySelector('.marks-box');
-                        if (marksBox) {
-                            marksBox.classList.toggle('open');
-                        }
+                        if (marksBox) marksBox.classList.toggle('open');
                     });
                 });
                 
                 container.appendChild(card);
+            });
+        }
+        
+        function renderRating() {
+            const container = document.getElementById('rating-list');
+            if (!container) return;
+            container.innerHTML = '';
+            
+            if (!ALL_DATA.journal || ALL_DATA.journal.length === 0) {
+                container.innerHTML = '<div class="empty-state">Нет данных для отображения</div>';
+                return;
+            }
+            
+            // Фильтруем Доревского
+            let filteredStudents = filterStudents(ALL_DATA.journal);
+            
+            // Сортировка по алфавиту для отображения
+            const sortedAlphabet = [...filteredStudents].sort((a, b) => 
+                a.studentName.localeCompare(b.studentName)
+            );
+            
+            // Для медалей нужен рейтинг по успеваемости (общий балл)
+            const sortedByScore = [...filteredStudents].sort((a, b) => {
+                const avgA = parseFloat(String(a.totalAverage).replace(',', '.'));
+                const avgB = parseFloat(String(b.totalAverage).replace(',', '.'));
+                if (isNaN(avgA)) return 1;
+                if (isNaN(avgB)) return -1;
+                return avgB - avgA;
+            });
+            const topNames = sortedByScore.slice(0, 3).map(s => s.studentName);
+            const medals = ['🥇', '🥈', '🥉'];
+            
+            sortedAlphabet.forEach((student, idx) => {
+                const row = document.createElement('div');
+                row.className = 'rating-row';
+                
+                const medalIndex = topNames.indexOf(student.studentName);
+                const medalHtml = medalIndex !== -1 ? `<span class="medal">${medals[medalIndex]}</span>` : '';
+                
+                const sem1Display = student.semester1 && student.semester1 !== '—' ? student.semester1 : null;
+                const sem2Display = student.semester2 && student.semester2 !== '—' ? student.semester2 : null;
+                
+                // Вычисляем средний балл между семестрами
+                const avgBetween = calculateAverageBetweenSemesters(sem1Display, sem2Display);
+                const avgDisplay = avgBetween || '—';
+                
+                row.innerHTML = `
+                    <div class="rating-rank">${idx + 1}</div>
+                    <div class="rating-name">
+                        ${escapeHtml(student.studentName)}
+                        ${medalHtml}
+                    </div>
+                    <div class="rating-sem1">
+                        <span class="score-pill ${getStyleForScore(sem1Display)}">${sem1Display || '—'}</span>
+                    </div>
+                    <div class="rating-sem2">
+                        <span class="score-pill ${getStyleForScore(sem2Display)}">${sem2Display || '—'}</span>
+                    </div>
+                    <div class="rating-avg">
+                        <span class="score-pill ${getStyleForScore(avgDisplay)}">${avgDisplay}</span>
+                    </div>
+                `;
+                container.appendChild(row);
             });
         }
         
@@ -812,10 +1015,6 @@
         }
         
         function forceUpdate() {
-            if (tg && tg.HapticFeedback) {
-                tg.HapticFeedback.impactOccurred('medium');
-            }
-            // Очищаем ТОЛЬКО кэш этой группы
             localStorage.removeItem(CACHE_KEY);
             init(true);
         }
@@ -823,7 +1022,6 @@
         function hideLoader() {
             const loader = document.getElementById('loader');
             const mainContent = document.getElementById('main-content');
-            
             loader.style.opacity = '0';
             setTimeout(() => {
                 loader.style.display = 'none';
@@ -831,31 +1029,41 @@
             }, 500);
         }
         
-        document.getElementById('search').addEventListener('input', () => {
-            render();
-            if (tg && tg.HapticFeedback) {
-                tg.HapticFeedback.impactOccurred('light');
+        function switchPage(pageId) {
+            const journalPage = document.getElementById('page-journal');
+            const ratingPage = document.getElementById('page-rating');
+            
+            if (pageId === 'journal') {
+                journalPage.classList.add('active');
+                ratingPage.classList.remove('active');
+                renderJournal();
+            } else {
+                journalPage.classList.remove('active');
+                ratingPage.classList.add('active');
+                renderRating();
             }
-        });
+            
+            document.querySelectorAll('.nav-item').forEach(btn => {
+                if (btn.dataset.page === pageId) btn.classList.add('active');
+                else btn.classList.remove('active');
+            });
+            
+            if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+        }
         
-        document.getElementById('retryButton').addEventListener('click', () => {
-            forceUpdate();
-        });
+        document.getElementById('search')?.addEventListener('input', () => renderJournal());
+        document.getElementById('retryButton')?.addEventListener('click', () => forceUpdate());
+        document.getElementById('fabUpdate')?.addEventListener('click', () => forceUpdate());
         
-        document.getElementById('fabUpdate').addEventListener('click', () => {
-            forceUpdate();
+        document.querySelectorAll('.nav-item').forEach(btn => {
+            btn.addEventListener('click', () => switchPage(btn.dataset.page));
         });
         
         if (tg) {
-            tg.onEvent('backButtonClicked', () => {
-                tg.close();
-            });
+            tg.onEvent('backButtonClicked', () => tg.close());
         }
         
-        // Принудительно загружаем свежие данные при первом запуске
         init(true);
-        
-        window.forceUpdate = forceUpdate;
     </script>
 </body>
 </html>
