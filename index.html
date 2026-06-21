@@ -14,6 +14,8 @@
             --muted: #94a3b8;
             --error: #ef4444;
             --gold: #fbbf24;
+            --exam-color: #f472b6;
+            --exam-bg: rgba(244, 114, 182, 0.12);
         }
         * { 
             font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; 
@@ -418,8 +420,85 @@
             border-top: 1px solid rgba(255,255,255,0.05); 
         }
         .subs-container.open { display: block; }
-        .sub-item { margin-bottom: 10px; cursor: pointer; }
-        .sub-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 13px; }
+        .sub-item { 
+            margin-bottom: 10px; 
+            cursor: pointer; 
+            padding: 8px 10px;
+            border-radius: 10px;
+            transition: background 0.2s;
+            position: relative;
+        }
+        .sub-item.exam-subject {
+            background: var(--exam-bg);
+            border-left: 3px solid var(--exam-color);
+        }
+        .sub-item.exam-subject:active {
+            background: rgba(244, 114, 182, 0.2);
+        }
+        .sub-row { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 6px; 
+            font-size: 13px; 
+        }
+        .subject-name-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .exam-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            background: var(--exam-color);
+            border-radius: 50%;
+            color: #0f172a;
+            font-size: 11px;
+            font-weight: 800;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .exam-icon:active {
+            transform: scale(0.85);
+        }
+        .exam-icon:hover {
+            box-shadow: 0 0 12px rgba(244, 114, 182, 0.5);
+        }
+        .exam-tooltip {
+            display: none;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--exam-color);
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-size: 11px;
+            color: var(--text);
+            line-height: 1.5;
+            max-width: 260px;
+            margin-top: 6px;
+            animation: fadeIn 0.25s ease;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+        }
+        .exam-tooltip.open {
+            display: block;
+        }
+        .exam-tooltip .tooltip-title {
+            color: var(--exam-color);
+            font-weight: 600;
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+        .exam-tooltip .tooltip-text {
+            color: var(--muted);
+        }
+        .exam-tooltip .tooltip-text strong {
+            color: var(--text);
+        }
+        
         .marks-box { display: none; background: rgba(0,0,0,0.25); padding: 10px; border-radius: 10px; margin-top: 6px; }
         .marks-box.open { display: block; }
         .marks-row { display: flex; flex-wrap: wrap; gap: 4px; }
@@ -663,8 +742,22 @@
         const CACHE_KEY = 'journal_86rtk_v6';
         const EXCLUDED_NAME = "Доревский";
         
+        // Список экзаменационных предметов
+        const EXAM_SUBJECTS = [
+            'охрана труда',
+            'электрические измерения',
+            'теоретич. основы электромеханики',
+            'теоретические основы электромеханики'
+        ];
+        
         let ALL_DATA = { journal: [], absences: {} };
         let isLoading = false;
+        
+        function isExamSubject(subjectName) {
+            if (!subjectName) return false;
+            const name = subjectName.toLowerCase().trim();
+            return EXAM_SUBJECTS.some(exam => name.includes(exam) || exam.includes(name));
+        }
         
         function calculateAverage(marks) {
             if (!marks || marks.length === 0) return null;
@@ -902,15 +995,27 @@
                 let subsHtml = '';
                 if (s.subjects && Array.isArray(s.subjects)) {
                     subsHtml = s.subjects.map(sub => {
+                        const isExam = isExamSubject(sub.subject);
                         const marksHtml = (sub.marks && Array.isArray(sub.marks) && sub.marks.length > 0)
                             ? sub.marks.map(m => `<div class="mark ${getStyleForScore(m)}">${m}</div>`).join('')
                             : '<div style="font-size:10px; opacity:0.4; padding:6px;">Нет отметок</div>';
                         
                         const avgDisplay = sub.avg && sub.avg !== '—' ? sub.avg : '—';
+                        const examClass = isExam ? 'exam-subject' : '';
+                        const examIcon = isExam ? `
+                            <span class="exam-icon" onclick="event.stopPropagation(); toggleTooltip(this)">!</span>
+                            <div class="exam-tooltip">
+                                <div class="tooltip-title">📝 Экзаменационный предмет</div>
+                                <div class="tooltip-text">Итоговая отметка может <strong>отличаться</strong> от текущей успеваемости и выставляется по результатам экзамена.</div>
+                            </div>
+                        ` : '';
                         
-                        return `<div class="sub-item">
+                        return `<div class="sub-item ${examClass}">
                             <div class="sub-row">
-                                <span>${escapeHtml(sub.subject || 'Без названия')}</span>
+                                <div class="subject-name-wrapper">
+                                    <span>${escapeHtml(sub.subject || 'Без названия')}</span>
+                                    ${examIcon}
+                                </div>
                                 <span class="score-pill ${getStyleForScore(avgDisplay)}">${avgDisplay}</span>
                             </div>
                             <div class="marks-box">
@@ -951,6 +1056,14 @@
                 
                 container.appendChild(card);
             });
+        }
+        
+        function toggleTooltip(el) {
+            const tooltip = el.nextElementSibling;
+            if (tooltip && tooltip.classList.contains('exam-tooltip')) {
+                tooltip.classList.toggle('open');
+                if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+            }
         }
         
         function renderRating() {
