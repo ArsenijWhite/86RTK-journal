@@ -459,15 +459,8 @@
             color: #0f172a;
             font-size: 11px;
             font-weight: 800;
-            cursor: pointer;
             flex-shrink: 0;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        .exam-icon:active {
-            transform: scale(0.85);
-        }
-        .exam-icon:hover {
-            box-shadow: 0 0 12px rgba(244, 114, 182, 0.5);
+            pointer-events: none;
         }
         .exam-tooltip {
             display: none;
@@ -483,6 +476,8 @@
             margin-top: 6px;
             animation: fadeIn 0.25s ease;
             box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+            cursor: pointer;
+            transition: opacity 0.2s;
         }
         .exam-tooltip.open {
             display: block;
@@ -498,6 +493,14 @@
         }
         .exam-tooltip .tooltip-text strong {
             color: var(--text);
+        }
+        .exam-tooltip .tooltip-hint {
+            font-size: 9px;
+            color: rgba(255,255,255,0.25);
+            margin-top: 6px;
+            text-align: center;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            padding-top: 6px;
         }
         
         .marks-box { display: none; background: rgba(0,0,0,0.25); padding: 10px; border-radius: 10px; margin-top: 6px; }
@@ -1004,17 +1007,21 @@
                         const avgDisplay = sub.avg && sub.avg !== '—' ? sub.avg : '—';
                         const examClass = isExam ? 'exam-subject' : '';
                         
-                        // Создаём подсказку с уникальным ID для управления
+                        // Создаём подсказку с уникальным ID
                         const tooltipId = 'tooltip_' + Math.random().toString(36).substr(2, 9);
                         const examIcon = isExam ? `
-                            <span class="exam-icon" onclick="event.stopPropagation(); toggleTooltip('${tooltipId}')">!</span>
-                            <div class="exam-tooltip" id="${tooltipId}">
+                            <span class="exam-icon">!</span>
+                        ` : '';
+                        
+                        const tooltipHtml = isExam ? `
+                            <div class="exam-tooltip" id="${tooltipId}" onclick="event.stopPropagation(); hideTooltip('${tooltipId}')">
                                 <div class="tooltip-title">📝 Экзаменационный предмет</div>
                                 <div class="tooltip-text">Итоговая отметка может <strong>отличаться</strong> от текущей успеваемости и выставляется по результатам экзамена.</div>
+                                <div class="tooltip-hint">Нажмите на подсказку, чтобы скрыть</div>
                             </div>
                         ` : '';
                         
-                        return `<div class="sub-item ${examClass}" data-tooltip="${tooltipId}">
+                        return `<div class="sub-item ${examClass}" data-tooltip="${tooltipId}" onclick="event.stopPropagation(); toggleTooltip('${tooltipId}')">
                             <div class="sub-row">
                                 <div class="subject-name-wrapper">
                                     <span>${escapeHtml(sub.subject || 'Без названия')}</span>
@@ -1025,6 +1032,7 @@
                             <div class="marks-box">
                                 <div class="marks-row">${marksHtml}</div>
                             </div>
+                            ${tooltipHtml}
                         </div>`;
                     }).join('');
                 } else {
@@ -1043,32 +1051,13 @@
                     </div>
                     <div class="subs-container">${subsHtml}</div>`;
                 
-                // Обработчик клика на карточку студента - раскрывает список предметов
                 card.onclick = (e) => {
                     e.stopPropagation();
                     const subsContainer = card.querySelector('.subs-container');
-                    if (subsContainer) {
-                        const wasOpen = subsContainer.classList.contains('open');
-                        subsContainer.classList.toggle('open');
-                        
-                        // Если раскрываем предметы, и они только что открылись - показываем подсказки для экзаменов
-                        if (!wasOpen && subsContainer.classList.contains('open')) {
-                            const examItems = subsContainer.querySelectorAll('.sub-item.exam-subject');
-                            examItems.forEach(item => {
-                                const tooltipId = item.dataset.tooltip;
-                                if (tooltipId) {
-                                    const tooltip = document.getElementById(tooltipId);
-                                    if (tooltip && !tooltip.classList.contains('open')) {
-                                        tooltip.classList.add('open');
-                                    }
-                                }
-                            });
-                        }
-                    }
+                    if (subsContainer) subsContainer.classList.toggle('open');
                     if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
                 };
                 
-                // Обработчик клика на отдельный предмет - раскрывает оценки
                 card.querySelectorAll('.sub-item').forEach(item => {
                     item.addEventListener('click', (e) => {
                         e.stopPropagation();
@@ -1085,7 +1074,17 @@
         function toggleTooltip(tooltipId) {
             const tooltip = document.getElementById(tooltipId);
             if (tooltip) {
+                // Если подсказка открыта - закрываем, если закрыта - открываем
                 tooltip.classList.toggle('open');
+                if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+            }
+        }
+        
+        // Функция для скрытия подсказки (вызывается при клике на саму подсказку)
+        function hideTooltip(tooltipId) {
+            const tooltip = document.getElementById(tooltipId);
+            if (tooltip) {
+                tooltip.classList.remove('open');
                 if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
             }
         }
