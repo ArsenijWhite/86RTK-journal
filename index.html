@@ -446,6 +446,7 @@
             display: flex;
             align-items: center;
             gap: 6px;
+            flex-wrap: wrap;
         }
         .exam-icon {
             display: inline-flex;
@@ -478,7 +479,7 @@
             font-size: 11px;
             color: var(--text);
             line-height: 1.5;
-            max-width: 260px;
+            max-width: 100%;
             margin-top: 6px;
             animation: fadeIn 0.25s ease;
             box-shadow: 0 8px 25px rgba(0,0,0,0.5);
@@ -1002,15 +1003,18 @@
                         
                         const avgDisplay = sub.avg && sub.avg !== '—' ? sub.avg : '—';
                         const examClass = isExam ? 'exam-subject' : '';
+                        
+                        // Создаём подсказку с уникальным ID для управления
+                        const tooltipId = 'tooltip_' + Math.random().toString(36).substr(2, 9);
                         const examIcon = isExam ? `
-                            <span class="exam-icon" onclick="event.stopPropagation(); toggleTooltip(this)">!</span>
-                            <div class="exam-tooltip">
+                            <span class="exam-icon" onclick="event.stopPropagation(); toggleTooltip('${tooltipId}')">!</span>
+                            <div class="exam-tooltip" id="${tooltipId}">
                                 <div class="tooltip-title">📝 Экзаменационный предмет</div>
                                 <div class="tooltip-text">Итоговая отметка может <strong>отличаться</strong> от текущей успеваемости и выставляется по результатам экзамена.</div>
                             </div>
                         ` : '';
                         
-                        return `<div class="sub-item ${examClass}">
+                        return `<div class="sub-item ${examClass}" data-tooltip="${tooltipId}">
                             <div class="sub-row">
                                 <div class="subject-name-wrapper">
                                     <span>${escapeHtml(sub.subject || 'Без названия')}</span>
@@ -1039,13 +1043,32 @@
                     </div>
                     <div class="subs-container">${subsHtml}</div>`;
                 
+                // Обработчик клика на карточку студента - раскрывает список предметов
                 card.onclick = (e) => {
                     e.stopPropagation();
                     const subsContainer = card.querySelector('.subs-container');
-                    if (subsContainer) subsContainer.classList.toggle('open');
+                    if (subsContainer) {
+                        const wasOpen = subsContainer.classList.contains('open');
+                        subsContainer.classList.toggle('open');
+                        
+                        // Если раскрываем предметы, и они только что открылись - показываем подсказки для экзаменов
+                        if (!wasOpen && subsContainer.classList.contains('open')) {
+                            const examItems = subsContainer.querySelectorAll('.sub-item.exam-subject');
+                            examItems.forEach(item => {
+                                const tooltipId = item.dataset.tooltip;
+                                if (tooltipId) {
+                                    const tooltip = document.getElementById(tooltipId);
+                                    if (tooltip && !tooltip.classList.contains('open')) {
+                                        tooltip.classList.add('open');
+                                    }
+                                }
+                            });
+                        }
+                    }
                     if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
                 };
                 
+                // Обработчик клика на отдельный предмет - раскрывает оценки
                 card.querySelectorAll('.sub-item').forEach(item => {
                     item.addEventListener('click', (e) => {
                         e.stopPropagation();
@@ -1058,9 +1081,10 @@
             });
         }
         
-        function toggleTooltip(el) {
-            const tooltip = el.nextElementSibling;
-            if (tooltip && tooltip.classList.contains('exam-tooltip')) {
+        // Функция для переключения подсказки по ID
+        function toggleTooltip(tooltipId) {
+            const tooltip = document.getElementById(tooltipId);
+            if (tooltip) {
                 tooltip.classList.toggle('open');
                 if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
             }
