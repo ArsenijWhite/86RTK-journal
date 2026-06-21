@@ -1014,14 +1014,14 @@
                         ` : '';
                         
                         const tooltipHtml = isExam ? `
-                            <div class="exam-tooltip" id="${tooltipId}" onclick="event.stopPropagation(); hideTooltip('${tooltipId}')">
+                            <div class="exam-tooltip" id="${tooltipId}">
                                 <div class="tooltip-title">📝 Экзаменационный предмет</div>
                                 <div class="tooltip-text">Итоговая отметка может <strong>отличаться</strong> от текущей успеваемости и выставляется по результатам экзамена.</div>
                                 <div class="tooltip-hint">Нажмите на подсказку, чтобы скрыть</div>
                             </div>
                         ` : '';
                         
-                        return `<div class="sub-item ${examClass}" data-tooltip="${tooltipId}" onclick="event.stopPropagation(); toggleTooltip('${tooltipId}')">
+                        return `<div class="sub-item ${examClass}" data-tooltip="${tooltipId}" data-tooltip-shown="false">
                             <div class="sub-row">
                                 <div class="subject-name-wrapper">
                                     <span>${escapeHtml(sub.subject || 'Без названия')}</span>
@@ -1058,35 +1058,37 @@
                     if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
                 };
                 
-                card.querySelectorAll('.sub-item').forEach(item => {
-                    item.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        const marksBox = item.querySelector('.marks-box');
-                        if (marksBox) marksBox.classList.toggle('open');
-                    });
-                });
-                
                 container.appendChild(card);
             });
-        }
-        
-        // Функция для переключения подсказки по ID
-        function toggleTooltip(tooltipId) {
-            const tooltip = document.getElementById(tooltipId);
-            if (tooltip) {
-                // Если подсказка открыта - закрываем, если закрыта - открываем
-                tooltip.classList.toggle('open');
-                if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
-            }
-        }
-        
-        // Функция для скрытия подсказки (вызывается при клике на саму подсказку)
-        function hideTooltip(tooltipId) {
-            const tooltip = document.getElementById(tooltipId);
-            if (tooltip) {
-                tooltip.classList.remove('open');
-                if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
-            }
+            
+            // Добавляем обработчики после рендеринга
+            document.querySelectorAll('.sub-item').forEach(item => {
+                // Обработчик для переключения оценок
+                item.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const marksBox = this.querySelector('.marks-box');
+                    if (marksBox) marksBox.classList.toggle('open');
+                    
+                    // Если это экзаменационный предмет и подсказка ещё не показывалась
+                    if (this.classList.contains('exam-subject')) {
+                        const tooltipId = this.dataset.tooltip;
+                        const tooltip = document.getElementById(tooltipId);
+                        if (tooltip && this.dataset.tooltipShown === 'false') {
+                            tooltip.classList.add('open');
+                            this.dataset.tooltipShown = 'true';
+                            
+                            // Обработчик для скрытия подсказки при клике на неё
+                            tooltip.onclick = function(e) {
+                                e.stopPropagation();
+                                this.classList.remove('open');
+                                if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+                            };
+                            
+                            if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+                        }
+                    }
+                });
+            });
         }
         
         function renderRating() {
