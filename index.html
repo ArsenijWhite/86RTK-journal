@@ -414,9 +414,13 @@
         }
         
         .subs-container { 
+            display: none;
             padding-top: 12px; 
             margin-top: 12px; 
             border-top: 1px solid rgba(255,255,255,0.05); 
+        }
+        .subs-container.open { 
+            display: block; 
         }
         .sub-item { 
             margin-bottom: 10px; 
@@ -764,7 +768,6 @@
         const API_ABSENCES = 'https://script.google.com/macros/s/AKfycbyux4wfN_lVoodDq-JHHjbYAGuJys_DsZ2mADyUGdw1MERG-iZK833dN0tSzI7lq_QeZg/exec';
         
         const CACHE_KEY = 'journal_86rtk_v6';
-        // Убрано исключение Доревского
         
         // Обновленный список экзаменационных предметов
         const EXAM_SUBJECTS = [
@@ -862,7 +865,6 @@
         }
         
         function filterStudents(students) {
-            // Убрано исключение Доревского
             return students.filter(s => s && s.studentName);
         }
         
@@ -1018,11 +1020,17 @@
                 
                 let subsHtml = '';
                 if (s.subjects && Array.isArray(s.subjects)) {
+                    // Показываем ВСЕ предметы, даже если нет отметок
                     subsHtml = s.subjects.map(sub => {
                         const isExam = isExamSubject(sub.subject);
-                        const marksHtml = (sub.marks && Array.isArray(sub.marks) && sub.marks.length > 0)
-                            ? sub.marks.map(m => `<div class="mark ${getStyleForScore(m)}">${m}</div>`).join('')
-                            : '<div style="font-size:10px; opacity:0.4; padding:6px;">Нет отметок</div>';
+                        
+                        // Всегда показываем блок с отметками, даже если их нет
+                        let marksHtml = '';
+                        if (sub.marks && Array.isArray(sub.marks) && sub.marks.length > 0) {
+                            marksHtml = sub.marks.map(m => `<div class="mark ${getStyleForScore(m)}">${m}</div>`).join('');
+                        } else {
+                            marksHtml = '<div style="font-size:10px; opacity:0.4; padding:6px;">Нет отметок</div>';
+                        }
                         
                         const avgDisplay = sub.avg && sub.avg !== '—' ? sub.avg : '—';
                         const examClass = isExam ? 'exam-subject' : '';
@@ -1040,7 +1048,6 @@
                             </div>
                         ` : '';
                         
-                        // Все предметы всегда видны, сворачивание оценок остается по клику
                         return `<div class="sub-item ${examClass}" data-tooltip="${tooltipId}" data-tooltip-shown="false">
                             <div class="sub-row">
                                 <div class="subject-name-wrapper">
@@ -1071,19 +1078,24 @@
                     </div>
                     <div class="subs-container">${subsHtml}</div>`;
                 
-                // Открываем контейнер с предметами по умолчанию
-                const subsContainer = card.querySelector('.subs-container');
-                if (subsContainer) subsContainer.classList.add('open');
-                
-                card.onclick = (e) => {
-                    // Не переключаем видимость предметов, только если клик не по дочернему элементу
-                    // Чтобы не мешать кликам по оценкам и подсказкам
+                // Клик по карточке - раскрытие/скрытие предметов
+                card.onclick = function(e) {
+                    e.stopPropagation();
+                    const subsContainer = this.querySelector('.subs-container');
+                    if (subsContainer) {
+                        subsContainer.classList.toggle('open');
+                        // Прокручиваем к карточке, если она не видна полностью
+                        if (subsContainer.classList.contains('open')) {
+                            this.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                        }
+                    }
+                    if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
                 };
                 
                 container.appendChild(card);
             });
             
-            // Обработчики для переключения оценок и подсказок
+            // Обработчики для кликов по предметам (раскрытие оценок и подсказок)
             document.querySelectorAll('.sub-item').forEach(item => {
                 item.addEventListener('click', function(e) {
                     e.stopPropagation();
@@ -1093,7 +1105,6 @@
                     if (this.classList.contains('exam-subject')) {
                         const tooltipId = this.dataset.tooltip;
                         const tooltip = document.getElementById(tooltipId);
-                        // Показываем подсказку только если она еще не была показана
                         if (tooltip && this.dataset.tooltipShown === 'false') {
                             tooltip.classList.add('open');
                             this.dataset.tooltipShown = 'true';
