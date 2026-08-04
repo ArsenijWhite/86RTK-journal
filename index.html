@@ -1019,12 +1019,12 @@
                 const tIdx = topNames.indexOf(s.studentName);
                 
                 let subsHtml = '';
-                if (s.subjects && Array.isArray(s.subjects)) {
+                if (s.subjects && Array.isArray(s.subjects) && s.subjects.length > 0) {
                     // Показываем ВСЕ предметы, даже если нет отметок
                     subsHtml = s.subjects.map(sub => {
                         const isExam = isExamSubject(sub.subject);
                         
-                        // Всегда показываем блок с отметками, даже если их нет
+                        // Формируем блок с отметками
                         let marksHtml = '';
                         if (sub.marks && Array.isArray(sub.marks) && sub.marks.length > 0) {
                             marksHtml = sub.marks.map(m => `<div class="mark ${getStyleForScore(m)}">${m}</div>`).join('');
@@ -1084,7 +1084,6 @@
                     const subsContainer = this.querySelector('.subs-container');
                     if (subsContainer) {
                         subsContainer.classList.toggle('open');
-                        // Прокручиваем к карточке, если она не видна полностью
                         if (subsContainer.classList.contains('open')) {
                             this.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
                         }
