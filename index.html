@@ -769,7 +769,31 @@
         
         const CACHE_KEY = 'journal_86rtk_v6';
         
-        // Обновленный список экзаменационных предметов
+        // Полный список всех предметов группы
+        const ALL_SUBJECTS = [
+            'Автоматизация производства',
+            'Английский язык',
+            'Безопасность жизнедеятельности',
+            'Высшая математика',
+            'Инженерная графика',
+            'Информатика',
+            'История',
+            'Материаловедение',
+            'Метрология, стандартизация и сертификация',
+            'Основы экономики',
+            'Промышленная электроника и микроэлектроника',
+            'Русский язык',
+            'Техническая механика',
+            'Технология машиностроения',
+            'Физика',
+            'Физическая культура',
+            'Химия',
+            'Цифровая и микропроцессорная техника',
+            'Экологические основы природопользования',
+            'Электротехника'
+        ];
+        
+        // Экзаменационные предметы
         const EXAM_SUBJECTS = [
             'Цифровая и микропроцессорная техника',
             'Промышленная электроника и микроэлектроника',
@@ -925,6 +949,34 @@
                 
                 if (!journalData.length) throw new Error('No data');
                 
+                // Для каждого студента дополняем список предметов всеми предметами
+                journalData = journalData.map(student => {
+                    if (!student.subjects) {
+                        student.subjects = [];
+                    }
+                    
+                    // Создаем карту существующих предметов
+                    const existingSubjects = {};
+                    student.subjects.forEach(sub => {
+                        if (sub.subject) {
+                            existingSubjects[sub.subject.trim()] = sub;
+                        }
+                    });
+                    
+                    // Добавляем все предметы из ALL_SUBJECTS, которых нет
+                    ALL_SUBJECTS.forEach(subjectName => {
+                        if (!existingSubjects[subjectName]) {
+                            student.subjects.push({
+                                subject: subjectName,
+                                marks: [],
+                                avg: '—'
+                            });
+                        }
+                    });
+                    
+                    return student;
+                });
+                
                 ALL_DATA = { journal: journalData, absences: absMap };
                 
                 processAllAverages();
@@ -1020,11 +1072,18 @@
                 
                 let subsHtml = '';
                 if (s.subjects && Array.isArray(s.subjects) && s.subjects.length > 0) {
-                    // Показываем ВСЕ предметы, даже если нет отметок
-                    subsHtml = s.subjects.map(sub => {
+                    // Сортируем предметы по списку ALL_SUBJECTS
+                    const sortedSubjects = [...s.subjects].sort((a, b) => {
+                        const idxA = ALL_SUBJECTS.indexOf(a.subject);
+                        const idxB = ALL_SUBJECTS.indexOf(b.subject);
+                        if (idxA === -1) return 1;
+                        if (idxB === -1) return -1;
+                        return idxA - idxB;
+                    });
+                    
+                    subsHtml = sortedSubjects.map(sub => {
                         const isExam = isExamSubject(sub.subject);
                         
-                        // Формируем блок с отметками
                         let marksHtml = '';
                         if (sub.marks && Array.isArray(sub.marks) && sub.marks.length > 0) {
                             marksHtml = sub.marks.map(m => `<div class="mark ${getStyleForScore(m)}">${m}</div>`).join('');
@@ -1078,7 +1137,6 @@
                     </div>
                     <div class="subs-container">${subsHtml}</div>`;
                 
-                // Клик по карточке - раскрытие/скрытие предметов
                 card.onclick = function(e) {
                     e.stopPropagation();
                     const subsContainer = this.querySelector('.subs-container');
@@ -1094,7 +1152,6 @@
                 container.appendChild(card);
             });
             
-            // Обработчики для кликов по предметам (раскрытие оценок и подсказок)
             document.querySelectorAll('.sub-item').forEach(item => {
                 item.addEventListener('click', function(e) {
                     e.stopPropagation();
