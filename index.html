@@ -414,12 +414,10 @@
         }
         
         .subs-container { 
-            display: none; 
             padding-top: 12px; 
             margin-top: 12px; 
             border-top: 1px solid rgba(255,255,255,0.05); 
         }
-        .subs-container.open { display: block; }
         .sub-item { 
             margin-bottom: 10px; 
             cursor: pointer; 
@@ -503,10 +501,32 @@
             padding-top: 6px;
         }
         
-        .marks-box { display: none; background: rgba(0,0,0,0.25); padding: 10px; border-radius: 10px; margin-top: 6px; }
-        .marks-box.open { display: block; }
-        .marks-row { display: flex; flex-wrap: wrap; gap: 4px; }
-        .mark { width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center; border-radius: 7px; font-size: 10px; font-weight: 700; margin-right: 2px; }
+        .marks-box { 
+            display: none; 
+            background: rgba(0,0,0,0.25); 
+            padding: 10px; 
+            border-radius: 10px; 
+            margin-top: 6px; 
+        }
+        .marks-box.open { 
+            display: block; 
+        }
+        .marks-row { 
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: 4px; 
+        }
+        .mark { 
+            width: 26px; 
+            height: 26px; 
+            display: inline-flex; 
+            align-items: center; 
+            justify-content: center; 
+            border-radius: 7px; 
+            font-size: 10px; 
+            font-weight: 700; 
+            margin-right: 2px; 
+        }
         
         .bottom-nav {
             position: fixed;
@@ -744,14 +764,13 @@
         const API_ABSENCES = 'https://script.google.com/macros/s/AKfycbyux4wfN_lVoodDq-JHHjbYAGuJys_DsZ2mADyUGdw1MERG-iZK833dN0tSzI7lq_QeZg/exec';
         
         const CACHE_KEY = 'journal_86rtk_v6';
-        const EXCLUDED_NAME = "Доревский";
+        // Убрано исключение Доревского
         
-        // Список экзаменационных предметов
+        // Обновленный список экзаменационных предметов
         const EXAM_SUBJECTS = [
-            'охрана труда',
-            'электрические измерения',
-            'теоретич. основы электромеханики',
-            'теоретические основы электромеханики'
+            'Цифровая и микропроцессорная техника',
+            'Промышленная электроника и микроэлектроника',
+            'Автоматизация производства'
         ];
         
         let ALL_DATA = { journal: [], absences: {} };
@@ -760,7 +779,7 @@
         function isExamSubject(subjectName) {
             if (!subjectName) return false;
             const name = subjectName.toLowerCase().trim();
-            return EXAM_SUBJECTS.some(exam => name.includes(exam) || exam.includes(name));
+            return EXAM_SUBJECTS.some(exam => name.includes(exam.toLowerCase()) || exam.toLowerCase().includes(name));
         }
         
         function calculateAverage(marks) {
@@ -843,7 +862,8 @@
         }
         
         function filterStudents(students) {
-            return students.filter(s => s && s.studentName && !s.studentName.includes(EXCLUDED_NAME));
+            // Убрано исключение Доревского
+            return students.filter(s => s && s.studentName);
         }
         
         async function init(force = false) {
@@ -1007,7 +1027,6 @@
                         const avgDisplay = sub.avg && sub.avg !== '—' ? sub.avg : '—';
                         const examClass = isExam ? 'exam-subject' : '';
                         
-                        // Создаём подсказку с уникальным ID
                         const tooltipId = 'tooltip_' + Math.random().toString(36).substr(2, 9);
                         const examIcon = isExam ? `
                             <span class="exam-icon">!</span>
@@ -1021,6 +1040,7 @@
                             </div>
                         ` : '';
                         
+                        // Все предметы всегда видны, сворачивание оценок остается по клику
                         return `<div class="sub-item ${examClass}" data-tooltip="${tooltipId}" data-tooltip-shown="false">
                             <div class="sub-row">
                                 <div class="subject-name-wrapper">
@@ -1051,33 +1071,33 @@
                     </div>
                     <div class="subs-container">${subsHtml}</div>`;
                 
+                // Открываем контейнер с предметами по умолчанию
+                const subsContainer = card.querySelector('.subs-container');
+                if (subsContainer) subsContainer.classList.add('open');
+                
                 card.onclick = (e) => {
-                    e.stopPropagation();
-                    const subsContainer = card.querySelector('.subs-container');
-                    if (subsContainer) subsContainer.classList.toggle('open');
-                    if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+                    // Не переключаем видимость предметов, только если клик не по дочернему элементу
+                    // Чтобы не мешать кликам по оценкам и подсказкам
                 };
                 
                 container.appendChild(card);
             });
             
-            // Добавляем обработчики после рендеринга
+            // Обработчики для переключения оценок и подсказок
             document.querySelectorAll('.sub-item').forEach(item => {
-                // Обработчик для переключения оценок
                 item.addEventListener('click', function(e) {
                     e.stopPropagation();
                     const marksBox = this.querySelector('.marks-box');
                     if (marksBox) marksBox.classList.toggle('open');
                     
-                    // Если это экзаменационный предмет и подсказка ещё не показывалась
                     if (this.classList.contains('exam-subject')) {
                         const tooltipId = this.dataset.tooltip;
                         const tooltip = document.getElementById(tooltipId);
+                        // Показываем подсказку только если она еще не была показана
                         if (tooltip && this.dataset.tooltipShown === 'false') {
                             tooltip.classList.add('open');
                             this.dataset.tooltipShown = 'true';
                             
-                            // Обработчик для скрытия подсказки при клике на неё
                             tooltip.onclick = function(e) {
                                 e.stopPropagation();
                                 this.classList.remove('open');
