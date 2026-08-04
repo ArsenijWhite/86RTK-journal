@@ -258,20 +258,6 @@
             letter-spacing: 0.5px; 
         }
         
-        .tab-page {
-            display: none;
-        }
-        
-        .tab-page.active {
-            display: block;
-            animation: fadeIn 0.3s ease;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(5px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
         #search { 
             width: 100%; 
             border: 1px solid rgba(255,255,255,0.08); 
@@ -339,79 +325,6 @@
         .m-high { background: #10b981; color: white; }
         .m-gold { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #0f172a; }
         .m-none { background: rgba(255,255,255,0.08); color: var(--muted); }
-        
-        .rating-table {
-            background: var(--card);
-            border-radius: 16px;
-            overflow-x: auto;
-            overflow-y: hidden;
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-        
-        .rating-container {
-            min-width: 100%;
-            display: table;
-        }
-        
-        .rating-header {
-            display: grid;
-            grid-template-columns: 35px 1fr 60px 60px 65px;
-            background: rgba(56, 189, 248, 0.08);
-            padding: 10px 8px;
-            font-size: 10px;
-            font-weight: 600;
-            color: var(--accent);
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            gap: 4px;
-        }
-        
-        .rating-row {
-            display: grid;
-            grid-template-columns: 35px 1fr 60px 60px 65px;
-            padding: 10px 8px;
-            border-bottom: 1px solid rgba(255,255,255,0.03);
-            transition: background 0.2s;
-            align-items: center;
-            gap: 4px;
-        }
-        
-        .rating-row:hover {
-            background: rgba(255,255,255,0.03);
-        }
-        
-        .rating-rank {
-            font-weight: 700;
-            text-align: left;
-            font-size: 13px;
-            color: var(--gold);
-        }
-        
-        .rating-name {
-            font-weight: 500;
-            font-size: 12px;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            flex-wrap: wrap;
-            white-space: normal;
-            word-break: break-word;
-        }
-        
-        .rating-sem1, .rating-sem2, .rating-avg {
-            text-align: center;
-        }
-        
-        .rating-sem1 .score-pill, 
-        .rating-sem2 .score-pill, 
-        .rating-avg .score-pill {
-            font-size: 10px;
-            padding: 2px 6px;
-            min-width: 32px;
-        }
-        
-        .medal {
-            font-size: 11px;
-        }
         
         .subs-container { 
             display: none;
@@ -542,7 +455,7 @@
             -webkit-backdrop-filter: blur(20px);
             border-top: 0.5px solid rgba(255, 255, 255, 0.08);
             display: flex;
-            justify-content: space-around;
+            justify-content: center;
             align-items: center;
             padding: 6px 16px 10px;
             z-index: 1000;
@@ -596,33 +509,9 @@
             box-shadow: 0 5px 0 rgba(255,255,255,0.5), 0 10px 0 rgba(255,255,255,0.5);
         }
         
-        .icon-stats {
-            width: 20px;
-            height: 20px;
-            display: flex;
-            align-items: flex-end;
-            gap: 2px;
-        }
-        
-        .icon-stats .bar {
-            width: 5px;
-            background: linear-gradient(135deg, #94a3b8, #64748b);
-            border-radius: 2px 2px 1px 1px;
-            transition: all 0.2s ease;
-        }
-        
-        .icon-stats .bar1 { height: 12px; }
-        .icon-stats .bar2 { height: 17px; }
-        .icon-stats .bar3 { height: 8px; }
-        
         .nav-item.active .icon-journal {
             background: linear-gradient(135deg, var(--accent), #0ea5e9);
             box-shadow: 0 0 6px rgba(56, 189, 248, 0.4);
-        }
-        
-        .nav-item.active .icon-stats .bar {
-            background: linear-gradient(135deg, var(--accent), #0ea5e9);
-            box-shadow: 0 0 5px rgba(56, 189, 248, 0.4);
         }
         
         .nav-label {
@@ -708,24 +597,10 @@
             Журнал 86РТК
         </div>
         
-        <div class="tab-page active" id="page-journal">
+        <div id="page-journal">
             <div class="header-sub">Электронный журнал успеваемости</div>
             <input type="text" id="search" placeholder="Поиск по фамилии" autocomplete="off">
             <div id="list"></div>
-        </div>
-        
-        <div class="tab-page" id="page-rating">
-            <div class="header-sub">Итоги (успеваемость по семестрам)</div>
-            <div class="rating-table">
-                <div class="rating-header">
-                    <div>#</div>
-                    <div>Фамилия</div>
-                    <div>1 сем</div>
-                    <div>2 сем</div>
-                    <div>Ср.балл</div>
-                </div>
-                <div id="rating-list"></div>
-            </div>
         </div>
         
         <div class="footer-signature">by @skwared</div>
@@ -735,16 +610,6 @@
         <button class="nav-item active" data-page="journal">
             <div class="nav-icon"><div class="icon-journal"></div></div>
             <span class="nav-label">Журнал</span>
-        </button>
-        <button class="nav-item" data-page="rating">
-            <div class="nav-icon">
-                <div class="icon-stats">
-                    <div class="bar bar1"></div>
-                    <div class="bar bar2"></div>
-                    <div class="bar bar3"></div>
-                </div>
-            </div>
-            <span class="nav-label">Итоги</span>
         </button>
     </div>
 
@@ -769,7 +634,7 @@
         
         const CACHE_KEY = 'journal_86rtk_v6';
         
-        // Обновленный список экзаменационных предметов
+        // Экзаменационные предметы
         const EXAM_SUBJECTS = [
             'Цифровая и микропроцессорная техника',
             'Промышленная электроника и микроэлектроника',
@@ -817,22 +682,6 @@
             if (count === 0) return null;
             let avg = sum / count;
             return avg.toFixed(1).replace('.', ',');
-        }
-        
-        function calculateAverageBetweenSemesters(sem1, sem2) {
-            if (!sem1 && !sem2) return null;
-            let val1 = sem1 ? parseFloat(String(sem1).replace(',', '.')) : null;
-            let val2 = sem2 ? parseFloat(String(sem2).replace(',', '.')) : null;
-            
-            if (val1 !== null && val2 !== null) {
-                let avg = (val1 + val2) / 2;
-                return avg.toFixed(1).replace('.', ',');
-            } else if (val1 !== null) {
-                return sem1;
-            } else if (val2 !== null) {
-                return sem2;
-            }
-            return null;
         }
         
         function getStyleForScore(score) {
@@ -891,7 +740,6 @@
                         clearTimeout(timeoutId);
                         processAllAverages();
                         renderJournal();
-                        renderRating();
                         hideLoader();
                         isLoading = false;
                         return;
@@ -932,7 +780,6 @@
                 localStorage.setItem(CACHE_KEY, JSON.stringify(ALL_DATA));
                 
                 renderJournal();
-                renderRating();
                 hideLoader();
                 
                 if (tg && tg.HapticFeedback) {
@@ -948,7 +795,6 @@
                     setTimeout(() => {
                         processAllAverages();
                         renderJournal();
-                        renderRating();
                         hideLoader();
                     }, 800);
                 } else {
@@ -1020,11 +866,9 @@
                 
                 let subsHtml = '';
                 if (s.subjects && Array.isArray(s.subjects)) {
-                    // Показываем ВСЕ предметы, даже если нет отметок
                     subsHtml = s.subjects.map(sub => {
                         const isExam = isExamSubject(sub.subject);
                         
-                        // Всегда показываем блок с отметками, даже если их нет
                         let marksHtml = '';
                         if (sub.marks && Array.isArray(sub.marks) && sub.marks.length > 0) {
                             marksHtml = sub.marks.map(m => `<div class="mark ${getStyleForScore(m)}">${m}</div>`).join('');
@@ -1078,13 +922,11 @@
                     </div>
                     <div class="subs-container">${subsHtml}</div>`;
                 
-                // Клик по карточке - раскрытие/скрытие предметов
                 card.onclick = function(e) {
                     e.stopPropagation();
                     const subsContainer = this.querySelector('.subs-container');
                     if (subsContainer) {
                         subsContainer.classList.toggle('open');
-                        // Прокручиваем к карточке, если она не видна полностью
                         if (subsContainer.classList.contains('open')) {
                             this.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
                         }
@@ -1095,7 +937,6 @@
                 container.appendChild(card);
             });
             
-            // Обработчики для кликов по предметам (раскрытие оценок и подсказок)
             document.querySelectorAll('.sub-item').forEach(item => {
                 item.addEventListener('click', function(e) {
                     e.stopPropagation();
@@ -1119,65 +960,6 @@
                         }
                     }
                 });
-            });
-        }
-        
-        function renderRating() {
-            const container = document.getElementById('rating-list');
-            if (!container) return;
-            container.innerHTML = '';
-            
-            if (!ALL_DATA.journal || ALL_DATA.journal.length === 0) {
-                container.innerHTML = '<div class="empty-state">Нет данных для отображения</div>';
-                return;
-            }
-            
-            let filteredStudents = filterStudents(ALL_DATA.journal);
-            
-            const sortedAlphabet = [...filteredStudents].sort((a, b) => 
-                a.studentName.localeCompare(b.studentName)
-            );
-            
-            const sortedByScore = [...filteredStudents].sort((a, b) => {
-                const avgA = parseFloat(String(a.totalAverage).replace(',', '.'));
-                const avgB = parseFloat(String(b.totalAverage).replace(',', '.'));
-                if (isNaN(avgA)) return 1;
-                if (isNaN(avgB)) return -1;
-                return avgB - avgA;
-            });
-            const topNames = sortedByScore.slice(0, 3).map(s => s.studentName);
-            const medals = ['🥇', '🥈', '🥉'];
-            
-            sortedAlphabet.forEach((student, idx) => {
-                const row = document.createElement('div');
-                row.className = 'rating-row';
-                
-                const medalIndex = topNames.indexOf(student.studentName);
-                const medalHtml = medalIndex !== -1 ? `<span class="medal">${medals[medalIndex]}</span>` : '';
-                
-                const sem1Display = student.semester1 && student.semester1 !== '—' ? student.semester1 : null;
-                const sem2Display = student.semester2 && student.semester2 !== '—' ? student.semester2 : null;
-                
-                const avgBetween = calculateAverageBetweenSemesters(sem1Display, sem2Display);
-                const avgDisplay = avgBetween || '—';
-                
-                row.innerHTML = `
-                    <div class="rating-rank">${idx + 1}</div>
-                    <div class="rating-name">
-                        ${escapeHtml(student.studentName)}
-                        ${medalHtml}
-                    </div>
-                    <div class="rating-sem1">
-                        <span class="score-pill ${getStyleForScore(sem1Display)}">${sem1Display || '—'}</span>
-                    </div>
-                    <div class="rating-sem2">
-                        <span class="score-pill ${getStyleForScore(sem2Display)}">${sem2Display || '—'}</span>
-                    </div>
-                    <div class="rating-avg">
-                        <span class="score-pill ${getStyleForScore(avgDisplay)}">${avgDisplay}</span>
-                    </div>
-                `;
-                container.appendChild(row);
             });
         }
         
@@ -1206,35 +988,9 @@
             }, 500);
         }
         
-        function switchPage(pageId) {
-            const journalPage = document.getElementById('page-journal');
-            const ratingPage = document.getElementById('page-rating');
-            
-            if (pageId === 'journal') {
-                journalPage.classList.add('active');
-                ratingPage.classList.remove('active');
-                renderJournal();
-            } else {
-                journalPage.classList.remove('active');
-                ratingPage.classList.add('active');
-                renderRating();
-            }
-            
-            document.querySelectorAll('.nav-item').forEach(btn => {
-                if (btn.dataset.page === pageId) btn.classList.add('active');
-                else btn.classList.remove('active');
-            });
-            
-            if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
-        }
-        
         document.getElementById('search')?.addEventListener('input', () => renderJournal());
         document.getElementById('retryButton')?.addEventListener('click', () => forceUpdate());
         document.getElementById('fabUpdate')?.addEventListener('click', () => forceUpdate());
-        
-        document.querySelectorAll('.nav-item').forEach(btn => {
-            btn.addEventListener('click', () => switchPage(btn.dataset.page));
-        });
         
         if (tg) {
             tg.onEvent('backButtonClicked', () => tg.close());
