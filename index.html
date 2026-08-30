@@ -16,6 +16,7 @@
             --gold: #fbbf24;
             --exam-color: #f472b6;
             --exam-bg: rgba(244, 114, 182, 0.12);
+            --success: #10b981;
         }
         * { 
             font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; 
@@ -33,7 +34,7 @@
         }
         body { 
             padding: 16px; 
-            padding-bottom: 85px; 
+            padding-bottom: 30px; 
         }
 
         /* ЛОАДЕР */
@@ -212,6 +213,21 @@
             opacity: 1;
         }
         
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 4px;
+        }
+        
+        .header-title {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+            display: flex;
+            align-items: center;
+        }
+        
         .header-logo {
             display: inline-flex;
             align-items: center;
@@ -241,15 +257,69 @@
             box-shadow: 0 7px 0 rgba(255,255,255,0.6), 0 14px 0 rgba(255,255,255,0.6);
         }
         
-        .header-title {
-            font-size: 22px;
-            font-weight: 700;
-            margin-bottom: 4px;
-            letter-spacing: -0.3px;
+        /* КНОПКА ПРОФИЛЯ (без аватарок) */
+        .profile-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            border: 2px solid rgba(56, 189, 248, 0.2);
             display: flex;
             align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            flex-shrink: 0;
+            overflow: hidden;
         }
+        .profile-btn:active { transform: scale(0.92); }
+        .profile-btn .ring {
+            position: absolute;
+            inset: -3px;
+            border-radius: 50%;
+            padding: 2px;
+            background: linear-gradient(135deg, #38bdf8, #f472b6, #fbbf24);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        .profile-btn.active .ring { opacity: 1; animation: spinRing 3s linear infinite; }
+        @keyframes spinRing { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
+        .profile-btn .profile-icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            color: #94a3b8;
+        }
+        .profile-btn .profile-icon svg {
+            width: 100%;
+            height: 100%;
+            stroke: currentColor;
+            fill: none;
+            transition: all 0.3s ease;
+        }
+        .profile-btn.active .profile-icon { color: #38bdf8; filter: drop-shadow(0 0 8px rgba(56,189,248,0.3)); }
+        
+        .profile-btn .mode-label {
+            display: none;
+            position: absolute;
+            bottom: -18px;
+            font-size: 7px;
+            color: var(--muted);
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+        }
+        .profile-btn.active .mode-label {
+            display: block;
+        }
+
         .header-sub { 
             font-size: 11px; 
             color: var(--muted); 
@@ -444,133 +514,288 @@
             font-weight: 700; 
             margin-right: 2px; 
         }
-        
-        .bottom-nav {
+
+        /* КАРТОЧКА СТУДЕНТА (ОВЕРЛЕЙ) */
+        .card-overlay {
+            display: none;
             position: fixed;
-            bottom: 0;
+            top: 0;
             left: 0;
             right: 0;
-            background: rgba(30, 41, 59, 0.75);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-top: 0.5px solid rgba(255, 255, 255, 0.08);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 6px 16px 10px;
-            z-index: 1000;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 1500;
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            overflow-y: auto;
         }
-        
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 3px;
-            background: transparent;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 25px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            flex: 1;
-            max-width: 120px;
-        }
-        
-        .nav-item:active {
-            transform: scale(0.95);
-            background: rgba(255, 255, 255, 0.05);
-        }
-        
-        .nav-icon {
-            width: 20px;
-            height: 20px;
+        .card-overlay.open { display: flex; align-items: flex-start; justify-content: center; }
+        .card-overlay .card-wrapper { max-width: 420px; width: 100%; margin: auto; animation: slideUp 0.3s ease; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px) scale(0.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+        .student-card {
+            background: var(--card);
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.06);
+            overflow: hidden;
             position: relative;
-            transition: all 0.2s ease;
         }
-        
-        .icon-journal {
-            width: 18px;
-            height: 24px;
-            background: linear-gradient(135deg, #94a3b8, #64748b);
-            border-radius: 2px 5px 5px 2px;
-            position: relative;
-            transition: all 0.2s ease;
-        }
-        
-        .icon-journal::before {
-            content: "";
+        .student-card::before {
+            content: '';
             position: absolute;
-            top: 4px;
-            left: 3px;
-            width: 12px;
-            height: 2px;
-            background: rgba(255,255,255,0.5);
-            border-radius: 1px;
-            box-shadow: 0 5px 0 rgba(255,255,255,0.5), 0 10px 0 rgba(255,255,255,0.5);
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #38bdf8, #f472b6, #fbbf24);
+            opacity: 0.6;
         }
-        
-        .nav-item.active .icon-journal {
-            background: linear-gradient(135deg, var(--accent), #0ea5e9);
-            box-shadow: 0 0 6px rgba(56, 189, 248, 0.4);
-        }
-        
-        .nav-label {
-            font-size: 10px;
-            font-weight: 500;
+
+        .card-close {
+            position: absolute;
+            top: 12px;
+            right: 16px;
             color: var(--muted);
-            transition: all 0.2s ease;
-        }
-        
-        .nav-item.active .nav-label {
-            color: var(--accent);
-        }
-        
-        .fab-update { 
-            position: fixed; 
-            bottom: 75px; 
-            right: 16px; 
-            width: 44px; 
-            height: 44px; 
-            border-radius: 50%; 
-            background: rgba(30, 41, 59, 0.85); 
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(255,255,255,0.12); 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            z-index: 999; 
+            font-size: 22px;
             cursor: pointer;
-            transition: all 0.2s ease;
+            z-index: 2;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.04);
         }
-        
-        .fab-update:active { 
-            transform: scale(0.92); 
+        .card-close:active { transform: scale(0.92); background: rgba(255,255,255,0.08); }
+
+        .card-header {
+            padding: 24px 20px 18px;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            position: relative;
+            overflow: hidden;
         }
-        
-        .footer-signature {
-            text-align: center;
-            padding: 16px 16px 24px;
-            color: rgba(255,255,255,0.08);
+        .card-header::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(56, 189, 248, 0.08), transparent 70%);
+            border-radius: 50%;
+        }
+        .card-header::before { content: '📚'; position: absolute; bottom: -10px; right: 20px; font-size: 48px; opacity: 0.06; }
+
+        .card-user {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            position: relative;
+            z-index: 1;
+        }
+        .card-user-info { flex: 1; min-width: 0; }
+        .card-user-name { font-size: 19px; font-weight: 700; color: var(--text); margin-bottom: 2px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .card-user-badge {
             font-size: 9px;
+            font-weight: 600;
+            padding: 2px 10px;
+            border-radius: 20px;
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.2);
         }
-        
-        .empty-state {
-            text-align: center;
-            padding: 40px 20px;
-            color: var(--muted);
-            font-size: 13px;
+        .card-user-meta { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .card-user-meta .tag { background: rgba(255,255,255,0.06); padding: 2px 12px; border-radius: 20px; font-size: 10px; }
+
+        .card-stats {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 1px solid rgba(255,255,255,0.06);
+            position: relative;
+            z-index: 1;
         }
-        
+        .stat-circle {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 19px;
+            font-weight: 700;
+            flex-shrink: 0;
+            position: relative;
+        }
+        .stat-circle::before {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: 50%;
+            padding: 2px;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+        }
+        .stat-circle.gold { background: linear-gradient(135deg, rgba(251, 191, 36, 0.2), rgba(245, 158, 11, 0.1)); color: #fbbf24; }
+        .stat-circle.green { background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.1)); color: #10b981; }
+        .stat-circle.orange { background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(217, 119, 6, 0.1)); color: #f59e0b; }
+        .stat-circle.red { background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(220, 38, 38, 0.1)); color: #ef4444; }
+
+        .stat-info { flex: 1; }
+        .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-value { font-size: 14px; font-weight: 600; color: var(--text); }
+        .stat-value span { color: var(--muted); font-weight: 400; font-size: 12px; }
+
+        .card-body { padding: 18px 20px 20px; }
+        .card-body-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+        .card-body-title .count { font-size: 10px; font-weight: 400; color: var(--muted); background: rgba(255,255,255,0.04); padding: 1px 10px; border-radius: 20px; }
+
+        .subject-row {
+            display: flex;
+            align-items: center;
+            padding: 12px 14px;
+            border-radius: 12px;
+            margin-bottom: 6px;
+            background: rgba(255,255,255,0.02);
+            cursor: pointer;
+            width: 100%;
+        }
+        .subject-row:active { transform: scale(0.98); background: rgba(255,255,255,0.06); }
+        .subject-row .subject-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+        .subject-row .subject-icon.blue { background: rgba(56, 189, 248, 0.15); }
+        .subject-row .subject-icon.pink { background: rgba(244, 114, 182, 0.15); }
+        .subject-row .subject-icon.green { background: rgba(16, 185, 129, 0.15); }
+        .subject-row .subject-icon.orange { background: rgba(251, 191, 36, 0.15); }
+        .subject-row .subject-icon.purple { background: rgba(168, 85, 247, 0.15); }
+        .subject-row .subject-info { flex: 1; min-width: 0; }
+        .subject-row .subject-name { font-size: 14px; font-weight: 500; color: var(--text); }
+        .subject-row .subject-score { font-size: 14px; font-weight: 700; margin-left: 8px; flex-shrink: 0; min-width: 30px; text-align: right; }
+        .subject-row .subject-score.gold { color: #fbbf24; }
+        .subject-row .subject-score.green { color: #10b981; }
+        .subject-row .subject-score.orange { color: #f59e0b; }
+        .subject-row .subject-score.red { color: #ef4444; }
+        .subject-row .subject-score.gray { color: #475569; }
+        .subject-row.exam { background: rgba(244, 114, 182, 0.08); border-left: 3px solid #f472b6; border-radius: 0 12px 12px 0; padding-left: 11px; }
+        .subject-row.exam .exam-badge { font-size: 8px; font-weight: 700; text-transform: uppercase; color: #f472b6; background: rgba(244, 114, 182, 0.15); padding: 1px 8px; border-radius: 10px; margin-left: 6px; }
+
+        .subject-marks-container {
+            display: none;
+            margin: 6px 0 10px 0;
+            padding: 10px 14px;
+            background: rgba(0,0,0,0.25);
+            border-radius: 10px;
+            flex-wrap: wrap;
+            gap: 6px;
+            width: 100%;
+        }
+        .subject-marks-container.open { display: flex; }
+        .subject-marks-container .mark-item {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 700;
+            color: white;
+        }
+        .subject-marks-container .no-marks { color: var(--muted); font-size: 12px; padding: 4px 0; width: 100%; text-align: center; }
+
+        /* Попап выбора студента */
+        .identity-popup {
+            display: none;
+            position: fixed;
+            bottom: 30px;
+            left: 16px;
+            right: 16px;
+            background: var(--card);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+            z-index: 1001;
+            animation: slideUp 0.3s ease;
+            backdrop-filter: blur(20px);
+            background: rgba(30, 41, 59, 0.95);
+        }
+        .identity-popup.open { display: block; }
+        .identity-popup .title { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+        .identity-popup .sub { font-size: 12px; color: var(--muted); margin-bottom: 12px; }
+        .identity-popup .actions { display: flex; gap: 10px; margin-top: 12px; }
+        .identity-popup .actions button {
+            flex: 1;
+            padding: 12px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .identity-popup .actions button:active { transform: scale(0.96); }
+        .identity-popup .btn-yes { background: var(--success); color: white; }
+        .identity-popup .btn-no { background: rgba(255,255,255,0.08); color: var(--text); }
+
+        .student-select-list { max-height: 250px; overflow-y: auto; margin: 8px 0; }
+        .student-select-list .student-item {
+            padding: 12px 16px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.03);
+            margin-bottom: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .student-select-list .student-item:active { transform: scale(0.97); background: rgba(255,255,255,0.06); }
+        .student-select-list .student-item .s-name { font-size: 14px; font-weight: 500; color: var(--text); }
+        .student-select-list .student-item .s-group { font-size: 11px; color: var(--muted); margin-left: auto; }
+
+        .empty-state { text-align: center; padding: 40px 20px; color: var(--muted); font-size: 13px; }
+        .footer { text-align: center; padding: 16px; color: rgba(255,255,255,0.08); font-size: 9px; }
+        .fab-update {
+            position: fixed;
+            bottom: 30px;
+            right: 16px;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: rgba(30, 41, 59, 0.85);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255,255,255,0.12);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+            cursor: pointer;
+        }
+        .fab-update:active { transform: scale(0.92); }
+
+        /* Скрываем поиск при открытой карточке */
+        .search-hidden #search,
+        .search-hidden .header-sub {
+            display: none;
+        }
+
         @supports (padding-bottom: env(safe-area-inset-bottom)) {
-            .bottom-nav {
-                padding-bottom: calc(10px + env(safe-area-inset-bottom));
-            }
-            body {
-                padding-bottom: calc(85px + env(safe-area-inset-bottom));
-            }
-            .fab-update {
-                bottom: calc(75px + env(safe-area-inset-bottom));
-            }
+            body { padding-bottom: calc(30px + env(safe-area-inset-bottom)); }
+            .fab-update { bottom: calc(30px + env(safe-area-inset-bottom)); }
+            .identity-popup { bottom: calc(30px + env(safe-area-inset-bottom)); }
         }
     </style>
 </head>
@@ -592,25 +817,43 @@
     </div>
 
     <div id="main-content">
-        <div class="header-title">
-            <span class="header-logo"><span class="mini-journal-icon"></span></span>
-            Журнал 86РТК
+        <div class="header">
+            <div class="header-title">
+                <span class="header-logo"><span class="mini-journal-icon"></span></span>
+                Журнал 86РТК
+            </div>
+            <div class="profile-btn" id="profileBtn">
+                <span class="ring"></span>
+                <span class="profile-icon" id="profileIcon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                        <circle cx="12" cy="7" r="4"/>
+                    </svg>
+                </span>
+                <span class="mode-label" id="modeLabel">ЖУРНАЛ</span>
+            </div>
         </div>
         
-        <div id="page-journal">
-            <div class="header-sub">Электронный журнал успеваемости</div>
-            <input type="text" id="search" placeholder="Поиск по фамилии" autocomplete="off">
-            <div id="list"></div>
-        </div>
-        
-        <div class="footer-signature">by @skwared</div>
+        <div class="header-sub">Электронный журнал успеваемости</div>
+        <input type="text" id="search" placeholder="Поиск по фамилии" autocomplete="off">
+        <div id="list"></div>
+        <div class="footer">by @skwared</div>
     </div>
 
-    <div class="bottom-nav">
-        <button class="nav-item active" data-page="journal">
-            <div class="nav-icon"><div class="icon-journal"></div></div>
-            <span class="nav-label">Журнал</span>
-        </button>
+    <!-- Попап выбора студента -->
+    <div class="identity-popup" id="identityPopup">
+        <div class="title">👤 Это вы?</div>
+        <div class="sub" id="popupSubText">Выберите свою фамилию из списка:</div>
+        <div class="student-select-list" id="studentSelectList"></div>
+        <div class="actions">
+            <button class="btn-yes" id="btnIdentityYes">Да, это я</button>
+            <button class="btn-no" id="btnIdentityNo">Нет</button>
+        </div>
+    </div>
+
+    <!-- Карточка студента -->
+    <div class="card-overlay" id="cardOverlay">
+        <div class="card-wrapper" id="cardWrapper"></div>
     </div>
 
     <div class="fab-update" id="fabUpdate">
@@ -620,21 +863,48 @@
     </div>
 
     <script>
+        // ============================================================
+        // 1. НАСТРОЙКИ
+        // ============================================================
+        const API_JOURNAL = 'https://script.google.com/macros/s/AKfycbwtV3eFenNotdiVr3u1DQPJdOLn2fieHDsvWUwlsQquKURzkLkW4wuTiLqkNFnWCH0v/exec';
+        const API_ABSENCES = 'https://script.google.com/macros/s/AKfycbyux4wfN_lVoodDq-JHHjbYAGuJys_DsZ2mADyUGdw1MERG-iZK833dN0tSzI7lq_QeZg/exec';
+        const BOT_TOKEN = '8559243948:AAFAW1LdoTmE1a0I1pTgOvv6c9jDLz_1nnI';
+        const OWNER_CHAT_ID = '5753985995';
+        
+        // ============================================================
+        // 2. РУЧНАЯ ПРИВЯЗКА СТУДЕНТОВ
+        // ============================================================
+        const BINDINGS = {
+            // 'telegram_user_id' : 'полное имя студента'
+            '5753985995' : 'Беляцкий'
+            '1939232438' : 'Конюк'
+        };
+        
+        // ============================================================
+        // 3. ОСТАЛЬНОЙ КОД
+        // ============================================================
         let tg = null;
+        let userId = null;
+        let isCardMode = false; // true = показываем карточку, false = журнал
+        
         try {
             if (window.Telegram && window.Telegram.WebApp) {
                 tg = window.Telegram.WebApp;
                 tg.ready();
                 tg.expand();
+                
+                const user = tg.initDataUnsafe?.user;
+                if (user) {
+                    userId = String(user.id);
+                    console.log('👤 Пользователь:', user.first_name);
+                }
             }
-        } catch(e) {}
+        } catch(e) {
+            console.warn('Telegram WebApp не доступен:', e);
+        }
         
-        const API_JOURNAL = 'https://script.google.com/macros/s/AKfycbwtV3eFenNotdiVr3u1DQPJdOLn2fieHDsvWUwlsQquKURzkLkW4wuTiLqkNFnWCH0v/exec';
-        const API_ABSENCES = 'https://script.google.com/macros/s/AKfycbyux4wfN_lVoodDq-JHHjbYAGuJys_DsZ2mADyUGdw1MERG-iZK833dN0tSzI7lq_QeZg/exec';
+        const CACHE_KEY = 'journal_86rtk_v18';
         
-        const CACHE_KEY = 'journal_86rtk_v6';
-        
-        // Экзаменационные предметы
         const EXAM_SUBJECTS = [
             'Цифровая и микропроцессорная техника',
             'Промышленная электроника и микроэлектроника',
@@ -643,7 +913,12 @@
         
         let ALL_DATA = { journal: [], absences: {} };
         let isLoading = false;
+        let selectedStudentForIdentity = null;
+        let boundStudent = null; // имя привязанного студента
         
+        // ============================================================
+        // 4. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+        // ============================================================
         function isExamSubject(subjectName) {
             if (!subjectName) return false;
             const name = subjectName.toLowerCase().trim();
@@ -694,6 +969,27 @@
             return 'm-low';
         }
         
+        function getInitials(name) {
+            if (!name) return '?';
+            const parts = name.trim().split(' ');
+            if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+            return (parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase();
+        }
+        
+        function getGroup(name) {
+            return '86РТК';
+        }
+        
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+        
         function showError(message) {
             const loader = document.getElementById('loader');
             const loaderStatus = document.getElementById('loaderStatus');
@@ -713,10 +1009,380 @@
             document.getElementById('loaderStatus').textContent = 'Загрузка данных';
         }
         
-        function filterStudents(students) {
-            return students.filter(s => s && s.studentName);
+        // ============================================================
+        // 5. ОТПРАВКА УВЕДОМЛЕНИЯ ВЛАДЕЛЬЦУ
+        // ============================================================
+        async function notifyOwner(userId, studentName) {
+            try {
+                const message = `🔔 <b>Новая привязка!</b>\n\n` +
+                    `👤 Студент: <b>${escapeHtml(studentName)}</b>\n` +
+                    `🆔 Telegram ID: <code>${userId}</code>\n\n` +
+                    `Для привязки добавьте в BINDINGS:\n` +
+                    `<code>'${userId}' : '${escapeHtml(studentName)}'</code>`;
+                
+                const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chat_id: OWNER_CHAT_ID,
+                        text: message,
+                        parse_mode: 'HTML'
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.ok) {
+                    console.log('✅ Уведомление отправлено владельцу');
+                    return true;
+                } else {
+                    console.error('❌ Ошибка отправки:', data);
+                    return false;
+                }
+            } catch (e) {
+                console.error('❌ Ошибка при отправке уведомления:', e);
+                return false;
+            }
         }
         
+        // ============================================================
+        // 6. КАРТОЧКА СТУДЕНТА
+        // ============================================================
+        function toggleMarks(id) {
+            const el = document.getElementById(id);
+            if (el) el.classList.toggle('open');
+        }
+        
+        function renderCard(studentName) {
+            const container = document.getElementById('cardWrapper');
+            if (!studentName) {
+                container.innerHTML = `<div class="student-card"><div class="card-close" onclick="closeCard()">✕</div><div style="text-align:center;padding:40px 20px;color:var(--muted);">Выберите студента</div></div>`;
+                return;
+            }
+            const student = ALL_DATA.journal.find(s => s.studentName === studentName);
+            if (!student) {
+                container.innerHTML = `<div class="student-card"><div class="card-close" onclick="closeCard()">✕</div><div style="text-align:center;padding:40px 20px;color:var(--muted);">Студент не найден</div></div>`;
+                return;
+            }
+            
+            const isBound = userId && BINDINGS[userId] === student.studentName;
+            const absCount = ALL_DATA.absences[student.studentName] || "0";
+            const totalAvg = student.totalAverage || '—';
+            const avgNum = parseFloat(String(totalAvg).replace(',', '.'));
+            let avgClass = 'gold';
+            if (isNaN(avgNum)) avgClass = 'gold';
+            else if (avgNum >= 7.5) avgClass = 'gold';
+            else if (avgNum >= 5) avgClass = 'orange';
+            else avgClass = 'red';
+            
+            const sorted = [...ALL_DATA.journal].filter(s => s && s.studentName).sort((a,b) => a.studentName.localeCompare(b.studentName));
+            const idx = sorted.findIndex(s => s.studentName === student.studentName) + 1;
+            const studentId = String(idx).padStart(3, '0');
+            
+            let subjectsHtml = '';
+            const icons = ['📐','💻','⚡','🔌','🏭','📡','🔧','📊','🎯','🧮','📈','🔬'];
+            const colors = ['blue','pink','purple','green','orange','blue','pink','purple','green','orange','blue','pink'];
+            
+            if (student.subjects && Array.isArray(student.subjects)) {
+                student.subjects.forEach((sub, i) => {
+                    const isExam = isExamSubject(sub.subject);
+                    const avg = sub.avg || '—';
+                    const num = parseFloat(String(avg).replace(',', '.'));
+                    let sc = 'gray';
+                    if (!isNaN(num)) { if (num >= 7.5) sc = 'gold'; else if (num >= 5) sc = 'orange'; else sc = 'red'; }
+                    
+                    let marksHtml = '';
+                    if (sub.marks && sub.marks.length) {
+                        marksHtml = sub.marks.map(m => {
+                            const n = parseFloat(String(m).replace(',', '.'));
+                            let bg = '#475569';
+                            if (!isNaN(n)) { if (n >= 7.5) bg = '#10b981'; else if (n >= 5) bg = '#f59e0b'; else bg = '#ef4444'; }
+                            return `<span class="mark-item" style="background:${bg};">${m}</span>`;
+                        }).join('');
+                    } else { marksHtml = '<span class="no-marks">Нет оценок</span>'; }
+                    
+                    const id = 'm_' + i + '_' + Math.random().toString(36).substr(2, 4);
+                    subjectsHtml += `
+                        <div class="subject-row ${isExam ? 'exam' : ''}" onclick="toggleMarks('${id}')">
+                            <div class="subject-icon ${colors[i % colors.length]}">${icons[i % icons.length]}</div>
+                            <div class="subject-info"><div class="subject-name">${escapeHtml(sub.subject || 'Без названия')} ${isExam ? '<span class="exam-badge">📝 Экзамен</span>' : ''}</div></div>
+                            <div class="subject-score ${sc}">${avg}</div>
+                        </div>
+                        <div class="subject-marks-container" id="${id}">${marksHtml}</div>
+                    `;
+                });
+            }
+            
+            const subjectsCount = student.subjects ? student.subjects.length : 0;
+            const statusText = avgNum >= 9 ? '🏆 Отлично' : avgNum >= 7.5 ? '✅ Хорошо' : avgNum >= 5 ? '⚠️ Удовлетворительно' : '❌ Требуется внимание';
+            const badge = isBound ? `<span class="card-user-badge">✅ Вы</span>` : '';
+            
+            container.innerHTML = `
+                <div class="student-card">
+                    <div class="card-close" onclick="closeCard()">✕</div>
+                    <div class="card-header">
+                        <div class="card-user">
+                            <div class="card-user-info">
+                                <div class="card-user-name">${escapeHtml(student.studentName)} ${badge}</div>
+                                <div class="card-user-meta">
+                                    <span class="tag">${getGroup(student.studentName)}</span>
+                                    <span>• ID: #${studentId}</span>
+                                    <span>• ${subjectsCount} предметов</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-stats">
+                            <div class="stat-circle ${avgClass}">${totalAvg}</div>
+                            <div class="stat-info">
+                                <div class="stat-label">Средний балл</div>
+                                <div class="stat-value">${statusText} <span>• Отгулы: ${absCount}</span></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-body-title">📋 Предметы <span class="count">${subjectsCount}</span></div>
+                        ${subjectsHtml}
+                    </div>
+                </div>
+            `;
+        }
+        
+        function openCard(name, mode = 'card') {
+            if (mode === 'card') {
+                isCardMode = true;
+                document.body.classList.add('search-hidden');
+                updateProfileButton();
+            }
+            document.getElementById('cardOverlay').classList.add('open');
+            renderCard(name);
+        }
+        
+        function closeCard() {
+            document.getElementById('cardOverlay').classList.remove('open');
+            isCardMode = false;
+            document.body.classList.remove('search-hidden');
+            updateProfileButton();
+        }
+        
+        // ============================================================
+        // 7. РЕНДЕРИНГ ЖУРНАЛА
+        // ============================================================
+        function renderJournal() {
+            const container = document.getElementById('list');
+            if (!container) return;
+            container.innerHTML = '';
+            const query = document.getElementById('search')?.value.toLowerCase().trim() || '';
+            
+            if (!ALL_DATA.journal || ALL_DATA.journal.length === 0) {
+                container.innerHTML = '<div class="empty-state">Нет данных</div>';
+                return;
+            }
+            
+            let filteredStudents = ALL_DATA.journal.filter(s => s && s.studentName);
+            
+            const sortedByTotal = [...filteredStudents].sort((a, b) => {
+                const avgA = parseFloat(String(a.totalAverage).replace(',', '.'));
+                const avgB = parseFloat(String(b.totalAverage).replace(',', '.'));
+                if (isNaN(avgA)) return 1;
+                if (isNaN(avgB)) return -1;
+                return avgB - avgA;
+            });
+            const topNames = sortedByTotal.slice(0, 3).map(s => s.studentName);
+            const crowns = ['🥇', '🥈', '🥉'];
+            
+            const list = filteredStudents
+                .filter(s => s && s.studentName && s.studentName.toLowerCase().includes(query))
+                .sort((a, b) => a.studentName.localeCompare(b.studentName));
+            
+            if (list.length === 0) {
+                container.innerHTML = '<div class="empty-state">Ничего не найдено</div>';
+                return;
+            }
+            
+            list.forEach(s => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                const absCount = ALL_DATA.absences[s.studentName] || "0";
+                const tIdx = topNames.indexOf(s.studentName);
+                
+                const isBoundToMe = userId && BINDINGS[userId] === s.studentName;
+                
+                let subsHtml = '';
+                if (s.subjects && Array.isArray(s.subjects)) {
+                    subsHtml = s.subjects.map(sub => {
+                        const isExam = isExamSubject(sub.subject);
+                        
+                        let marksHtml = '';
+                        if (sub.marks && Array.isArray(sub.marks) && sub.marks.length > 0) {
+                            marksHtml = sub.marks.map(m => `<div class="mark ${getStyleForScore(m)}">${m}</div>`).join('');
+                        } else {
+                            marksHtml = '<div style="font-size:10px; opacity:0.4; padding:6px;">Нет отметок</div>';
+                        }
+                        
+                        const avgDisplay = sub.avg && sub.avg !== '—' ? sub.avg : '—';
+                        const examClass = isExam ? 'exam-subject' : '';
+                        
+                        const tooltipId = 'tooltip_' + Math.random().toString(36).substr(2, 9);
+                        const examIcon = isExam ? `<span class="exam-icon">!</span>` : '';
+                        
+                        const tooltipHtml = isExam ? `
+                            <div class="exam-tooltip" id="${tooltipId}">
+                                <div class="tooltip-title">📝 Экзаменационный предмет</div>
+                                <div class="tooltip-text">Итоговая отметка может <strong>отличаться</strong> от текущей успеваемости и выставляется по результатам экзамена.</div>
+                                <div class="tooltip-hint">Нажмите на подсказку, чтобы скрыть</div>
+                            </div>
+                        ` : '';
+                        
+                        return `<div class="sub-item ${examClass}" data-tooltip="${tooltipId}" data-tooltip-shown="false">
+                            <div class="sub-row">
+                                <div class="subject-name-wrapper">
+                                    <span>${escapeHtml(sub.subject || 'Без названия')}</span>
+                                    ${examIcon}
+                                </div>
+                                <span class="score-pill ${getStyleForScore(avgDisplay)}">${avgDisplay}</span>
+                            </div>
+                            <div class="marks-box">
+                                <div class="marks-row">${marksHtml}</div>
+                            </div>
+                            ${tooltipHtml}
+                        </div>`;
+                    }).join('');
+                } else {
+                    subsHtml = '<div style="font-size:11px; opacity:0.4; text-align:center; padding:10px;">Нет предметов</div>';
+                }
+                
+                const totalDisplay = s.totalAverage && s.totalAverage !== '—' ? s.totalAverage : '—';
+                
+                const identityBadge = isBoundToMe ? 
+                    `<span style="font-size:9px;background:var(--success);color:white;padding:1px 8px;border-radius:10px;margin-left:6px;">✅ Вы</span>` : '';
+                
+                card.innerHTML = `
+                    <div class="student-header">
+                        <span class="student-name">
+                            ${escapeHtml(s.studentName)} ${tIdx !== -1 ? crowns[tIdx] : ''}
+                            <span class="abs-badge">⏳ ${absCount}</span>
+                            ${identityBadge}
+                        </span>
+                        <span class="score-pill ${getStyleForScore(totalDisplay)}">${totalDisplay}</span>
+                    </div>
+                    <div class="subs-container">${subsHtml}</div>`;
+                
+                card.onclick = function(e) {
+                    e.stopPropagation();
+                    openCard(s.studentName);
+                };
+                
+                container.appendChild(card);
+            });
+            
+            document.querySelectorAll('.sub-item').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const marksBox = this.querySelector('.marks-box');
+                    if (marksBox) marksBox.classList.toggle('open');
+                    
+                    if (this.classList.contains('exam-subject')) {
+                        const tooltipId = this.dataset.tooltip;
+                        const tooltip = document.getElementById(tooltipId);
+                        if (tooltip && this.dataset.tooltipShown === 'false') {
+                            tooltip.classList.add('open');
+                            this.dataset.tooltipShown = 'true';
+                            
+                            tooltip.onclick = function(e) {
+                                e.stopPropagation();
+                                this.classList.remove('open');
+                                if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+                            };
+                            
+                            if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+                        }
+                    }
+                });
+            });
+            
+            updateProfileButton();
+        }
+        
+        // ============================================================
+        // 8. КНОПКА ПРОФИЛЯ
+        // ============================================================
+        function updateProfileButton() {
+            const btn = document.getElementById('profileBtn');
+            const icon = document.getElementById('profileIcon');
+            const label = document.getElementById('modeLabel');
+            
+            boundStudent = userId && BINDINGS[userId] ? BINDINGS[userId] : null;
+            
+            if (boundStudent) {
+                btn.classList.add('active');
+                // Показываем инициалы на кнопке
+                const initials = getInitials(boundStudent);
+                icon.innerHTML = `<span style="font-size:16px;font-weight:700;color:white;">${initials}</span>`;
+                
+                // Меняем подпись в зависимости от режима
+                if (isCardMode) {
+                    label.textContent = 'ЖУРНАЛ';
+                } else {
+                    label.textContent = 'МОЯ КАРТОЧКА';
+                }
+            } else {
+                btn.classList.remove('active');
+                icon.innerHTML = `
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                        <circle cx="12" cy="7" r="4"/>
+                    </svg>
+                `;
+                label.textContent = '';
+            }
+        }
+        
+        // ============================================================
+        // 9. ВЫБОР СТУДЕНТА (ПОПАП)
+        // ============================================================
+        function showStudentSelect() {
+            const popup = document.getElementById('identityPopup');
+            const list = document.getElementById('studentSelectList');
+            const sub = document.getElementById('popupSubText');
+            
+            sub.textContent = 'Выберите свою фамилию из списка:';
+            list.innerHTML = '';
+            
+            const sorted = [...ALL_DATA.journal].filter(s => s && s.studentName).sort((a,b) => a.studentName.localeCompare(b.studentName));
+            
+            if (sorted.length === 0) {
+                list.innerHTML = '<div style="padding:20px;text-align:center;color:var(--muted);">Нет студентов</div>';
+                popup.classList.add('open');
+                return;
+            }
+            
+            sorted.forEach(s => {
+                const item = document.createElement('div');
+                item.className = 'student-item';
+                item.innerHTML = `
+                    <span class="s-name">${escapeHtml(s.studentName)}</span>
+                    <span class="s-group">${getGroup(s.studentName)}</span>
+                `;
+                item.onclick = function() {
+                    selectedStudentForIdentity = s.studentName;
+                    document.querySelectorAll('.student-item').forEach(el => {
+                        el.style.background = 'transparent';
+                        el.style.border = 'none';
+                    });
+                    this.style.background = 'rgba(56, 189, 248, 0.1)';
+                    this.style.border = '1px solid rgba(56, 189, 248, 0.2)';
+                    sub.textContent = `✅ Вы выбрали: ${s.studentName}`;
+                };
+                list.appendChild(item);
+            });
+            
+            popup.classList.add('open');
+            if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+        }
+        
+        // ============================================================
+        // 10. ЗАГРУЗКА ДАННЫХ
+        // ============================================================
         async function init(force = false) {
             if (isLoading) return;
             isLoading = true;
@@ -740,8 +1406,10 @@
                         clearTimeout(timeoutId);
                         processAllAverages();
                         renderJournal();
+                        updateProfileButton();
                         hideLoader();
                         isLoading = false;
+                        checkAndOpenCard();
                         return;
                     }
                 } catch(e) {}
@@ -780,11 +1448,14 @@
                 localStorage.setItem(CACHE_KEY, JSON.stringify(ALL_DATA));
                 
                 renderJournal();
+                updateProfileButton();
                 hideLoader();
                 
                 if (tg && tg.HapticFeedback) {
                     tg.HapticFeedback.notificationOccurred('success');
                 }
+                
+                checkAndOpenCard();
                 
             } catch (e) {
                 console.error('Error:', e);
@@ -795,7 +1466,9 @@
                     setTimeout(() => {
                         processAllAverages();
                         renderJournal();
+                        updateProfileButton();
                         hideLoader();
+                        checkAndOpenCard();
                     }, 800);
                 } else {
                     showError('Проверьте подключение к интернету');
@@ -826,153 +1499,6 @@
             }
         }
         
-        function renderJournal() {
-            const container = document.getElementById('list');
-            if (!container) return;
-            container.innerHTML = '';
-            const query = document.getElementById('search')?.value.toLowerCase().trim() || '';
-            
-            if (!ALL_DATA.journal || ALL_DATA.journal.length === 0) {
-                container.innerHTML = '<div class="empty-state">Нет данных</div>';
-                return;
-            }
-            
-            let filteredStudents = filterStudents(ALL_DATA.journal);
-            
-            const sortedByTotal = [...filteredStudents].sort((a, b) => {
-                const avgA = parseFloat(String(a.totalAverage).replace(',', '.'));
-                const avgB = parseFloat(String(b.totalAverage).replace(',', '.'));
-                if (isNaN(avgA)) return 1;
-                if (isNaN(avgB)) return -1;
-                return avgB - avgA;
-            });
-            const topNames = sortedByTotal.slice(0, 3).map(s => s.studentName);
-            const crowns = ['🥇', '🥈', '🥉'];
-            
-            const list = filteredStudents
-                .filter(s => s && s.studentName && s.studentName.toLowerCase().includes(query))
-                .sort((a, b) => a.studentName.localeCompare(b.studentName));
-            
-            if (list.length === 0) {
-                container.innerHTML = '<div class="empty-state">Ничего не найдено</div>';
-                return;
-            }
-            
-            list.forEach(s => {
-                const card = document.createElement('div');
-                card.className = 'card';
-                const absCount = ALL_DATA.absences[s.studentName] || "0";
-                const tIdx = topNames.indexOf(s.studentName);
-                
-                let subsHtml = '';
-                if (s.subjects && Array.isArray(s.subjects)) {
-                    subsHtml = s.subjects.map(sub => {
-                        const isExam = isExamSubject(sub.subject);
-                        
-                        let marksHtml = '';
-                        if (sub.marks && Array.isArray(sub.marks) && sub.marks.length > 0) {
-                            marksHtml = sub.marks.map(m => `<div class="mark ${getStyleForScore(m)}">${m}</div>`).join('');
-                        } else {
-                            marksHtml = '<div style="font-size:10px; opacity:0.4; padding:6px;">Нет отметок</div>';
-                        }
-                        
-                        const avgDisplay = sub.avg && sub.avg !== '—' ? sub.avg : '—';
-                        const examClass = isExam ? 'exam-subject' : '';
-                        
-                        const tooltipId = 'tooltip_' + Math.random().toString(36).substr(2, 9);
-                        const examIcon = isExam ? `
-                            <span class="exam-icon">!</span>
-                        ` : '';
-                        
-                        const tooltipHtml = isExam ? `
-                            <div class="exam-tooltip" id="${tooltipId}">
-                                <div class="tooltip-title">📝 Экзаменационный предмет</div>
-                                <div class="tooltip-text">Итоговая отметка может <strong>отличаться</strong> от текущей успеваемости и выставляется по результатам экзамена.</div>
-                                <div class="tooltip-hint">Нажмите на подсказку, чтобы скрыть</div>
-                            </div>
-                        ` : '';
-                        
-                        return `<div class="sub-item ${examClass}" data-tooltip="${tooltipId}" data-tooltip-shown="false">
-                            <div class="sub-row">
-                                <div class="subject-name-wrapper">
-                                    <span>${escapeHtml(sub.subject || 'Без названия')}</span>
-                                    ${examIcon}
-                                </div>
-                                <span class="score-pill ${getStyleForScore(avgDisplay)}">${avgDisplay}</span>
-                            </div>
-                            <div class="marks-box">
-                                <div class="marks-row">${marksHtml}</div>
-                            </div>
-                            ${tooltipHtml}
-                        </div>`;
-                    }).join('');
-                } else {
-                    subsHtml = '<div style="font-size:11px; opacity:0.4; text-align:center; padding:10px;">Нет предметов</div>';
-                }
-                
-                const totalDisplay = s.totalAverage && s.totalAverage !== '—' ? s.totalAverage : '—';
-                
-                card.innerHTML = `
-                    <div class="student-header">
-                        <span class="student-name">
-                            ${escapeHtml(s.studentName)} ${tIdx !== -1 ? crowns[tIdx] : ''}
-                            <span class="abs-badge">⏳ ${absCount}</span>
-                        </span>
-                        <span class="score-pill ${getStyleForScore(totalDisplay)}">${totalDisplay}</span>
-                    </div>
-                    <div class="subs-container">${subsHtml}</div>`;
-                
-                card.onclick = function(e) {
-                    e.stopPropagation();
-                    const subsContainer = this.querySelector('.subs-container');
-                    if (subsContainer) {
-                        subsContainer.classList.toggle('open');
-                        if (subsContainer.classList.contains('open')) {
-                            this.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-                        }
-                    }
-                    if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
-                };
-                
-                container.appendChild(card);
-            });
-            
-            document.querySelectorAll('.sub-item').forEach(item => {
-                item.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    const marksBox = this.querySelector('.marks-box');
-                    if (marksBox) marksBox.classList.toggle('open');
-                    
-                    if (this.classList.contains('exam-subject')) {
-                        const tooltipId = this.dataset.tooltip;
-                        const tooltip = document.getElementById(tooltipId);
-                        if (tooltip && this.dataset.tooltipShown === 'false') {
-                            tooltip.classList.add('open');
-                            this.dataset.tooltipShown = 'true';
-                            
-                            tooltip.onclick = function(e) {
-                                e.stopPropagation();
-                                this.classList.remove('open');
-                                if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
-                            };
-                            
-                            if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
-                        }
-                    }
-                });
-            });
-        }
-        
-        function escapeHtml(str) {
-            if (!str) return '';
-            return str.replace(/[&<>]/g, function(m) {
-                if (m === '&') return '&amp;';
-                if (m === '<') return '&lt;';
-                if (m === '>') return '&gt;';
-                return m;
-            });
-        }
-        
         function forceUpdate() {
             localStorage.removeItem(CACHE_KEY);
             init(true);
@@ -988,13 +1514,122 @@
             }, 500);
         }
         
-        document.getElementById('search')?.addEventListener('input', () => renderJournal());
-        document.getElementById('retryButton')?.addEventListener('click', () => forceUpdate());
-        document.getElementById('fabUpdate')?.addEventListener('click', () => forceUpdate());
+        // Проверяем, привязан ли пользователь, и открываем карточку
+        function checkAndOpenCard() {
+            boundStudent = userId && BINDINGS[userId] ? BINDINGS[userId] : null;
+            if (boundStudent) {
+                // Открываем карточку с задержкой, чтобы UI успел отрендериться
+                setTimeout(() => {
+                    openCard(boundStudent);
+                }, 300);
+            }
+        }
         
+        // ============================================================
+        // 11. ОБРАБОТЧИКИ СОБЫТИЙ
+        // ============================================================
+        document.getElementById('profileBtn').addEventListener('click', function(e) {
+            e.stopPropagation();
+            boundStudent = userId && BINDINGS[userId] ? BINDINGS[userId] : null;
+            
+            if (boundStudent) {
+                // Переключаем режим
+                if (isCardMode) {
+                    // Закрываем карточку и показываем журнал
+                    closeCard();
+                } else {
+                    // Открываем карточку
+                    openCard(boundStudent);
+                }
+            } else {
+                showStudentSelect();
+            }
+        });
+        
+        document.getElementById('cardOverlay').addEventListener('click', function(e) {
+            if (e.target === this) closeCard();
+        });
+        
+        document.getElementById('search').addEventListener('input', renderJournal);
+        document.getElementById('fabUpdate').addEventListener('click', forceUpdate);
+        document.getElementById('retryButton').addEventListener('click', forceUpdate);
+        
+        document.getElementById('btnIdentityYes').addEventListener('click', async function() {
+            if (!selectedStudentForIdentity) {
+                if (tg) {
+                    tg.HapticFeedback.notificationOccurred('error');
+                    tg.showAlert('❌ Выберите свою фамилию из списка.');
+                } else {
+                    alert('❌ Выберите свою фамилию из списка.');
+                }
+                return;
+            }
+            
+            document.getElementById('identityPopup').classList.remove('open');
+            
+            if (!userId) {
+                if (tg) tg.showAlert('❌ Ошибка: не удалось определить пользователя');
+                return;
+            }
+            
+            const sent = await notifyOwner(userId, selectedStudentForIdentity);
+            
+            if (tg) {
+                if (sent) {
+                    tg.HapticFeedback.notificationOccurred('success');
+                    tg.showAlert('✅ Запрос отправлен! Ожидайте подтверждения.');
+                } else {
+                    tg.HapticFeedback.notificationOccurred('error');
+                    tg.showAlert('❌ Ошибка отправки. Попробуйте позже.');
+                }
+            } else {
+                alert(sent ? '✅ Запрос отправлен!' : '❌ Ошибка отправки');
+            }
+            
+            selectedStudentForIdentity = null;
+            document.querySelectorAll('.student-item').forEach(el => {
+                el.style.background = 'transparent';
+                el.style.border = 'none';
+            });
+            document.getElementById('popupSubText').textContent = 'Выберите свою фамилию из списка:';
+        });
+        
+        document.getElementById('btnIdentityNo').addEventListener('click', function() {
+            document.getElementById('identityPopup').classList.remove('open');
+            selectedStudentForIdentity = null;
+            document.querySelectorAll('.student-item').forEach(el => {
+                el.style.background = 'transparent';
+                el.style.border = 'none';
+            });
+            document.getElementById('popupSubText').textContent = 'Выберите свою фамилию из списка:';
+            if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+        });
+        
+        document.addEventListener('click', function(e) {
+            const popup = document.getElementById('identityPopup');
+            if (popup.classList.contains('open')) {
+                if (!popup.contains(e.target)) {
+                    popup.classList.remove('open');
+                    selectedStudentForIdentity = null;
+                    document.querySelectorAll('.student-item').forEach(el => {
+                        el.style.background = 'transparent';
+                        el.style.border = 'none';
+                    });
+                    document.getElementById('popupSubText').textContent = 'Выберите свою фамилию из списка:';
+                }
+            }
+        });
+        
+        // ============================================================
+        // 12. ЗАПУСК
+        // ============================================================
         if (tg) {
             tg.onEvent('backButtonClicked', () => tg.close());
         }
+        
+        window.openCard = openCard;
+        window.closeCard = closeCard;
+        window.toggleMarks = toggleMarks;
         
         init(true);
     </script>
