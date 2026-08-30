@@ -37,7 +37,6 @@
             padding-bottom: 30px; 
         }
 
-        /* ЛОАДЕР */
         #loader { 
             position: fixed; 
             top: 0; 
@@ -202,7 +201,6 @@
             100% { transform: rotate(360deg); } 
         }
 
-        /* ИНТЕРФЕЙС */
         #main-content { 
             opacity: 0; 
             transition: 0.5s; 
@@ -257,7 +255,6 @@
             box-shadow: 0 7px 0 rgba(255,255,255,0.6), 0 14px 0 rgba(255,255,255,0.6);
         }
         
-        /* КНОПКА ПРОФИЛЯ */
         .profile-btn {
             width: 44px;
             height: 44px;
@@ -515,7 +512,6 @@
             margin-right: 2px; 
         }
 
-        /* КАРТОЧКА СТУДЕНТА (ОВЕРЛЕЙ) */
         .card-overlay {
             display: none;
             position: fixed;
@@ -717,7 +713,6 @@
         }
         .subject-marks-container .no-marks { color: var(--muted); font-size: 12px; padding: 4px 0; width: 100%; text-align: center; }
 
-        /* Попап выбора студента */
         .identity-popup {
             display: none;
             position: fixed;
@@ -839,7 +834,6 @@
         <div class="footer">by @skwared</div>
     </div>
 
-    <!-- Попап выбора студента -->
     <div class="identity-popup" id="identityPopup">
         <div class="title">👤 Это вы?</div>
         <div class="sub" id="popupSubText">Выберите свою фамилию из списка:</div>
@@ -850,7 +844,6 @@
         </div>
     </div>
 
-    <!-- Карточка студента -->
     <div class="card-overlay" id="cardOverlay">
         <div class="card-wrapper" id="cardWrapper"></div>
     </div>
@@ -875,18 +868,18 @@
         // ============================================================
         const BINDINGS = {
             // 'telegram_user_id' : 'полное имя студента'
-            '5753985995' : 'Беляцкий'
+            '5753985995' : 'Беляцкий',
             '1939232438' : 'Конюк'
         };
         
         // ============================================================
-        // 3. ОСТАЛЬНОЙ КОД
+        // 3. ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ
         // ============================================================
         let tg = null;
         let userId = null;
         let isCardMode = false;
-        let isInitialOpen = false;
-        let boundStudent = null;
+        let isDataLoaded = false; // флаг, что данные загружены
+        let cardOpened = false; // флаг, что карточка уже открыта
         
         try {
             if (window.Telegram && window.Telegram.WebApp) {
@@ -904,7 +897,7 @@
             console.warn('Telegram WebApp не доступен:', e);
         }
         
-        const CACHE_KEY = 'journal_86rtk_v20';
+        const CACHE_KEY = 'journal_86rtk_v21';
         
         const EXAM_SUBJECTS = [
             'Цифровая и микропроцессорная техника',
@@ -1152,13 +1145,15 @@
             `;
         }
         
-        function openCard(name, force = false) {
-            if (document.getElementById('cardOverlay').classList.contains('open') && !force) {
+        function openCard(name) {
+            if (!ALL_DATA.journal || ALL_DATA.journal.length === 0) {
+                console.log('Данные не загружены');
                 return;
             }
             
-            if (!ALL_DATA.journal || ALL_DATA.journal.length === 0) {
-                console.log('Данные еще не загружены, откладываем открытие карточки');
+            // Если карточка уже открыта с этим именем, не перерисовываем
+            if (document.getElementById('cardOverlay').classList.contains('open') && 
+                document.querySelector('.card-user-name')?.textContent?.includes(name)) {
                 return;
             }
             
@@ -1323,7 +1318,7 @@
             const icon = document.getElementById('profileIcon');
             const label = document.getElementById('modeLabel');
             
-            boundStudent = getBoundStudent();
+            const boundStudent = getBoundStudent();
             
             if (boundStudent) {
                 btn.classList.add('active');
@@ -1396,6 +1391,7 @@
         async function init(force = false) {
             if (isLoading) return;
             isLoading = true;
+            isDataLoaded = false;
             
             const loader = document.getElementById('loader');
             const loaderStatus = document.getElementById('loaderStatus');
@@ -1415,18 +1411,22 @@
                     if (ALL_DATA.journal && ALL_DATA.journal.length > 0) {
                         clearTimeout(timeoutId);
                         processAllAverages();
+                        isDataLoaded = true;
                         renderJournal();
                         updateProfileButton();
                         hideLoader();
                         isLoading = false;
-                        // Проверяем привязку и открываем карточку с задержкой
-                        setTimeout(function() {
-                            try {
-                                checkAndOpenCard();
-                            } catch(e) {
-                                console.warn('Ошибка при открытии карточки:', e);
+                        
+                        // Открываем карточку только если она еще не открыта
+                        if (!cardOpened) {
+                            const bound = getBoundStudent();
+                            if (bound) {
+                                cardOpened = true;
+                                setTimeout(function() {
+                                    openCard(bound);
+                                }, 300);
                             }
-                        }, 500);
+                        }
                         return;
                     }
                 } catch(e) {
@@ -1463,6 +1463,7 @@
                 ALL_DATA = { journal: journalData, absences: absMap };
                 
                 processAllAverages();
+                isDataLoaded = true;
                 
                 localStorage.setItem(CACHE_KEY, JSON.stringify(ALL_DATA));
                 
@@ -1474,13 +1475,16 @@
                     tg.HapticFeedback.notificationOccurred('success');
                 }
                 
-                setTimeout(function() {
-                    try {
-                        checkAndOpenCard();
-                    } catch(e) {
-                        console.warn('Ошибка при открытии карточки:', e);
+                // Открываем карточку только если она еще не открыта
+                if (!cardOpened) {
+                    const bound = getBoundStudent();
+                    if (bound) {
+                        cardOpened = true;
+                        setTimeout(function() {
+                            openCard(bound);
+                        }, 300);
                     }
-                }, 500);
+                }
                 
             } catch (e) {
                 console.error('Error:', e);
@@ -1491,16 +1495,20 @@
                     setTimeout(() => {
                         try {
                             processAllAverages();
+                            isDataLoaded = true;
                             renderJournal();
                             updateProfileButton();
                             hideLoader();
-                            setTimeout(function() {
-                                try {
-                                    checkAndOpenCard();
-                                } catch(e) {
-                                    console.warn('Ошибка при открытии карточки:', e);
+                            
+                            if (!cardOpened) {
+                                const bound = getBoundStudent();
+                                if (bound) {
+                                    cardOpened = true;
+                                    setTimeout(function() {
+                                        openCard(bound);
+                                    }, 300);
                                 }
-                            }, 500);
+                            }
                         } catch(err) {
                             console.error('Ошибка при загрузке из кеша:', err);
                             showError('Ошибка загрузки данных');
@@ -1537,7 +1545,8 @@
         
         function forceUpdate() {
             localStorage.removeItem(CACHE_KEY);
-            isInitialOpen = false;
+            cardOpened = false;
+            isDataLoaded = false;
             init(true);
         }
         
@@ -1551,40 +1560,18 @@
             }, 500);
         }
         
-        function checkAndOpenCard() {
-            // Проверяем, что данные загружены
-            if (!ALL_DATA.journal || ALL_DATA.journal.length === 0) {
-                console.log('Данные не загружены, пропускаем открытие карточки');
-                return;
-            }
-            
-            boundStudent = getBoundStudent();
-            
-            // Если пользователь привязан и карточка еще не открыта
-            if (boundStudent && !isInitialOpen) {
-                isInitialOpen = true;
-                console.log('Открываем карточку для:', boundStudent);
-                // Открываем карточку с флагом force, чтобы перезаписать
-                document.getElementById('cardOverlay').classList.add('open');
-                isCardMode = true;
-                document.body.classList.add('search-hidden');
-                renderCard(boundStudent);
-                updateProfileButton();
-            }
-        }
-        
         // ============================================================
         // 11. ОБРАБОТЧИКИ СОБЫТИЙ
         // ============================================================
         document.getElementById('profileBtn').addEventListener('click', function(e) {
             e.stopPropagation();
-            boundStudent = getBoundStudent();
+            const bound = getBoundStudent();
             
-            if (boundStudent) {
+            if (bound) {
                 if (isCardMode) {
                     closeCard();
                 } else {
-                    openCard(boundStudent, true);
+                    openCard(bound);
                 }
             } else {
                 showStudentSelect();
@@ -1665,7 +1652,6 @@
             }
         });
         
-        // Обработка кнопки "Назад" в Telegram
         if (tg) {
             tg.onEvent('backButtonClicked', function() {
                 if (document.getElementById('cardOverlay').classList.contains('open')) {
@@ -1683,7 +1669,6 @@
         window.closeCard = closeCard;
         window.toggleMarks = toggleMarks;
         
-        // Запускаем инициализацию
         init(true);
     </script>
 </body>
