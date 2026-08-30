@@ -258,54 +258,95 @@
             box-shadow: 0 7px 0 rgba(255,255,255,0.6), 0 14px 0 rgba(255,255,255,0.6);
         }
         
-        /* КНОПКА ПРОФИЛЯ - ВСЕГДА ВИДНА */
+        /* CSS-ЛОГОТИП ПРОФИЛЯ (стилизованный) */
         .profile-btn {
-            width: 40px;
-            height: 40px;
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #38bdf8, #0ea5e9);
-            border: 2px solid rgba(255,255,255,0.1);
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            border: 2px solid rgba(56, 189, 248, 0.2);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 16px;
-            font-weight: 700;
-            color: white;
             cursor: pointer;
             transition: all 0.3s ease;
             flex-shrink: 0;
-            box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3);
             position: relative;
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.05);
         }
         
         .profile-btn:active {
             transform: scale(0.92);
         }
         
-        .profile-btn .badge-online {
-            position: absolute;
-            bottom: 1px;
-            right: 1px;
-            width: 10px;
-            height: 10px;
-            background: var(--success);
-            border-radius: 50%;
-            border: 2px solid var(--bg);
-        }
-        
-        .profile-btn .badge-offline {
-            position: absolute;
-            bottom: 1px;
-            right: 1px;
-            width: 10px;
-            height: 10px;
-            background: var(--muted);
-            border-radius: 50%;
-            border: 2px solid var(--bg);
-        }
-        
         .profile-btn .profile-icon {
-            font-size: 18px;
+            width: 24px;
+            height: 24px;
+            position: relative;
+        }
+        
+        /* SVG иконка профиля */
+        .profile-btn .profile-icon svg {
+            width: 100%;
+            height: 100%;
+            stroke: #94a3b8;
+            fill: none;
+            transition: all 0.3s ease;
+        }
+        
+        .profile-btn.active .profile-icon svg {
+            stroke: var(--accent);
+            filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.3));
+        }
+        
+        /* Аватарка поверх иконки (после авторизации) */
+        .profile-btn .profile-avatar {
+            display: none;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 700;
+            color: white;
+            position: absolute;
+            top: 1px;
+            left: 1px;
+            box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3);
+        }
+        
+        .profile-btn.active .profile-avatar {
+            display: flex;
+        }
+        
+        .profile-btn.active .profile-icon {
+            display: none;
+        }
+        
+        /* Кольцо вокруг аватарки */
+        .profile-btn .ring {
+            position: absolute;
+            inset: -3px;
+            border-radius: 50%;
+            padding: 2px;
+            background: linear-gradient(135deg, #38bdf8, #f472b6, #fbbf24);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        
+        .profile-btn.active .ring {
+            opacity: 1;
+            animation: spin 3s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
         
         .header-sub { 
@@ -683,7 +724,7 @@
 
         .detail-header {
             background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-            padding: 20px 20px 16px;
+            padding: 24px 20px 18px;
             position: relative;
             overflow: hidden;
         }
@@ -711,24 +752,24 @@
         .detail-top {
             display: flex;
             align-items: center;
-            gap: 14px;
+            gap: 16px;
             position: relative;
             z-index: 1;
         }
 
         .detail-avatar {
-            width: 56px;
-            height: 56px;
+            width: 64px;
+            height: 64px;
             border-radius: 50%;
             background: linear-gradient(135deg, #38bdf8, #0ea5e9);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 22px;
+            font-size: 26px;
             font-weight: 700;
             color: white;
             flex-shrink: 0;
-            box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3);
+            box-shadow: 0 4px 20px rgba(56, 189, 248, 0.3);
         }
 
         .detail-title {
@@ -736,47 +777,47 @@
         }
 
         .detail-name {
-            font-size: 17px;
+            font-size: 19px;
             font-weight: 700;
             color: var(--text);
             margin-bottom: 2px;
         }
 
         .detail-sub {
-            font-size: 11px;
+            font-size: 12px;
             color: var(--muted);
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
             flex-wrap: wrap;
         }
 
         .detail-sub .group-tag {
             background: rgba(255, 255, 255, 0.06);
-            padding: 1px 10px;
+            padding: 2px 12px;
             border-radius: 20px;
-            font-size: 9px;
+            font-size: 10px;
         }
 
         .detail-avg-block {
             display: flex;
             align-items: center;
-            gap: 12px;
-            margin-top: 12px;
-            padding-top: 12px;
+            gap: 14px;
+            margin-top: 14px;
+            padding-top: 14px;
             border-top: 1px solid rgba(255, 255, 255, 0.06);
             position: relative;
             z-index: 1;
         }
 
         .avg-circle {
-            width: 50px;
-            height: 50px;
+            width: 56px;
+            height: 56px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 17px;
+            font-size: 19px;
             font-weight: 700;
             flex-shrink: 0;
             position: relative;
@@ -819,14 +860,14 @@
         }
 
         .avg-label {
-            font-size: 10px;
+            font-size: 11px;
             color: var(--muted);
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
         .avg-value {
-            font-size: 13px;
+            font-size: 14px;
             font-weight: 600;
             color: var(--text);
         }
@@ -834,39 +875,39 @@
         .avg-value span {
             color: var(--muted);
             font-weight: 400;
-            font-size: 11px;
+            font-size: 12px;
         }
 
         .detail-body {
-            padding: 16px 20px 20px;
+            padding: 18px 20px 20px;
         }
 
         .detail-body-title {
-            font-size: 12px;
+            font-size: 13px;
             font-weight: 600;
             color: var(--text);
-            margin-bottom: 12px;
+            margin-bottom: 14px;
             display: flex;
             align-items: center;
             gap: 8px;
         }
 
         .detail-body-title .count {
-            font-size: 9px;
+            font-size: 10px;
             font-weight: 400;
             color: var(--muted);
             background: rgba(255, 255, 255, 0.04);
-            padding: 1px 8px;
+            padding: 1px 10px;
             border-radius: 20px;
         }
 
-        /* Стили для предметов в карточке - кликабельные */
+        /* Увеличенные предметы в карточке */
         .subject-row {
             display: flex;
             align-items: center;
-            padding: 8px 10px;
-            border-radius: 10px;
-            margin-bottom: 4px;
+            padding: 12px 14px;
+            border-radius: 12px;
+            margin-bottom: 6px;
             background: rgba(255, 255, 255, 0.02);
             transition: background 0.2s;
             cursor: pointer;
@@ -878,22 +919,22 @@
         }
 
         .subject-row .subject-icon {
-            width: 24px;
-            height: 24px;
-            border-radius: 6px;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 11px;
-            margin-right: 10px;
+            font-size: 14px;
+            margin-right: 12px;
             flex-shrink: 0;
         }
 
-        .subject-row .subject-icon.blue { background: rgba(56, 189, 248, 0.12); }
-        .subject-row .subject-icon.pink { background: rgba(244, 114, 182, 0.12); }
-        .subject-row .subject-icon.green { background: rgba(16, 185, 129, 0.12); }
-        .subject-row .subject-icon.orange { background: rgba(251, 191, 36, 0.12); }
-        .subject-row .subject-icon.purple { background: rgba(168, 85, 247, 0.12); }
+        .subject-row .subject-icon.blue { background: rgba(56, 189, 248, 0.15); }
+        .subject-row .subject-icon.pink { background: rgba(244, 114, 182, 0.15); }
+        .subject-row .subject-icon.green { background: rgba(16, 185, 129, 0.15); }
+        .subject-row .subject-icon.orange { background: rgba(251, 191, 36, 0.15); }
+        .subject-row .subject-icon.purple { background: rgba(168, 85, 247, 0.15); }
 
         .subject-row .subject-info {
             flex: 1;
@@ -901,37 +942,17 @@
         }
 
         .subject-row .subject-name {
-            font-size: 12px;
+            font-size: 14px;
             font-weight: 500;
             color: var(--text);
         }
 
-        .subject-row .subject-marks {
-            font-size: 9px;
-            color: var(--muted);
-            margin-top: 1px;
-            display: flex;
-            gap: 3px;
-            flex-wrap: wrap;
-        }
-
-        .subject-row .subject-marks .mark {
-            display: inline-block;
-            width: 18px;
-            height: 18px;
-            border-radius: 4px;
-            font-size: 8px;
-            font-weight: 700;
-            text-align: center;
-            line-height: 18px;
-        }
-
         .subject-row .subject-score {
-            font-size: 13px;
+            font-size: 16px;
             font-weight: 700;
-            margin-left: 6px;
+            margin-left: 8px;
             flex-shrink: 0;
-            min-width: 28px;
+            min-width: 34px;
             text-align: right;
         }
 
@@ -942,33 +963,33 @@
         .subject-row .subject-score.gray { color: #475569; }
 
         .subject-row.exam {
-            background: rgba(244, 114, 182, 0.06);
+            background: rgba(244, 114, 182, 0.08);
             border-left: 3px solid #f472b6;
-            border-radius: 0 10px 10px 0;
-            padding-left: 7px;
+            border-radius: 0 12px 12px 0;
+            padding-left: 11px;
         }
 
         .subject-row.exam .exam-badge {
-            font-size: 7px;
+            font-size: 8px;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             color: #f472b6;
-            background: rgba(244, 114, 182, 0.12);
-            padding: 1px 6px;
-            border-radius: 8px;
-            margin-left: 4px;
+            background: rgba(244, 114, 182, 0.15);
+            padding: 1px 8px;
+            border-radius: 10px;
+            margin-left: 6px;
         }
 
         /* Контейнер для оценок внутри предмета */
         .subject-marks-container {
             display: none;
-            margin-top: 6px;
-            padding: 8px 10px;
-            background: rgba(0,0,0,0.2);
-            border-radius: 8px;
+            margin: 6px 0 10px 44px;
+            padding: 10px 12px;
+            background: rgba(0,0,0,0.25);
+            border-radius: 10px;
             flex-wrap: wrap;
-            gap: 4px;
+            gap: 6px;
         }
         
         .subject-marks-container.open {
@@ -976,15 +997,71 @@
         }
         
         .subject-marks-container .mark-item {
-            width: 26px;
-            height: 26px;
-            border-radius: 6px;
+            width: 30px;
+            height: 30px;
+            border-radius: 7px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 11px;
+            font-size: 13px;
             font-weight: 700;
             color: white;
+        }
+
+        .subject-marks-container .no-marks {
+            color: var(--muted);
+            font-size: 12px;
+            padding: 4px 0;
+        }
+
+        /* Список выбора студента */
+        .student-select-list {
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 8px 0;
+        }
+        
+        .student-select-list .student-item {
+            padding: 12px 16px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.03);
+            margin-bottom: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .student-select-list .student-item:active {
+            transform: scale(0.97);
+            background: rgba(255,255,255,0.06);
+        }
+        
+        .student-select-list .student-item .s-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 700;
+            color: white;
+            flex-shrink: 0;
+        }
+        
+        .student-select-list .student-item .s-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text);
+        }
+        
+        .student-select-list .student-item .s-group {
+            font-size: 11px;
+            color: var(--muted);
+            margin-left: auto;
         }
 
         .fab-update { 
@@ -1054,12 +1131,13 @@
         .identity-popup .sub {
             font-size: 12px;
             color: var(--muted);
-            margin-bottom: 16px;
+            margin-bottom: 12px;
         }
         
         .identity-popup .actions {
             display: flex;
             gap: 10px;
+            margin-top: 12px;
         }
         
         .identity-popup .actions button {
@@ -1125,8 +1203,14 @@
                 Журнал 86РТК
             </div>
             <div class="profile-btn" id="profileBtn">
-                <span id="profileContent">👤</span>
-                <span class="badge-offline" id="profileBadge"></span>
+                <span class="ring"></span>
+                <span class="profile-avatar" id="profileAvatar">👤</span>
+                <span class="profile-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                        <circle cx="12" cy="7" r="4"/>
+                    </svg>
+                </span>
             </div>
         </div>
         
@@ -1144,7 +1228,10 @@
     <!-- ПОПАП "ЭТО ВЫ?" -->
     <div class="identity-popup" id="identityPopup">
         <div class="title">👤 Это вы?</div>
-        <div class="sub" id="popupStudentName">Иванов Иван</div>
+        <div class="sub" id="popupSubText">Выберите свою фамилию из списка:</div>
+        <div class="student-select-list" id="studentSelectList">
+            <!-- Список студентов -->
+        </div>
         <div class="actions">
             <button class="btn-yes" id="btnIdentityYes">Да, это я</button>
             <button class="btn-no" id="btnIdentityNo">Нет</button>
@@ -1193,7 +1280,7 @@
             }
         } catch(e) {}
         
-        const CACHE_KEY = 'journal_86rtk_v15';
+        const CACHE_KEY = 'journal_86rtk_v16';
         
         const EXAM_SUBJECTS = [
             'Цифровая и микропроцессорная техника',
@@ -1203,7 +1290,7 @@
         
         let ALL_DATA = { journal: [], absences: {} };
         let isLoading = false;
-        let currentStudentForIdentity = null;
+        let selectedStudentForIdentity = null;
         
         // ============================================================
         // 4. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
@@ -1407,7 +1494,6 @@
                         else scoreClass = 'red';
                     }
                     
-                    // Собираем все оценки для отображения
                     let marksListHtml = '';
                     if (sub.marks && Array.isArray(sub.marks) && sub.marks.length > 0) {
                         marksListHtml = sub.marks.map(m => {
@@ -1420,13 +1506,14 @@
                             }
                             return `<span class="mark-item" style="background:${bg};">${m}</span>`;
                         }).join('');
+                    } else {
+                        marksListHtml = '<span class="no-marks">Нет оценок</span>';
                     }
                     
                     const icon = icons[idx % icons.length];
                     const iconClass = ['blue', 'pink', 'purple', 'green', 'orange', 'blue', 'pink', 'purple', 'green', 'orange', 'blue', 'pink'][idx % 12];
                     const examBadge = isExam ? `<span class="exam-badge">📝 Экзамен</span>` : '';
                     
-                    // Создаем уникальный ID для контейнера с оценками
                     const marksId = 'marks_' + idx + '_' + Math.random().toString(36).substr(2, 6);
                     
                     subjectsHtml += `
@@ -1441,7 +1528,7 @@
                             <div class="subject-score ${scoreClass}">${avgDisplay}</div>
                         </div>
                         <div class="subject-marks-container" id="${marksId}">
-                            ${marksListHtml || '<span style="color:var(--muted);font-size:10px;">Нет оценок</span>'}
+                            ${marksListHtml}
                         </div>
                     `;
                 });
@@ -1513,7 +1600,6 @@
             `;
         }
         
-        // Функция для раскрытия оценок по предмету
         function toggleMarks(id) {
             const container = document.getElementById(id);
             if (container) {
@@ -1644,7 +1730,6 @@
                 
                 card.onclick = function(e) {
                     e.stopPropagation();
-                    // Открываем карточку с этим студентом
                     openCard(s.studentName);
                 };
                 
@@ -1686,42 +1771,58 @@
             const userId = tg ? String(tg.initDataUnsafe?.user?.id || '') : '';
             const boundStudent = userId && BINDINGS[userId] ? BINDINGS[userId] : null;
             const profileBtn = document.getElementById('profileBtn');
-            const profileContent = document.getElementById('profileContent');
-            const profileBadge = document.getElementById('profileBadge');
+            const profileAvatar = document.getElementById('profileAvatar');
             
             if (boundStudent) {
                 const student = ALL_DATA.journal.find(s => s.studentName === boundStudent);
                 if (student) {
-                    profileContent.textContent = getInitials(student.studentName);
-                    profileBadge.className = 'badge-online';
+                    profileAvatar.textContent = getInitials(student.studentName);
+                    profileBtn.classList.add('active');
                 }
             } else {
-                profileContent.textContent = '👤';
-                profileBadge.className = 'badge-offline';
+                profileAvatar.textContent = '👤';
+                profileBtn.classList.remove('active');
             }
         }
         
         // ============================================================
-        // 10. ОБРАБОТЧИК ПРОФИЛЯ
+        // 10. ПОКАЗ СПИСКА СТУДЕНТОВ ДЛЯ АВТОРИЗАЦИИ
         // ============================================================
-        document.getElementById('profileBtn')?.addEventListener('click', function() {
-            const userId = tg ? String(tg.initDataUnsafe?.user?.id || '') : '';
-            const boundStudent = userId && BINDINGS[userId] ? BINDINGS[userId] : null;
+        function showStudentSelect() {
+            const popup = document.getElementById('identityPopup');
+            const list = document.getElementById('studentSelectList');
+            const sub = document.getElementById('popupSubText');
             
-            if (boundStudent) {
-                // Если привязан - открываем карточку
-                openCard(boundStudent);
-            } else {
-                // Если не привязан - отправляем запрос
-                // Показываем попап с выбором студента
-                // Для простоты - показываем список студентов в попапе
-                const popup = document.getElementById('identityPopup');
-                // Здесь нужно показать список студентов для выбора
-                // Пока просто показываем заглушку
-                if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
-                tg.showAlert('👤 Нажмите на свою фамилию в журнале, чтобы отправить запрос на привязку.');
-            }
-        });
+            sub.textContent = 'Выберите свою фамилию из списка:';
+            
+            const sortedStudents = [...ALL_DATA.journal]
+                .filter(s => s && s.studentName)
+                .sort((a, b) => a.studentName.localeCompare(b.studentName));
+            
+            list.innerHTML = '';
+            sortedStudents.forEach(s => {
+                const item = document.createElement('div');
+                item.className = 'student-item';
+                item.innerHTML = `
+                    <div class="s-avatar">${getInitials(s.studentName)}</div>
+                    <span class="s-name">${escapeHtml(s.studentName)}</span>
+                    <span class="s-group">${getGroup(s.studentName)}</span>
+                `;
+                item.onclick = function() {
+                    // Выбираем студента
+                    selectedStudentForIdentity = s.studentName;
+                    // Подсвечиваем выбранного
+                    document.querySelectorAll('.student-item').forEach(el => el.style.background = 'transparent');
+                    this.style.background = 'rgba(56, 189, 248, 0.1)';
+                    this.style.border = '1px solid rgba(56, 189, 248, 0.2)';
+                    sub.textContent = `Вы выбрали: ${s.studentName}`;
+                };
+                list.appendChild(item);
+            });
+            
+            popup.classList.add('open');
+            if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+        }
         
         // ============================================================
         // 11. ЗАГРУЗКА ДАННЫХ
@@ -1856,6 +1957,20 @@
         // ============================================================
         // 12. ОБРАБОТЧИКИ СОБЫТИЙ
         // ============================================================
+        // Клик по профилю
+        document.getElementById('profileBtn')?.addEventListener('click', function() {
+            const userId = tg ? String(tg.initDataUnsafe?.user?.id || '') : '';
+            const boundStudent = userId && BINDINGS[userId] ? BINDINGS[userId] : null;
+            
+            if (boundStudent) {
+                // Если привязан - открываем карточку
+                openCard(boundStudent);
+            } else {
+                // Если не привязан - показываем список для выбора
+                showStudentSelect();
+            }
+        });
+        
         // Закрытие карточки по клику на оверлей
         document.getElementById('cardOverlay')?.addEventListener('click', function(e) {
             if (e.target === this) closeCard();
@@ -1871,15 +1986,22 @@
         // Попап "Это вы?" - отправка запроса владельцу
         document.getElementById('btnIdentityYes')?.addEventListener('click', async function() {
             const popup = document.getElementById('identityPopup');
+            
+            if (!selectedStudentForIdentity) {
+                if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
+                tg.showAlert('❌ Пожалуйста, выберите свою фамилию из списка.');
+                return;
+            }
+            
             popup.classList.remove('open');
             
             const userId = tg ? String(tg.initDataUnsafe?.user?.id || '') : '';
-            if (!userId || !currentStudentForIdentity) {
+            if (!userId) {
                 if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
                 return;
             }
             
-            const sent = await notifyOwner(userId, currentStudentForIdentity);
+            const sent = await notifyOwner(userId, selectedStudentForIdentity);
             
             if (tg && tg.HapticFeedback) {
                 if (sent) {
@@ -1893,12 +2015,21 @@
                 alert(sent ? '✅ Запрос отправлен!' : '❌ Ошибка отправки');
             }
             
-            currentStudentForIdentity = null;
+            selectedStudentForIdentity = null;
+            // Очищаем выделение
+            document.querySelectorAll('.student-item').forEach(el => {
+                el.style.background = 'transparent';
+                el.style.border = 'none';
+            });
         });
         
         document.getElementById('btnIdentityNo')?.addEventListener('click', function() {
             document.getElementById('identityPopup').classList.remove('open');
-            currentStudentForIdentity = null;
+            selectedStudentForIdentity = null;
+            document.querySelectorAll('.student-item').forEach(el => {
+                el.style.background = 'transparent';
+                el.style.border = 'none';
+            });
             if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
         });
         
@@ -1908,7 +2039,11 @@
             if (popup.classList.contains('open')) {
                 if (!popup.contains(e.target)) {
                     popup.classList.remove('open');
-                    currentStudentForIdentity = null;
+                    selectedStudentForIdentity = null;
+                    document.querySelectorAll('.student-item').forEach(el => {
+                        el.style.background = 'transparent';
+                        el.style.border = 'none';
+                    });
                 }
             }
         });
@@ -1920,7 +2055,6 @@
             tg.onEvent('backButtonClicked', () => tg.close());
         }
         
-        // Делаем функции глобальными
         window.openCard = openCard;
         window.closeCard = closeCard;
         window.toggleMarks = toggleMarks;
