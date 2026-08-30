@@ -249,6 +249,7 @@
             letter-spacing: -0.3px;
             display: flex;
             align-items: center;
+            justify-content: space-between;
         }
         
         .header-sub { 
@@ -446,183 +447,458 @@
             margin-right: 2px; 
         }
         
-        /* ВКЛАДКА СТУДЕНТЫ */
-        .students-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-            gap: 12px;
-            margin-top: 12px;
-        }
-        
-        .student-card {
+        /* ===== КАРТОЧКА СТУДЕНТА ===== */
+        .student-tile {
             background: var(--card);
-            border-radius: 16px;
-            padding: 16px 14px;
-            border: 1px solid rgba(255,255,255,0.05);
-            text-align: center;
-            transition: all 0.2s ease;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
+            overflow: hidden;
         }
-        
-        .student-card:active {
-            transform: scale(0.96);
+
+        .student-tile::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #38bdf8, #f472b6, #fbbf24);
+            opacity: 0.6;
         }
-        
-        .student-card .avatar {
+
+        .student-tile:active {
+            transform: scale(0.97);
+        }
+
+        .tile-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .tile-avatar {
             width: 56px;
             height: 56px;
             border-radius: 50%;
-            background: linear-gradient(135deg, var(--accent), #0ea5e9);
+            background: linear-gradient(135deg, #38bdf8, #0ea5e9);
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 10px;
-            font-size: 20px;
+            font-size: 22px;
             font-weight: 700;
             color: white;
-            box-shadow: 0 4px 15px rgba(56, 189, 248, 0.2);
+            flex-shrink: 0;
+            box-shadow: 0 4px 15px rgba(56, 189, 248, 0.25);
+            position: relative;
         }
-        
-        .student-card .sname {
-            font-size: 13px;
+
+        .tile-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .tile-name {
+            font-size: 16px;
             font-weight: 600;
-            margin-bottom: 4px;
-            line-height: 1.2;
-        }
-        
-        .student-card .sgroup {
-            font-size: 10px;
-            color: var(--muted);
-            margin-bottom: 8px;
-        }
-        
-        .student-card .sstats {
-            display: flex;
-            justify-content: center;
-            gap: 12px;
-            font-size: 10px;
-            color: var(--muted);
-            margin-top: 6px;
-            padding-top: 8px;
-            border-top: 1px solid rgba(255,255,255,0.05);
-        }
-        
-        .student-card .sstats span {
+            color: var(--text);
+            margin-bottom: 2px;
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 8px;
+            flex-wrap: wrap;
         }
-        
-        .student-card .sstats .avg {
-            color: var(--gold);
-            font-weight: 700;
-        }
-        
-        .student-card .sstats .abs {
-            color: var(--muted);
-        }
-        
-        .student-card .badge-verified {
-            position: absolute;
-            top: -4px;
-            right: -4px;
-            background: var(--success);
-            color: white;
-            font-size: 14px;
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            border: 2px solid var(--bg);
-            box-shadow: 0 2px 10px rgba(16, 185, 129, 0.3);
-        }
-        
-        .student-card .badge-verified.show {
-            display: flex;
-        }
-        
-        .student-card .sgroup-badge {
-            display: inline-block;
-            background: rgba(255,255,255,0.06);
+
+        .tile-badge {
+            font-size: 9px;
+            font-weight: 600;
             padding: 2px 10px;
             border-radius: 20px;
-            font-size: 9px;
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .tile-group {
+            font-size: 11px;
             color: var(--muted);
-            margin-bottom: 2px;
         }
-        
-        /* КНОПКА "ЭТО ВЫ?" */
-        .identity-popup {
-            display: none;
-            position: fixed;
-            bottom: 100px;
-            left: 16px;
-            right: 16px;
-            background: var(--card);
-            border-radius: 16px;
-            padding: 20px;
-            border: 1px solid rgba(255,255,255,0.08);
-            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
-            z-index: 1001;
-            animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            backdrop-filter: blur(20px);
-            background: rgba(30, 41, 59, 0.95);
+
+        .tile-stats {
+            display: flex;
+            gap: 16px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
         }
-        
-        .identity-popup.open {
-            display: block;
-        }
-        
-        .identity-popup .title {
-            font-size: 15px;
-            font-weight: 600;
-            margin-bottom: 6px;
-        }
-        
-        .identity-popup .sub {
+
+        .tile-stat {
+            display: flex;
+            align-items: center;
+            gap: 6px;
             font-size: 12px;
             color: var(--muted);
-            margin-bottom: 16px;
         }
-        
-        .identity-popup .actions {
-            display: flex;
-            gap: 10px;
-        }
-        
-        .identity-popup .actions button {
-            flex: 1;
-            padding: 12px;
-            border-radius: 12px;
-            border: none;
-            font-weight: 600;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        
-        .identity-popup .actions button:active {
-            transform: scale(0.96);
-        }
-        
-        .identity-popup .btn-yes {
-            background: var(--success);
-            color: white;
-        }
-        
-        .identity-popup .btn-no {
-            background: rgba(255,255,255,0.08);
+
+        .tile-stat .value {
+            font-weight: 700;
             color: var(--text);
         }
-        
-        @keyframes slideUp {
-            from { transform: translateY(20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
+
+        .tile-stat .value.gold {
+            color: var(--gold);
         }
-        
-        /* НАВИГАЦИЯ */
+
+        .tile-stat .value.green {
+            color: var(--success);
+        }
+
+        .tile-stat .icon {
+            font-size: 14px;
+        }
+
+        .tile-chevron {
+            margin-left: auto;
+            color: #475569;
+            font-size: 18px;
+            transition: transform 0.3s ease;
+        }
+
+        .tile-chevron.open {
+            transform: rotate(180deg);
+        }
+
+        /* ===== ДЕТАЛЬНАЯ КАРТОЧКА ===== */
+        .detail-card {
+            display: none;
+            background: var(--card);
+            border-radius: 24px;
+            padding: 0;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            overflow: hidden;
+            animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-top: 4px;
+        }
+
+        .detail-card.open {
+            display: block;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px) scale(0.96);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .detail-header {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            padding: 28px 24px 24px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .detail-header::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(56, 189, 248, 0.08), transparent 70%);
+            border-radius: 50%;
+        }
+
+        .detail-header::before {
+            content: '📚';
+            position: absolute;
+            bottom: -10px;
+            right: 20px;
+            font-size: 64px;
+            opacity: 0.06;
+        }
+
+        .detail-top {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .detail-avatar {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            font-weight: 700;
+            color: white;
+            flex-shrink: 0;
+            box-shadow: 0 4px 20px rgba(56, 189, 248, 0.3);
+        }
+
+        .detail-title {
+            flex: 1;
+        }
+
+        .detail-name {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 2px;
+        }
+
+        .detail-sub {
+            font-size: 12px;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .detail-sub .group-tag {
+            background: rgba(255, 255, 255, 0.06);
+            padding: 2px 12px;
+            border-radius: 20px;
+            font-size: 10px;
+        }
+
+        .detail-avg-block {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            position: relative;
+            z-index: 1;
+        }
+
+        .avg-circle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 700;
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .avg-circle::before {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: 50%;
+            padding: 2px;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+        }
+
+        .avg-circle.gold {
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.2), rgba(245, 158, 11, 0.1));
+            color: #fbbf24;
+        }
+
+        .avg-circle.green {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.1));
+            color: #10b981;
+        }
+
+        .avg-circle.orange {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(217, 119, 6, 0.1));
+            color: #f59e0b;
+        }
+
+        .avg-circle.red {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(220, 38, 38, 0.1));
+            color: #ef4444;
+        }
+
+        .avg-info {
+            flex: 1;
+        }
+
+        .avg-label {
+            font-size: 11px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .avg-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .avg-value span {
+            color: var(--muted);
+            font-weight: 400;
+            font-size: 12px;
+        }
+
+        .detail-body {
+            padding: 20px 24px 24px;
+        }
+
+        .detail-body-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .detail-body-title .count {
+            font-size: 10px;
+            font-weight: 400;
+            color: var(--muted);
+            background: rgba(255, 255, 255, 0.04);
+            padding: 1px 10px;
+            border-radius: 20px;
+        }
+
+        .subject-row {
+            display: flex;
+            align-items: center;
+            padding: 10px 12px;
+            border-radius: 12px;
+            margin-bottom: 6px;
+            background: rgba(255, 255, 255, 0.02);
+            transition: background 0.2s;
+        }
+
+        .subject-row:hover {
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .subject-row .subject-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .subject-row .subject-icon.blue { background: rgba(56, 189, 248, 0.12); }
+        .subject-row .subject-icon.pink { background: rgba(244, 114, 182, 0.12); }
+        .subject-row .subject-icon.green { background: rgba(16, 185, 129, 0.12); }
+        .subject-row .subject-icon.orange { background: rgba(251, 191, 36, 0.12); }
+        .subject-row .subject-icon.purple { background: rgba(168, 85, 247, 0.12); }
+
+        .subject-row .subject-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .subject-row .subject-name {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        .subject-row .subject-marks {
+            font-size: 10px;
+            color: var(--muted);
+            margin-top: 2px;
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+
+        .subject-row .subject-marks .mark {
+            display: inline-block;
+            width: 22px;
+            height: 22px;
+            border-radius: 5px;
+            font-size: 9px;
+            font-weight: 700;
+            text-align: center;
+            line-height: 22px;
+        }
+
+        .subject-row .subject-score {
+            font-size: 14px;
+            font-weight: 700;
+            margin-left: 8px;
+            flex-shrink: 0;
+            min-width: 32px;
+            text-align: right;
+        }
+
+        .subject-row .subject-score.gold { color: #fbbf24; }
+        .subject-row .subject-score.green { color: #10b981; }
+        .subject-row .subject-score.orange { color: #f59e0b; }
+        .subject-row .subject-score.red { color: #ef4444; }
+        .subject-row .subject-score.gray { color: #475569; }
+
+        .subject-row.exam {
+            background: rgba(244, 114, 182, 0.06);
+            border-left: 3px solid #f472b6;
+            border-radius: 0 12px 12px 0;
+            padding-left: 9px;
+        }
+
+        .subject-row.exam .exam-badge {
+            font-size: 8px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #f472b6;
+            background: rgba(244, 114, 182, 0.12);
+            padding: 1px 8px;
+            border-radius: 10px;
+            margin-left: 6px;
+        }
+
+        .card-empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--muted);
+        }
+
+        .card-empty-state .big-icon {
+            font-size: 48px;
+            display: block;
+            margin-bottom: 16px;
+        }
+
+        .card-empty-state h3 {
+            font-size: 16px;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+
+        .card-empty-state p {
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        /* ===== НАВИГАЦИЯ ===== */
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -692,21 +968,21 @@
             box-shadow: 0 0 6px rgba(56, 189, 248, 0.4);
         }
         
-        .icon-students {
+        .icon-card {
             width: 24px;
             height: 24px;
             position: relative;
             transition: all 0.2s ease;
         }
         
-        .icon-students svg {
+        .icon-card svg {
             width: 100%;
             height: 100%;
             stroke: #94a3b8;
             transition: all 0.2s ease;
         }
         
-        .nav-item.active .icon-students svg {
+        .nav-item.active .icon-card svg {
             stroke: var(--accent);
             filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.3));
         }
@@ -765,7 +1041,71 @@
             color: var(--muted);
             font-size: 13px;
         }
+
+        /* ПОПАП "ЭТО ВЫ?" */
+        .identity-popup {
+            display: none;
+            position: fixed;
+            bottom: 100px;
+            left: 16px;
+            right: 16px;
+            background: var(--card);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+            z-index: 1001;
+            animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(20px);
+            background: rgba(30, 41, 59, 0.95);
+        }
         
+        .identity-popup.open {
+            display: block;
+        }
+        
+        .identity-popup .title {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+        
+        .identity-popup .sub {
+            font-size: 12px;
+            color: var(--muted);
+            margin-bottom: 16px;
+        }
+        
+        .identity-popup .actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .identity-popup .actions button {
+            flex: 1;
+            padding: 12px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .identity-popup .actions button:active {
+            transform: scale(0.96);
+        }
+        
+        .identity-popup .btn-yes {
+            background: var(--success);
+            color: white;
+        }
+        
+        .identity-popup .btn-no {
+            background: rgba(255,255,255,0.08);
+            color: var(--text);
+        }
+
         @supports (padding-bottom: env(safe-area-inset-bottom)) {
             .bottom-nav {
                 padding-bottom: calc(10px + env(safe-area-inset-bottom));
@@ -801,19 +1141,25 @@
 
     <div id="main-content">
         <div class="header-title">
-            <span class="header-logo"><span class="mini-journal-icon"></span></span>
-            Журнал 86РТК
+            <span>
+                <span class="header-logo"><span class="mini-journal-icon"></span></span>
+                Журнал 86РТК
+            </span>
         </div>
         
+        <!-- СТРАНИЦА: ЖУРНАЛ -->
         <div id="page-journal" class="page active">
             <div class="header-sub">Электронный журнал успеваемости</div>
             <input type="text" id="search" placeholder="Поиск по фамилии" autocomplete="off">
             <div id="list"></div>
         </div>
         
-        <div id="page-students" class="page">
-            <div class="header-sub">Студенты группы</div>
-            <div id="studentsGrid" class="students-grid"></div>
+        <!-- СТРАНИЦА: КАРТОЧКА СТУДЕНТА -->
+        <div id="page-card" class="page">
+            <div class="header-sub">Карточка учащегося</div>
+            <div id="cardContainer">
+                <!-- Сюда рендерится карточка -->
+            </div>
         </div>
         
         <div class="footer-signature">by @skwared</div>
@@ -834,16 +1180,14 @@
             <div class="nav-icon"><div class="icon-journal"></div></div>
             <span class="nav-label">Журнал</span>
         </button>
-        <button class="nav-item" data-page="students">
+        <button class="nav-item" data-page="card" id="navCard">
             <div class="nav-icon">
-                <svg class="icon-students" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                    <circle cx="9" cy="7" r="4"/>
-                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                <svg class="icon-card" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                    <circle cx="12" cy="7" r="4"/>
                 </svg>
             </div>
-            <span class="nav-label">Студенты</span>
+            <span class="nav-label">Карточка</span>
         </button>
     </div>
 
@@ -859,12 +1203,12 @@
         // ============================================================
         const API_JOURNAL = 'https://script.google.com/macros/s/AKfycbwtV3eFenNotdiVr3u1DQPJdOLn2fieHDsvWUwlsQquKURzkLkW4wuTiLqkNFnWCH0v/exec';
         const API_ABSENCES = 'https://script.google.com/macros/s/AKfycbyux4wfN_lVoodDq-JHHjbYAGuJys_DsZ2mADyUGdw1MERG-iZK833dN0tSzI7lq_QeZg/exec';
-        const BOT_TOKEN = '8559243948:AAFAW1LdoTmE1a0I1pTgOvv6c9jDLz_1nnI'; // ← ВСТАВЬТЕ ТОКЕН ВАШЕГО БОТА
-        const OWNER_CHAT_ID = '5753985995'; // ← ВАШ ID В ТЕЛЕГРАМЕ (узнать через @userinfobot)
+        const BOT_TOKEN = '8559243948:AAFAW1LdoTmE1a0I1pTgOvv6c9jDLz_1nnI';
+        const OWNER_CHAT_ID = '5753985995';
         
         // ============================================================
         // 2. РУЧНАЯ ПРИВЯЗКА СТУДЕНТОВ
-        //    СЮДА ВЫ ВНОСИТЕ СООТВЕТСТВИЯ ПОСЛЕ ПОЛУЧЕНИЯ УВЕДОМЛЕНИЯ
+        //    ДОБАВЛЯЙТЕ СЮДА ПОСЛЕ ПОЛУЧЕНИЯ УВЕДОМЛЕНИЯ
         // ============================================================
         const BINDINGS = {
             // 'telegram_user_id' : 'полное имя студента'
@@ -884,7 +1228,7 @@
             }
         } catch(e) {}
         
-        const CACHE_KEY = 'journal_86rtk_v7';
+        const CACHE_KEY = 'journal_86rtk_v9';
         
         const EXAM_SUBJECTS = [
             'Цифровая и микропроцессорная техника',
@@ -895,6 +1239,7 @@
         let ALL_DATA = { journal: [], absences: {} };
         let isLoading = false;
         let currentStudentForIdentity = null;
+        let isCardOpen = false;
         
         // ============================================================
         // 4. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
@@ -957,8 +1302,6 @@
         }
         
         function getGroup(name) {
-            // Пытаемся извлечь группу из имени или используем заглушку
-            // В ваших данных может быть отдельное поле group
             return '86РТК';
         }
         
@@ -992,7 +1335,7 @@
         }
         
         // ============================================================
-        // 5. ОТПРАВКА УВЕДОМЛЕНИЯ ВЛАДЕЛЬЦУ
+        // 5. ОТПРАВКА УВЕДОМЛЕНИЯ
         // ============================================================
         async function notifyOwner(userId, studentName) {
             try {
@@ -1015,46 +1358,214 @@
                 
                 const data = await response.json();
                 if (data.ok) {
-                    console.log('Уведомление отправлено');
+                    console.log('✅ Уведомление отправлено');
                     return true;
                 } else {
-                    console.error('Ошибка отправки:', data);
+                    console.error('❌ Ошибка отправки:', data);
                     return false;
                 }
             } catch (e) {
-                console.error('Ошибка при отправке уведомления:', e);
+                console.error('❌ Ошибка при отправке уведомления:', e);
                 return false;
             }
         }
         
         // ============================================================
-        // 6. ОСНОВНЫЕ ФУНКЦИИ
+        // 6. РЕНДЕРИНГ КАРТОЧКИ СТУДЕНТА
         // ============================================================
-        function processAllAverages() {
-            for (let student of ALL_DATA.journal) {
-                if (student.subjects && Array.isArray(student.subjects)) {
-                    for (let subject of student.subjects) {
-                        const calculatedAvg = calculateAverage(subject.marks);
-                        if (calculatedAvg) {
-                            subject.avg = calculatedAvg;
-                        } else if (!subject.avg || subject.avg === '—') {
-                            subject.avg = '—';
-                        }
-                    }
-                    const totalAvg = calculateTotalAverage(student.subjects);
-                    if (totalAvg) {
-                        student.totalAverage = totalAvg;
-                    } else if (!student.totalAverage || student.totalAverage === '0,0') {
-                        student.totalAverage = '—';
-                    }
-                }
+        function renderStudentCard() {
+            const container = document.getElementById('cardContainer');
+            if (!container) return;
+            
+            const userId = tg ? String(tg.initDataUnsafe?.user?.id || '') : '';
+            const boundStudent = userId && BINDINGS[userId] ? BINDINGS[userId] : null;
+            
+            // Если нет привязки - показываем заглушку
+            if (!boundStudent) {
+                container.innerHTML = `
+                    <div class="card-empty-state">
+                        <span class="big-icon">🔒</span>
+                        <h3>Карточка недоступна</h3>
+                        <p>Для просмотра карточки необходимо<br>подтвердить свою личность в разделе <strong>«Журнал»</strong></p>
+                        <p style="margin-top:12px;font-size:11px;color:#475569;">
+                            Нажмите на свою фамилию в журнале и выберите<br>
+                            <strong>«Да, это я»</strong> для отправки запроса
+                        </p>
+                    </div>
+                `;
+                return;
             }
+            
+            // Ищем студента в данных
+            const student = ALL_DATA.journal.find(s => s.studentName === boundStudent);
+            if (!student) {
+                container.innerHTML = `
+                    <div class="card-empty-state">
+                        <span class="big-icon">⚠️</span>
+                        <h3>Студент не найден</h3>
+                        <p>Данные о студенте <strong>${escapeHtml(boundStudent)}</strong> отсутствуют</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Получаем ID (номер по алфавиту)
+            const sortedStudents = [...ALL_DATA.journal].filter(s => s && s.studentName)
+                .sort((a, b) => a.studentName.localeCompare(b.studentName));
+            const studentIndex = sortedStudents.findIndex(s => s.studentName === student.studentName) + 1;
+            const studentId = String(studentIndex).padStart(3, '0');
+            
+            const absCount = ALL_DATA.absences[student.studentName] || "0";
+            const totalAvg = student.totalAverage && student.totalAverage !== '—' ? student.totalAverage : '—';
+            const avgNum = parseFloat(String(totalAvg).replace(',', '.'));
+            let avgClass = 'gold';
+            if (isNaN(avgNum)) avgClass = 'gold';
+            else if (avgNum >= 7.5) avgClass = 'gold';
+            else if (avgNum >= 5) avgClass = 'orange';
+            else avgClass = 'red';
+            
+            // Статус успеваемости
+            let statusText = 'Отлично';
+            if (isNaN(avgNum)) statusText = 'Нет данных';
+            else if (avgNum >= 9) statusText = '🏆 Отлично';
+            else if (avgNum >= 7.5) statusText = '✅ Хорошо';
+            else if (avgNum >= 5) statusText = '⚠️ Удовлетворительно';
+            else statusText = '❌ Требуется внимание';
+            
+            // Список предметов
+            let subjectsHtml = '';
+            if (student.subjects && Array.isArray(student.subjects)) {
+                const icons = ['📐', '💻', '⚡', '🔌', '🏭', '📡', '🔧', '📊', '🎯', '🧮', '📈', '🔬'];
+                student.subjects.forEach((sub, idx) => {
+                    const isExam = isExamSubject(sub.subject);
+                    const avgDisplay = sub.avg && sub.avg !== '—' ? sub.avg : '—';
+                    const avgNumSub = parseFloat(String(avgDisplay).replace(',', '.'));
+                    let scoreClass = 'gray';
+                    if (!isNaN(avgNumSub)) {
+                        if (avgNumSub >= 7.5) scoreClass = 'gold';
+                        else if (avgNumSub >= 5) scoreClass = 'orange';
+                        else scoreClass = 'red';
+                    }
+                    
+                    let marksHtml = '';
+                    if (sub.marks && Array.isArray(sub.marks) && sub.marks.length > 0) {
+                        marksHtml = sub.marks.map(m => {
+                            const mNum = parseFloat(String(m).replace(',', '.'));
+                            let bg = '#475569';
+                            if (!isNaN(mNum)) {
+                                if (mNum >= 7.5) bg = '#10b981';
+                                else if (mNum >= 5) bg = '#f59e0b';
+                                else bg = '#ef4444';
+                            }
+                            return `<span class="mark" style="background:${bg};color:white;">${m}</span>`;
+                        }).join('');
+                    }
+                    
+                    const icon = icons[idx % icons.length];
+                    const iconClass = ['blue', 'pink', 'purple', 'green', 'orange', 'blue', 'pink', 'purple', 'green', 'orange', 'blue', 'pink'][idx % 12];
+                    const examBadge = isExam ? `<span class="exam-badge">📝 Экзамен</span>` : '';
+                    
+                    subjectsHtml += `
+                        <div class="subject-row ${isExam ? 'exam' : ''}">
+                            <div class="subject-icon ${iconClass}">${icon}</div>
+                            <div class="subject-info">
+                                <div class="subject-name">
+                                    ${escapeHtml(sub.subject || 'Без названия')}
+                                    ${examBadge}
+                                </div>
+                                <div class="subject-marks">${marksHtml}</div>
+                            </div>
+                            <div class="subject-score ${scoreClass}">${avgDisplay}</div>
+                        </div>
+                    `;
+                });
+            }
+            
+            const subjectsCount = student.subjects ? student.subjects.length : 0;
+            
+            container.innerHTML = `
+                <div class="student-tile" id="studentTile">
+                    <div class="tile-header">
+                        <div class="tile-avatar">${getInitials(student.studentName)}</div>
+                        <div class="tile-info">
+                            <div class="tile-name">
+                                ${escapeHtml(student.studentName)}
+                                <span class="tile-badge">✅ Вы</span>
+                            </div>
+                            <div class="tile-group">${getGroup(student.studentName)} • ID: #${studentId}</div>
+                        </div>
+                        <div class="tile-chevron" id="cardChevron">${isCardOpen ? '▴' : '▾'}</div>
+                    </div>
+                    <div class="tile-stats">
+                        <div class="tile-stat">
+                            <span class="icon">📊</span>
+                            <span>Ср. балл: <span class="value gold">${totalAvg}</span></span>
+                        </div>
+                        <div class="tile-stat">
+                            <span class="icon">⏳</span>
+                            <span>Отгулы: <span class="value">${absCount}</span></span>
+                        </div>
+                        <div class="tile-stat">
+                            <span class="icon">📚</span>
+                            <span>Предметов: <span class="value green">${subjectsCount}</span></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="detail-card ${isCardOpen ? 'open' : ''}" id="detailCard">
+                    <div class="detail-header">
+                        <div class="detail-top">
+                            <div class="detail-avatar">${getInitials(student.studentName)}</div>
+                            <div class="detail-title">
+                                <div class="detail-name">${escapeHtml(student.studentName)}</div>
+                                <div class="detail-sub">
+                                    <span class="group-tag">${getGroup(student.studentName)}</span>
+                                    <span>• ID: #${studentId}</span>
+                                    <span>• Студент</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="detail-avg-block">
+                            <div class="avg-circle ${avgClass}">${totalAvg}</div>
+                            <div class="avg-info">
+                                <div class="avg-label">Средний балл</div>
+                                <div class="avg-value">
+                                    ${statusText}
+                                    <span>• ${subjectsCount} предметов</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="detail-body">
+                        <div class="detail-body-title">
+                            📋 Предметы
+                            <span class="count">${subjectsCount}</span>
+                        </div>
+                        ${subjectsHtml}
+                    </div>
+                </div>
+            `;
+            
+            // Обработка клика по плитке
+            document.getElementById('studentTile')?.addEventListener('click', function(e) {
+                e.stopPropagation();
+                isCardOpen = !isCardOpen;
+                const detail = document.getElementById('detailCard');
+                const chevron = document.getElementById('cardChevron');
+                if (isCardOpen) {
+                    detail.classList.add('open');
+                    chevron.textContent = '▴';
+                } else {
+                    detail.classList.remove('open');
+                    chevron.textContent = '▾';
+                }
+                if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+            });
         }
         
-        function getStudentByName(name) {
-            return ALL_DATA.journal.find(s => s.studentName === name);
-        }
-        
+        // ============================================================
+        // 7. РЕНДЕРИНГ ЖУРНАЛА
+        // ============================================================
         function renderJournal() {
             const container = document.getElementById('list');
             if (!container) return;
@@ -1095,7 +1606,6 @@
                 const absCount = ALL_DATA.absences[s.studentName] || "0";
                 const tIdx = topNames.indexOf(s.studentName);
                 
-                // Проверяем, привязан ли этот студент к текущему пользователю
                 const isBoundToMe = userId && BINDINGS[userId] === s.studentName;
                 
                 let subsHtml = '';
@@ -1147,6 +1657,7 @@
                 const identityBadge = isBoundToMe ? 
                     `<span style="font-size:9px;background:var(--success);color:white;padding:1px 8px;border-radius:10px;margin-left:6px;">✅ Вы</span>` : '';
                 
+                // В журнале тоже показываем отгулы
                 card.innerHTML = `
                     <div class="student-header">
                         <span class="student-name">
@@ -1158,11 +1669,9 @@
                     </div>
                     <div class="subs-container">${subsHtml}</div>`;
                 
-                // Обработка клика по карточке - открываем попап для идентификации
                 card.onclick = function(e) {
                     e.stopPropagation();
                     
-                    // Если уже привязан или это не в Telegram (нет ID) - просто открываем предметы
                     if (isBoundToMe || !userId) {
                         const subsContainer = this.querySelector('.subs-container');
                         if (subsContainer) {
@@ -1175,7 +1684,6 @@
                         return;
                     }
                     
-                    // Показываем попап "Это вы?"
                     currentStudentForIdentity = s.studentName;
                     const popup = document.getElementById('identityPopup');
                     document.getElementById('popupStudentName').textContent = s.studentName;
@@ -1213,63 +1721,22 @@
             });
         }
         
-        function renderStudents() {
-            const container = document.getElementById('studentsGrid');
-            if (!container) return;
-            container.innerHTML = '';
-            
-            if (!ALL_DATA.journal || ALL_DATA.journal.length === 0) {
-                container.innerHTML = '<div class="empty-state">Нет данных</div>';
-                return;
-            }
-            
-            const userId = tg ? String(tg.initDataUnsafe?.user?.id || '') : '';
-            const sorted = [...ALL_DATA.journal].filter(s => s && s.studentName)
-                .sort((a, b) => a.studentName.localeCompare(b.studentName));
-            
-            sorted.forEach(s => {
-                const absCount = ALL_DATA.absences[s.studentName] || "0";
-                const totalAvg = s.totalAverage && s.totalAverage !== '—' ? s.totalAverage : '—';
-                const isBound = userId && BINDINGS[userId] === s.studentName;
-                
-                const card = document.createElement('div');
-                card.className = 'student-card';
-                card.innerHTML = `
-                    <div class="badge-verified ${isBound ? 'show' : ''}">✓</div>
-                    <div class="avatar">${getInitials(s.studentName)}</div>
-                    <div class="sname">${escapeHtml(s.studentName)}</div>
-                    <div class="sgroup">
-                        <span class="sgroup-badge">${getGroup(s.studentName)}</span>
-                    </div>
-                    <div class="sstats">
-                        <span>📊 <span class="avg">${totalAvg}</span></span>
-                        <span>⏳ <span class="abs">${absCount}</span></span>
-                    </div>
-                `;
-                
-                // Клик по карточке в списке студентов - переход в журнал с поиском
-                card.onclick = function(e) {
-                    e.stopPropagation();
-                    // Переключаемся на вкладку журнала и ищем студента
-                    switchPage('journal');
-                    document.getElementById('search').value = s.studentName;
-                    renderJournal();
-                    if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
-                };
-                
-                container.appendChild(card);
-            });
-        }
-        
+        // ============================================================
+        // 8. УПРАВЛЕНИЕ СТРАНИЦАМИ
+        // ============================================================
         function switchPage(page) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             document.getElementById(`page-${page}`).classList.add('active');
             document.querySelector(`.nav-item[data-page="${page}"]`).classList.add('active');
+            
+            if (page === 'card') {
+                renderStudentCard();
+            }
         }
         
         // ============================================================
-        // 7. ЗАГРУЗКА ДАННЫХ
+        // 9. ЗАГРУЗКА ДАННЫХ
         // ============================================================
         async function init(force = false) {
             if (isLoading) return;
@@ -1294,7 +1761,7 @@
                         clearTimeout(timeoutId);
                         processAllAverages();
                         renderJournal();
-                        renderStudents();
+                        renderStudentCard();
                         hideLoader();
                         isLoading = false;
                         return;
@@ -1335,7 +1802,7 @@
                 localStorage.setItem(CACHE_KEY, JSON.stringify(ALL_DATA));
                 
                 renderJournal();
-                renderStudents();
+                renderStudentCard();
                 hideLoader();
                 
                 if (tg && tg.HapticFeedback) {
@@ -1351,7 +1818,7 @@
                     setTimeout(() => {
                         processAllAverages();
                         renderJournal();
-                        renderStudents();
+                        renderStudentCard();
                         hideLoader();
                     }, 800);
                 } else {
@@ -1359,6 +1826,27 @@
                 }
             } finally {
                 isLoading = false;
+            }
+        }
+        
+        function processAllAverages() {
+            for (let student of ALL_DATA.journal) {
+                if (student.subjects && Array.isArray(student.subjects)) {
+                    for (let subject of student.subjects) {
+                        const calculatedAvg = calculateAverage(subject.marks);
+                        if (calculatedAvg) {
+                            subject.avg = calculatedAvg;
+                        } else if (!subject.avg || subject.avg === '—') {
+                            subject.avg = '—';
+                        }
+                    }
+                    const totalAvg = calculateTotalAverage(student.subjects);
+                    if (totalAvg) {
+                        student.totalAverage = totalAvg;
+                    } else if (!student.totalAverage || student.totalAverage === '0,0') {
+                        student.totalAverage = '—';
+                    }
+                }
             }
         }
         
@@ -1378,27 +1866,20 @@
         }
         
         // ============================================================
-        // 8. ОБРАБОТЧИКИ СОБЫТИЙ
+        // 10. ОБРАБОТЧИКИ СОБЫТИЙ
         // ============================================================
-        // Навигация
         document.querySelectorAll('.nav-item').forEach(btn => {
             btn.addEventListener('click', function() {
                 const page = this.dataset.page;
                 switchPage(page);
-                if (page === 'students') renderStudents();
-                if (page === 'journal') renderJournal();
                 if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
             });
         });
         
-        // Поиск
         document.getElementById('search')?.addEventListener('input', () => renderJournal());
-        
-        // Обновление
         document.getElementById('retryButton')?.addEventListener('click', () => forceUpdate());
         document.getElementById('fabUpdate')?.addEventListener('click', () => forceUpdate());
         
-        // Попап "Это вы?"
         document.getElementById('btnIdentityYes')?.addEventListener('click', async function() {
             const popup = document.getElementById('identityPopup');
             popup.classList.remove('open');
@@ -1409,10 +1890,8 @@
                 return;
             }
             
-            // Отправляем уведомление владельцу
             const sent = await notifyOwner(userId, currentStudentForIdentity);
             
-            // Показываем уведомление пользователю
             if (tg && tg.HapticFeedback) {
                 if (sent) {
                     tg.HapticFeedback.notificationOccurred('success');
@@ -1434,7 +1913,6 @@
             if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
         });
         
-        // Закрытие попапа по клику вне его
         document.addEventListener('click', function(e) {
             const popup = document.getElementById('identityPopup');
             if (popup.classList.contains('open')) {
@@ -1446,7 +1924,7 @@
         });
         
         // ============================================================
-        // 9. ЗАПУСК
+        // 11. ЗАПУСК
         // ============================================================
         if (tg) {
             tg.onEvent('backButtonClicked', () => tg.close());
