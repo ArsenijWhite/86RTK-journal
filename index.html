@@ -271,6 +271,7 @@
             transition: all 0.3s ease;
             position: relative;
             flex-shrink: 0;
+            overflow: hidden;
         }
         .profile-btn:active { transform: scale(0.92); }
         .profile-btn .ring {
@@ -291,6 +292,10 @@
         .profile-btn .profile-icon {
             width: 24px;
             height: 24px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
         }
         .profile-btn .profile-icon svg {
             width: 100%;
@@ -303,21 +308,15 @@
         
         .profile-btn .profile-avatar {
             display: none;
-            width: 38px;
-            height: 38px;
+            width: 100%;
+            height: 100%;
             border-radius: 50%;
-            background: linear-gradient(135deg, #38bdf8, #0ea5e9);
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-            font-weight: 700;
-            color: white;
+            object-fit: cover;
             position: absolute;
-            top: 1px;
-            left: 1px;
-            box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3);
+            top: 0;
+            left: 0;
         }
-        .profile-btn.active .profile-avatar { display: flex; }
+        .profile-btn.active .profile-avatar { display: block; }
         .profile-btn.active .profile-icon { display: none; }
 
         .header-sub { 
@@ -598,15 +597,23 @@
             width: 64px;
             height: 64px;
             border-radius: 50%;
+            flex-shrink: 0;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(56, 189, 248, 0.3);
             background: linear-gradient(135deg, #38bdf8, #0ea5e9);
             display: flex;
             align-items: center;
             justify-content: center;
+        }
+        .card-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .card-avatar .avatar-placeholder {
             font-size: 26px;
             font-weight: 700;
             color: white;
-            flex-shrink: 0;
-            box-shadow: 0 4px 20px rgba(56, 189, 248, 0.3);
         }
         .card-user-info { flex: 1; min-width: 0; }
         .card-user-name { font-size: 19px; font-weight: 700; color: var(--text); margin-bottom: 2px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
@@ -781,14 +788,22 @@
             width: 36px;
             height: 36px;
             border-radius: 50%;
+            flex-shrink: 0;
+            overflow: hidden;
             background: linear-gradient(135deg, #38bdf8, #0ea5e9);
             display: flex;
             align-items: center;
             justify-content: center;
+        }
+        .student-select-list .student-item .s-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .student-select-list .student-item .s-avatar .placeholder {
             font-size: 14px;
             font-weight: 700;
             color: white;
-            flex-shrink: 0;
         }
         .student-select-list .student-item .s-name { font-size: 14px; font-weight: 500; color: var(--text); }
         .student-select-list .student-item .s-group { font-size: 11px; color: var(--muted); margin-left: auto; }
@@ -845,7 +860,7 @@
             </div>
             <div class="profile-btn" id="profileBtn">
                 <span class="ring"></span>
-                <span class="profile-avatar" id="profileAvatar">👤</span>
+                <img class="profile-avatar" id="profileAvatar" src="" alt="avatar">
                 <span class="profile-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
@@ -894,28 +909,39 @@
         
         // ============================================================
         // 2. РУЧНАЯ ПРИВЯЗКА СТУДЕНТОВ
-        //    ДОБАВЛЯЙТЕ СЮДА ПОСЛЕ ПОЛУЧЕНИЯ УВЕДОМЛЕНИЯ
         // ============================================================
         const BINDINGS = {
-            '5753985995' : 'Беляцкий'
             // 'telegram_user_id' : 'полное имя студента'
             // '123456789' : 'Иванов Иван Иванович',
-            // '987654321' : 'Петров Петр Петрович'
         };
         
         // ============================================================
         // 3. ОСТАЛЬНОЙ КОД
         // ============================================================
         let tg = null;
+        let userPhotoUrl = null;
+        let userId = null;
+        
         try {
             if (window.Telegram && window.Telegram.WebApp) {
                 tg = window.Telegram.WebApp;
                 tg.ready();
                 tg.expand();
+                
+                // Получаем данные пользователя
+                const user = tg.initDataUnsafe?.user;
+                if (user) {
+                    userId = String(user.id);
+                    // Получаем фото профиля (если есть)
+                    userPhotoUrl = user.photo_url || null;
+                    console.log('👤 Пользователь:', user.first_name, 'Фото:', userPhotoUrl ? '✅ есть' : '❌ нет');
+                }
             }
-        } catch(e) {}
+        } catch(e) {
+            console.warn('Telegram WebApp не доступен:', e);
+        }
         
-        const CACHE_KEY = 'journal_86rtk_v17';
+        const CACHE_KEY = 'journal_86rtk_v18';
         
         const EXAM_SUBJECTS = [
             'Цифровая и микропроцессорная техника',
@@ -1001,6 +1027,21 @@
             });
         }
         
+        // Функция для получения аватарки из Telegram или инициалов
+        function getTelegramAvatar() {
+            if (userPhotoUrl) {
+                return `<img src="${userPhotoUrl}" alt="avatar">`;
+            }
+            // Если фото нет, показываем иконку пользователя
+            return `<span class="avatar-placeholder">${tg?.initDataUnsafe?.user?.first_name?.charAt(0) || '👤'}</span>`;
+        }
+        
+        // Функция для аватарки студента (пока используем инициалы, т.к. фото студентов нет в API)
+        function getStudentAvatar(studentName) {
+            // В будущем можно добавить массив с фото студентов
+            return `<span class="avatar-placeholder">${getInitials(studentName)}</span>`;
+        }
+        
         function showError(message) {
             const loader = document.getElementById('loader');
             const loaderStatus = document.getElementById('loaderStatus');
@@ -1076,7 +1117,6 @@
                 return;
             }
             
-            const userId = tg ? String(tg.initDataUnsafe?.user?.id || '') : '';
             const isBound = userId && BINDINGS[userId] === student.studentName;
             const absCount = ALL_DATA.absences[student.studentName] || "0";
             const totalAvg = student.totalAverage || '—';
@@ -1134,7 +1174,7 @@
                     <div class="card-close" onclick="closeCard()">✕</div>
                     <div class="card-header">
                         <div class="card-user">
-                            <div class="card-avatar">${getInitials(student.studentName)}</div>
+                            <div class="card-avatar">${getStudentAvatar(student.studentName)}</div>
                             <div class="card-user-info">
                                 <div class="card-user-name">${escapeHtml(student.studentName)} ${badge}</div>
                                 <div class="card-user-meta">
@@ -1200,8 +1240,6 @@
                 container.innerHTML = '<div class="empty-state">Ничего не найдено</div>';
                 return;
             }
-            
-            const userId = tg ? String(tg.initDataUnsafe?.user?.id || '') : '';
             
             list.forEach(s => {
                 const card = document.createElement('div');
@@ -1308,17 +1346,44 @@
         }
         
         // ============================================================
-        // 8. ПРОФИЛЬ
+        // 8. ПРОФИЛЬ (с фото из Telegram)
         // ============================================================
         function updateProfile() {
-            const userId = tg ? String(tg.initDataUnsafe?.user?.id || '') : '';
             const bound = userId && BINDINGS[userId] ? BINDINGS[userId] : null;
             const btn = document.getElementById('profileBtn');
             const avatar = document.getElementById('profileAvatar');
+            
             if (bound) {
-                const student = ALL_DATA.journal.find(s => s.studentName === bound);
-                if (student) { avatar.textContent = getInitials(student.studentName); btn.classList.add('active'); }
-            } else { avatar.textContent = '👤'; btn.classList.remove('active'); }
+                // Если привязан - показываем фото пользователя или инициалы
+                if (userPhotoUrl) {
+                    avatar.src = userPhotoUrl;
+                    avatar.style.display = 'block';
+                } else {
+                    // Если фото нет, показываем инициалы через псевдоэлемент или оставляем иконку
+                    avatar.style.display = 'none';
+                    // Показываем иконку с инициалами
+                    const icon = btn.querySelector('.profile-icon');
+                    icon.style.display = 'block';
+                    // Меняем иконку на инициалы
+                    const student = ALL_DATA.journal.find(s => s.studentName === bound);
+                    if (student) {
+                        icon.innerHTML = `<span style="font-size:16px;font-weight:700;color:white;">${getInitials(student.studentName)}</span>`;
+                    }
+                }
+                btn.classList.add('active');
+            } else {
+                // Не привязан - показываем иконку
+                btn.classList.remove('active');
+                const icon = btn.querySelector('.profile-icon');
+                icon.style.display = 'block';
+                icon.innerHTML = `
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                        <circle cx="12" cy="7" r="4"/>
+                    </svg>
+                `;
+                avatar.style.display = 'none';
+            }
         }
         
         // ============================================================
@@ -1344,7 +1409,7 @@
                 const item = document.createElement('div');
                 item.className = 'student-item';
                 item.innerHTML = `
-                    <div class="s-avatar">${getInitials(s.studentName)}</div>
+                    <div class="s-avatar"><span class="placeholder">${getInitials(s.studentName)}</span></div>
                     <span class="s-name">${escapeHtml(s.studentName)}</span>
                     <span class="s-group">${getGroup(s.studentName)}</span>
                 `;
@@ -1498,17 +1563,13 @@
         // ============================================================
         // 11. ОБРАБОТЧИКИ СОБЫТИЙ
         // ============================================================
-        // КЛИК ПО ПРОФИЛЮ - открываем попап или карточку
         document.getElementById('profileBtn').addEventListener('click', function(e) {
             e.stopPropagation();
-            const userId = tg ? String(tg.initDataUnsafe?.user?.id || '') : '';
             const bound = userId && BINDINGS[userId] ? BINDINGS[userId] : null;
             
             if (bound) {
-                // Если привязан - открываем карточку
                 openCard(bound);
             } else {
-                // Если не привязан - показываем список для выбора
                 showStudentSelect();
             }
         });
@@ -1521,7 +1582,6 @@
         document.getElementById('fabUpdate').addEventListener('click', forceUpdate);
         document.getElementById('retryButton').addEventListener('click', forceUpdate);
         
-        // Кнопка "Да, это я"
         document.getElementById('btnIdentityYes').addEventListener('click', async function() {
             if (!selectedStudentForIdentity) {
                 if (tg) {
@@ -1534,7 +1594,6 @@
             }
             
             document.getElementById('identityPopup').classList.remove('open');
-            const userId = tg ? String(tg.initDataUnsafe?.user?.id || '') : '';
             
             if (!userId) {
                 if (tg) tg.showAlert('❌ Ошибка: не удалось определить пользователя');
@@ -1563,7 +1622,6 @@
             document.getElementById('popupSubText').textContent = 'Выберите свою фамилию из списка:';
         });
         
-        // Кнопка "Нет"
         document.getElementById('btnIdentityNo').addEventListener('click', function() {
             document.getElementById('identityPopup').classList.remove('open');
             selectedStudentForIdentity = null;
@@ -1575,7 +1633,6 @@
             if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
         });
         
-        // Закрытие попапа по клику вне
         document.addEventListener('click', function(e) {
             const popup = document.getElementById('identityPopup');
             if (popup.classList.contains('open')) {
