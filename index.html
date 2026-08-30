@@ -257,7 +257,7 @@
             box-shadow: 0 7px 0 rgba(255,255,255,0.6), 0 14px 0 rgba(255,255,255,0.6);
         }
         
-        /* КНОПКА ПРОФИЛЯ (без аватарок) */
+        /* КНОПКА ПРОФИЛЯ */
         .profile-btn {
             width: 44px;
             height: 44px;
@@ -786,7 +786,6 @@
         }
         .fab-update:active { transform: scale(0.92); }
 
-        /* Скрываем поиск при открытой карточке */
         .search-hidden #search,
         .search-hidden .header-sub {
             display: none;
@@ -875,10 +874,9 @@
         // 2. РУЧНАЯ ПРИВЯЗКА СТУДЕНТОВ
         // ============================================================
         const BINDINGS = {
+            // 'telegram_user_id' : 'полное имя студента'
             '5753985995' : 'Беляцкий'
             '1939232438' : 'Конюк'
-            // 'telegram_user_id' : 'полное имя студента'
-            // '123456789' : 'Иванов Иван Иванович',
         };
         
         // ============================================================
@@ -886,7 +884,8 @@
         // ============================================================
         let tg = null;
         let userId = null;
-        let isCardMode = false; // true = показываем карточку, false = журнал
+        let isCardMode = false;
+        let isInitialOpen = false; // флаг, чтобы не открывать карточку дважды
         
         try {
             if (window.Telegram && window.Telegram.WebApp) {
@@ -904,7 +903,7 @@
             console.warn('Telegram WebApp не доступен:', e);
         }
         
-        const CACHE_KEY = 'journal_86rtk_v18';
+        const CACHE_KEY = 'journal_86rtk_v19';
         
         const EXAM_SUBJECTS = [
             'Цифровая и микропроцессорная техника',
@@ -915,7 +914,7 @@
         let ALL_DATA = { journal: [], absences: {} };
         let isLoading = false;
         let selectedStudentForIdentity = null;
-        let boundStudent = null; // имя привязанного студента
+        let boundStudent = null;
         
         // ============================================================
         // 4. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
@@ -1148,14 +1147,23 @@
             `;
         }
         
-        function openCard(name, mode = 'card') {
-            if (mode === 'card') {
-                isCardMode = true;
-                document.body.classList.add('search-hidden');
-                updateProfileButton();
+        function openCard(name, force = false) {
+            // Если карточка уже открыта, не открываем заново
+            if (document.getElementById('cardOverlay').classList.contains('open') && !force) {
+                return;
             }
+            
+            // Проверяем, что данные загружены
+            if (!ALL_DATA.journal || ALL_DATA.journal.length === 0) {
+                console.log('Данные еще не загружены, откладываем открытие карточки');
+                return;
+            }
+            
+            isCardMode = true;
+            document.body.classList.add('search-hidden');
             document.getElementById('cardOverlay').classList.add('open');
             renderCard(name);
+            updateProfileButton();
         }
         
         function closeCard() {
@@ -1316,11 +1324,9 @@
             
             if (boundStudent) {
                 btn.classList.add('active');
-                // Показываем инициалы на кнопке
                 const initials = getInitials(boundStudent);
                 icon.innerHTML = `<span style="font-size:16px;font-weight:700;color:white;">${initials}</span>`;
                 
-                // Меняем подпись в зависимости от режима
                 if (isCardMode) {
                     label.textContent = 'ЖУРНАЛ';
                 } else {
@@ -1410,10 +1416,13 @@
                         updateProfileButton();
                         hideLoader();
                         isLoading = false;
-                        checkAndOpenCard();
+                        // Проверяем привязку и открываем карточку с задержкой
+                        setTimeout(() => checkAndOpenCard(), 500);
                         return;
                     }
-                } catch(e) {}
+                } catch(e) {
+                    console.warn('Ошибка чтения кеша:', e);
+                }
             }
             
             try {
@@ -1456,7 +1465,7 @@
                     tg.HapticFeedback.notificationOccurred('success');
                 }
                 
-                checkAndOpenCard();
+                setTimeout(() => checkAndOpenCard(), 500);
                 
             } catch (e) {
                 console.error('Error:', e);
@@ -1469,7 +1478,7 @@
                         renderJournal();
                         updateProfileButton();
                         hideLoader();
-                        checkAndOpenCard();
+                        setTimeout(() => checkAndOpenCard(), 500);
                     }, 800);
                 } else {
                     showError('Проверьте подключение к интернету');
@@ -1502,6 +1511,7 @@
         
         function forceUpdate() {
             localStorage.removeItem(CACHE_KEY);
+            isInitialOpen = false;
             init(true);
         }
         
@@ -1515,14 +1525,25 @@
             }, 500);
         }
         
-        // Проверяем, привязан ли пользователь, и открываем карточку
         function checkAndOpenCard() {
+            // Проверяем, что данные загружены
+            if (!ALL_DATA.journal || ALL_DATA.journal.length === 0) {
+                console.log('Данные не загружены, пропускаем открытие карточки');
+                return;
+            }
+            
             boundStudent = userId && BINDINGS[userId] ? BINDINGS[userId] : null;
-            if (boundStudent) {
-                // Открываем карточку с задержкой, чтобы UI успел отрендериться
-                setTimeout(() => {
-                    openCard(boundStudent);
-                }, 300);
+            
+            // Если пользователь привязан и карточка еще не открыта
+            if (boundStudent && !isInitialOpen) {
+                isInitialOpen = true;
+                console.log('Открываем карточку для:', boundStudent);
+                // Открываем карточку с флагом force, чтобы перезаписать
+                document.getElementById('cardOverlay').classList.add('open');
+                isCardMode = true;
+                document.body.classList.add('search-hidden');
+                renderCard(boundStudent);
+                updateProfileButton();
             }
         }
         
@@ -1534,13 +1555,10 @@
             boundStudent = userId && BINDINGS[userId] ? BINDINGS[userId] : null;
             
             if (boundStudent) {
-                // Переключаем режим
                 if (isCardMode) {
-                    // Закрываем карточку и показываем журнал
                     closeCard();
                 } else {
-                    // Открываем карточку
-                    openCard(boundStudent);
+                    openCard(boundStudent, true);
                 }
             } else {
                 showStudentSelect();
@@ -1621,17 +1639,25 @@
             }
         });
         
+        // Обработка кнопки "Назад" в Telegram
+        if (tg) {
+            tg.onEvent('backButtonClicked', function() {
+                if (document.getElementById('cardOverlay').classList.contains('open')) {
+                    closeCard();
+                } else {
+                    tg.close();
+                }
+            });
+        }
+        
         // ============================================================
         // 12. ЗАПУСК
         // ============================================================
-        if (tg) {
-            tg.onEvent('backButtonClicked', () => tg.close());
-        }
-        
         window.openCard = openCard;
         window.closeCard = closeCard;
         window.toggleMarks = toggleMarks;
         
+        // Запускаем инициализацию
         init(true);
     </script>
 </body>
