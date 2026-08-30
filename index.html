@@ -16,6 +16,7 @@
             --gold: #fbbf24;
             --exam-color: #f472b6;
             --exam-bg: rgba(244, 114, 182, 0.12);
+            --success: #10b981;
         }
         * { 
             font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; 
@@ -445,6 +446,183 @@
             margin-right: 2px; 
         }
         
+        /* ВКЛАДКА СТУДЕНТЫ */
+        .students-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 12px;
+            margin-top: 12px;
+        }
+        
+        .student-card {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 16px 14px;
+            border: 1px solid rgba(255,255,255,0.05);
+            text-align: center;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        
+        .student-card:active {
+            transform: scale(0.96);
+        }
+        
+        .student-card .avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), #0ea5e9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            font-size: 20px;
+            font-weight: 700;
+            color: white;
+            box-shadow: 0 4px 15px rgba(56, 189, 248, 0.2);
+        }
+        
+        .student-card .sname {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            line-height: 1.2;
+        }
+        
+        .student-card .sgroup {
+            font-size: 10px;
+            color: var(--muted);
+            margin-bottom: 8px;
+        }
+        
+        .student-card .sstats {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            font-size: 10px;
+            color: var(--muted);
+            margin-top: 6px;
+            padding-top: 8px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .student-card .sstats span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .student-card .sstats .avg {
+            color: var(--gold);
+            font-weight: 700;
+        }
+        
+        .student-card .sstats .abs {
+            color: var(--muted);
+        }
+        
+        .student-card .badge-verified {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: var(--success);
+            color: white;
+            font-size: 14px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--bg);
+            box-shadow: 0 2px 10px rgba(16, 185, 129, 0.3);
+        }
+        
+        .student-card .badge-verified.show {
+            display: flex;
+        }
+        
+        .student-card .sgroup-badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.06);
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 9px;
+            color: var(--muted);
+            margin-bottom: 2px;
+        }
+        
+        /* КНОПКА "ЭТО ВЫ?" */
+        .identity-popup {
+            display: none;
+            position: fixed;
+            bottom: 100px;
+            left: 16px;
+            right: 16px;
+            background: var(--card);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+            z-index: 1001;
+            animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(20px);
+            background: rgba(30, 41, 59, 0.95);
+        }
+        
+        .identity-popup.open {
+            display: block;
+        }
+        
+        .identity-popup .title {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+        
+        .identity-popup .sub {
+            font-size: 12px;
+            color: var(--muted);
+            margin-bottom: 16px;
+        }
+        
+        .identity-popup .actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .identity-popup .actions button {
+            flex: 1;
+            padding: 12px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .identity-popup .actions button:active {
+            transform: scale(0.96);
+        }
+        
+        .identity-popup .btn-yes {
+            background: var(--success);
+            color: white;
+        }
+        
+        .identity-popup .btn-no {
+            background: rgba(255,255,255,0.08);
+            color: var(--text);
+        }
+        
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        /* НАВИГАЦИЯ */
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -514,6 +692,25 @@
             box-shadow: 0 0 6px rgba(56, 189, 248, 0.4);
         }
         
+        .icon-students {
+            width: 24px;
+            height: 24px;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+        
+        .icon-students svg {
+            width: 100%;
+            height: 100%;
+            stroke: #94a3b8;
+            transition: all 0.2s ease;
+        }
+        
+        .nav-item.active .icon-students svg {
+            stroke: var(--accent);
+            filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.3));
+        }
+        
         .nav-label {
             font-size: 10px;
             font-weight: 500;
@@ -523,6 +720,14 @@
         
         .nav-item.active .nav-label {
             color: var(--accent);
+        }
+        
+        .page {
+            display: none;
+        }
+        
+        .page.active {
+            display: block;
         }
         
         .fab-update { 
@@ -571,6 +776,9 @@
             .fab-update {
                 bottom: calc(75px + env(safe-area-inset-bottom));
             }
+            .identity-popup {
+                bottom: calc(100px + env(safe-area-inset-bottom));
+            }
         }
     </style>
 </head>
@@ -597,19 +805,45 @@
             Журнал 86РТК
         </div>
         
-        <div id="page-journal">
+        <div id="page-journal" class="page active">
             <div class="header-sub">Электронный журнал успеваемости</div>
             <input type="text" id="search" placeholder="Поиск по фамилии" autocomplete="off">
             <div id="list"></div>
         </div>
         
+        <div id="page-students" class="page">
+            <div class="header-sub">Студенты группы</div>
+            <div id="studentsGrid" class="students-grid"></div>
+        </div>
+        
         <div class="footer-signature">by @skwared</div>
+    </div>
+    
+    <!-- ПОПАП ДЛЯ ПОДТВЕРЖДЕНИЯ ЛИЧНОСТИ -->
+    <div class="identity-popup" id="identityPopup">
+        <div class="title">👤 Это вы?</div>
+        <div class="sub" id="popupStudentName">Иванов Иван</div>
+        <div class="actions">
+            <button class="btn-yes" id="btnIdentityYes">Да, это я</button>
+            <button class="btn-no" id="btnIdentityNo">Нет</button>
+        </div>
     </div>
 
     <div class="bottom-nav">
         <button class="nav-item active" data-page="journal">
             <div class="nav-icon"><div class="icon-journal"></div></div>
             <span class="nav-label">Журнал</span>
+        </button>
+        <button class="nav-item" data-page="students">
+            <div class="nav-icon">
+                <svg class="icon-students" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+            </div>
+            <span class="nav-label">Студенты</span>
         </button>
     </div>
 
@@ -620,6 +854,27 @@
     </div>
 
     <script>
+        // ============================================================
+        // 1. НАСТРОЙКИ
+        // ============================================================
+        const API_JOURNAL = 'https://script.google.com/macros/s/AKfycbwtV3eFenNotdiVr3u1DQPJdOLn2fieHDsvWUwlsQquKURzkLkW4wuTiLqkNFnWCH0v/exec';
+        const API_ABSENCES = 'https://script.google.com/macros/s/AKfycbyux4wfN_lVoodDq-JHHjbYAGuJys_DsZ2mADyUGdw1MERG-iZK833dN0tSzI7lq_QeZg/exec';
+        const BOT_TOKEN = '7716446345:AAEK1wa7-S06ecXWzx7vSJ8wTV2k2b9c8fM'; // ← ВСТАВЬТЕ ТОКЕН ВАШЕГО БОТА
+        const OWNER_CHAT_ID = '758262799'; // ← ВАШ ID В ТЕЛЕГРАМЕ (узнать через @userinfobot)
+        
+        // ============================================================
+        // 2. РУЧНАЯ ПРИВЯЗКА СТУДЕНТОВ
+        //    СЮДА ВЫ ВНОСИТЕ СООТВЕТСТВИЯ ПОСЛЕ ПОЛУЧЕНИЯ УВЕДОМЛЕНИЯ
+        // ============================================================
+        const BINDINGS = {
+            // 'telegram_user_id' : 'полное имя студента'
+            // '123456789' : 'Иванов Иван Иванович',
+            // '987654321' : 'Петров Петр Петрович'
+        };
+        
+        // ============================================================
+        // 3. ОСТАЛЬНОЙ КОД
+        // ============================================================
         let tg = null;
         try {
             if (window.Telegram && window.Telegram.WebApp) {
@@ -629,12 +884,8 @@
             }
         } catch(e) {}
         
-        const API_JOURNAL = 'https://script.google.com/macros/s/AKfycbwtV3eFenNotdiVr3u1DQPJdOLn2fieHDsvWUwlsQquKURzkLkW4wuTiLqkNFnWCH0v/exec';
-        const API_ABSENCES = 'https://script.google.com/macros/s/AKfycbyux4wfN_lVoodDq-JHHjbYAGuJys_DsZ2mADyUGdw1MERG-iZK833dN0tSzI7lq_QeZg/exec';
+        const CACHE_KEY = 'journal_86rtk_v7';
         
-        const CACHE_KEY = 'journal_86rtk_v6';
-        
-        // Экзаменационные предметы
         const EXAM_SUBJECTS = [
             'Цифровая и микропроцессорная техника',
             'Промышленная электроника и микроэлектроника',
@@ -643,7 +894,11 @@
         
         let ALL_DATA = { journal: [], absences: {} };
         let isLoading = false;
+        let currentStudentForIdentity = null;
         
+        // ============================================================
+        // 4. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+        // ============================================================
         function isExamSubject(subjectName) {
             if (!subjectName) return false;
             const name = subjectName.toLowerCase().trim();
@@ -694,6 +949,29 @@
             return 'm-low';
         }
         
+        function getInitials(name) {
+            if (!name) return '?';
+            const parts = name.trim().split(' ');
+            if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+            return (parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase();
+        }
+        
+        function getGroup(name) {
+            // Пытаемся извлечь группу из имени или используем заглушку
+            // В ваших данных может быть отдельное поле group
+            return '86РТК';
+        }
+        
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+        
         function showError(message) {
             const loader = document.getElementById('loader');
             const loaderStatus = document.getElementById('loaderStatus');
@@ -713,10 +991,286 @@
             document.getElementById('loaderStatus').textContent = 'Загрузка данных';
         }
         
-        function filterStudents(students) {
-            return students.filter(s => s && s.studentName);
+        // ============================================================
+        // 5. ОТПРАВКА УВЕДОМЛЕНИЯ ВЛАДЕЛЬЦУ
+        // ============================================================
+        async function notifyOwner(userId, studentName) {
+            try {
+                const message = `🔔 <b>Новая привязка!</b>\n\n` +
+                    `👤 Студент: <b>${escapeHtml(studentName)}</b>\n` +
+                    `🆔 Telegram ID: <code>${userId}</code>\n\n` +
+                    `Для привязки добавьте в BINDINGS:\n` +
+                    `<code>'${userId}' : '${escapeHtml(studentName)}'</code>`;
+                
+                const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chat_id: OWNER_CHAT_ID,
+                        text: message,
+                        parse_mode: 'HTML'
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.ok) {
+                    console.log('Уведомление отправлено');
+                    return true;
+                } else {
+                    console.error('Ошибка отправки:', data);
+                    return false;
+                }
+            } catch (e) {
+                console.error('Ошибка при отправке уведомления:', e);
+                return false;
+            }
         }
         
+        // ============================================================
+        // 6. ОСНОВНЫЕ ФУНКЦИИ
+        // ============================================================
+        function processAllAverages() {
+            for (let student of ALL_DATA.journal) {
+                if (student.subjects && Array.isArray(student.subjects)) {
+                    for (let subject of student.subjects) {
+                        const calculatedAvg = calculateAverage(subject.marks);
+                        if (calculatedAvg) {
+                            subject.avg = calculatedAvg;
+                        } else if (!subject.avg || subject.avg === '—') {
+                            subject.avg = '—';
+                        }
+                    }
+                    const totalAvg = calculateTotalAverage(student.subjects);
+                    if (totalAvg) {
+                        student.totalAverage = totalAvg;
+                    } else if (!student.totalAverage || student.totalAverage === '0,0') {
+                        student.totalAverage = '—';
+                    }
+                }
+            }
+        }
+        
+        function getStudentByName(name) {
+            return ALL_DATA.journal.find(s => s.studentName === name);
+        }
+        
+        function renderJournal() {
+            const container = document.getElementById('list');
+            if (!container) return;
+            container.innerHTML = '';
+            const query = document.getElementById('search')?.value.toLowerCase().trim() || '';
+            
+            if (!ALL_DATA.journal || ALL_DATA.journal.length === 0) {
+                container.innerHTML = '<div class="empty-state">Нет данных</div>';
+                return;
+            }
+            
+            let filteredStudents = ALL_DATA.journal.filter(s => s && s.studentName);
+            
+            const sortedByTotal = [...filteredStudents].sort((a, b) => {
+                const avgA = parseFloat(String(a.totalAverage).replace(',', '.'));
+                const avgB = parseFloat(String(b.totalAverage).replace(',', '.'));
+                if (isNaN(avgA)) return 1;
+                if (isNaN(avgB)) return -1;
+                return avgB - avgA;
+            });
+            const topNames = sortedByTotal.slice(0, 3).map(s => s.studentName);
+            const crowns = ['🥇', '🥈', '🥉'];
+            
+            const list = filteredStudents
+                .filter(s => s && s.studentName && s.studentName.toLowerCase().includes(query))
+                .sort((a, b) => a.studentName.localeCompare(b.studentName));
+            
+            if (list.length === 0) {
+                container.innerHTML = '<div class="empty-state">Ничего не найдено</div>';
+                return;
+            }
+            
+            const userId = tg ? String(tg.initDataUnsafe?.user?.id || '') : '';
+            
+            list.forEach(s => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                const absCount = ALL_DATA.absences[s.studentName] || "0";
+                const tIdx = topNames.indexOf(s.studentName);
+                
+                // Проверяем, привязан ли этот студент к текущему пользователю
+                const isBoundToMe = userId && BINDINGS[userId] === s.studentName;
+                
+                let subsHtml = '';
+                if (s.subjects && Array.isArray(s.subjects)) {
+                    subsHtml = s.subjects.map(sub => {
+                        const isExam = isExamSubject(sub.subject);
+                        
+                        let marksHtml = '';
+                        if (sub.marks && Array.isArray(sub.marks) && sub.marks.length > 0) {
+                            marksHtml = sub.marks.map(m => `<div class="mark ${getStyleForScore(m)}">${m}</div>`).join('');
+                        } else {
+                            marksHtml = '<div style="font-size:10px; opacity:0.4; padding:6px;">Нет отметок</div>';
+                        }
+                        
+                        const avgDisplay = sub.avg && sub.avg !== '—' ? sub.avg : '—';
+                        const examClass = isExam ? 'exam-subject' : '';
+                        
+                        const tooltipId = 'tooltip_' + Math.random().toString(36).substr(2, 9);
+                        const examIcon = isExam ? `<span class="exam-icon">!</span>` : '';
+                        
+                        const tooltipHtml = isExam ? `
+                            <div class="exam-tooltip" id="${tooltipId}">
+                                <div class="tooltip-title">📝 Экзаменационный предмет</div>
+                                <div class="tooltip-text">Итоговая отметка может <strong>отличаться</strong> от текущей успеваемости и выставляется по результатам экзамена.</div>
+                                <div class="tooltip-hint">Нажмите на подсказку, чтобы скрыть</div>
+                            </div>
+                        ` : '';
+                        
+                        return `<div class="sub-item ${examClass}" data-tooltip="${tooltipId}" data-tooltip-shown="false">
+                            <div class="sub-row">
+                                <div class="subject-name-wrapper">
+                                    <span>${escapeHtml(sub.subject || 'Без названия')}</span>
+                                    ${examIcon}
+                                </div>
+                                <span class="score-pill ${getStyleForScore(avgDisplay)}">${avgDisplay}</span>
+                            </div>
+                            <div class="marks-box">
+                                <div class="marks-row">${marksHtml}</div>
+                            </div>
+                            ${tooltipHtml}
+                        </div>`;
+                    }).join('');
+                } else {
+                    subsHtml = '<div style="font-size:11px; opacity:0.4; text-align:center; padding:10px;">Нет предметов</div>';
+                }
+                
+                const totalDisplay = s.totalAverage && s.totalAverage !== '—' ? s.totalAverage : '—';
+                
+                const identityBadge = isBoundToMe ? 
+                    `<span style="font-size:9px;background:var(--success);color:white;padding:1px 8px;border-radius:10px;margin-left:6px;">✅ Вы</span>` : '';
+                
+                card.innerHTML = `
+                    <div class="student-header">
+                        <span class="student-name">
+                            ${escapeHtml(s.studentName)} ${tIdx !== -1 ? crowns[tIdx] : ''}
+                            <span class="abs-badge">⏳ ${absCount}</span>
+                            ${identityBadge}
+                        </span>
+                        <span class="score-pill ${getStyleForScore(totalDisplay)}">${totalDisplay}</span>
+                    </div>
+                    <div class="subs-container">${subsHtml}</div>`;
+                
+                // Обработка клика по карточке - открываем попап для идентификации
+                card.onclick = function(e) {
+                    e.stopPropagation();
+                    
+                    // Если уже привязан или это не в Telegram (нет ID) - просто открываем предметы
+                    if (isBoundToMe || !userId) {
+                        const subsContainer = this.querySelector('.subs-container');
+                        if (subsContainer) {
+                            subsContainer.classList.toggle('open');
+                            if (subsContainer.classList.contains('open')) {
+                                this.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                            }
+                        }
+                        if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+                        return;
+                    }
+                    
+                    // Показываем попап "Это вы?"
+                    currentStudentForIdentity = s.studentName;
+                    const popup = document.getElementById('identityPopup');
+                    document.getElementById('popupStudentName').textContent = s.studentName;
+                    popup.classList.add('open');
+                    
+                    if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+                };
+                
+                container.appendChild(card);
+            });
+            
+            document.querySelectorAll('.sub-item').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const marksBox = this.querySelector('.marks-box');
+                    if (marksBox) marksBox.classList.toggle('open');
+                    
+                    if (this.classList.contains('exam-subject')) {
+                        const tooltipId = this.dataset.tooltip;
+                        const tooltip = document.getElementById(tooltipId);
+                        if (tooltip && this.dataset.tooltipShown === 'false') {
+                            tooltip.classList.add('open');
+                            this.dataset.tooltipShown = 'true';
+                            
+                            tooltip.onclick = function(e) {
+                                e.stopPropagation();
+                                this.classList.remove('open');
+                                if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+                            };
+                            
+                            if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+                        }
+                    }
+                });
+            });
+        }
+        
+        function renderStudents() {
+            const container = document.getElementById('studentsGrid');
+            if (!container) return;
+            container.innerHTML = '';
+            
+            if (!ALL_DATA.journal || ALL_DATA.journal.length === 0) {
+                container.innerHTML = '<div class="empty-state">Нет данных</div>';
+                return;
+            }
+            
+            const userId = tg ? String(tg.initDataUnsafe?.user?.id || '') : '';
+            const sorted = [...ALL_DATA.journal].filter(s => s && s.studentName)
+                .sort((a, b) => a.studentName.localeCompare(b.studentName));
+            
+            sorted.forEach(s => {
+                const absCount = ALL_DATA.absences[s.studentName] || "0";
+                const totalAvg = s.totalAverage && s.totalAverage !== '—' ? s.totalAverage : '—';
+                const isBound = userId && BINDINGS[userId] === s.studentName;
+                
+                const card = document.createElement('div');
+                card.className = 'student-card';
+                card.innerHTML = `
+                    <div class="badge-verified ${isBound ? 'show' : ''}">✓</div>
+                    <div class="avatar">${getInitials(s.studentName)}</div>
+                    <div class="sname">${escapeHtml(s.studentName)}</div>
+                    <div class="sgroup">
+                        <span class="sgroup-badge">${getGroup(s.studentName)}</span>
+                    </div>
+                    <div class="sstats">
+                        <span>📊 <span class="avg">${totalAvg}</span></span>
+                        <span>⏳ <span class="abs">${absCount}</span></span>
+                    </div>
+                `;
+                
+                // Клик по карточке в списке студентов - переход в журнал с поиском
+                card.onclick = function(e) {
+                    e.stopPropagation();
+                    // Переключаемся на вкладку журнала и ищем студента
+                    switchPage('journal');
+                    document.getElementById('search').value = s.studentName;
+                    renderJournal();
+                    if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+                };
+                
+                container.appendChild(card);
+            });
+        }
+        
+        function switchPage(page) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById(`page-${page}`).classList.add('active');
+            document.querySelector(`.nav-item[data-page="${page}"]`).classList.add('active');
+        }
+        
+        // ============================================================
+        // 7. ЗАГРУЗКА ДАННЫХ
+        // ============================================================
         async function init(force = false) {
             if (isLoading) return;
             isLoading = true;
@@ -740,6 +1294,7 @@
                         clearTimeout(timeoutId);
                         processAllAverages();
                         renderJournal();
+                        renderStudents();
                         hideLoader();
                         isLoading = false;
                         return;
@@ -780,6 +1335,7 @@
                 localStorage.setItem(CACHE_KEY, JSON.stringify(ALL_DATA));
                 
                 renderJournal();
+                renderStudents();
                 hideLoader();
                 
                 if (tg && tg.HapticFeedback) {
@@ -795,6 +1351,7 @@
                     setTimeout(() => {
                         processAllAverages();
                         renderJournal();
+                        renderStudents();
                         hideLoader();
                     }, 800);
                 } else {
@@ -803,174 +1360,6 @@
             } finally {
                 isLoading = false;
             }
-        }
-        
-        function processAllAverages() {
-            for (let student of ALL_DATA.journal) {
-                if (student.subjects && Array.isArray(student.subjects)) {
-                    for (let subject of student.subjects) {
-                        const calculatedAvg = calculateAverage(subject.marks);
-                        if (calculatedAvg) {
-                            subject.avg = calculatedAvg;
-                        } else if (!subject.avg || subject.avg === '—') {
-                            subject.avg = '—';
-                        }
-                    }
-                    const totalAvg = calculateTotalAverage(student.subjects);
-                    if (totalAvg) {
-                        student.totalAverage = totalAvg;
-                    } else if (!student.totalAverage || student.totalAverage === '0,0') {
-                        student.totalAverage = '—';
-                    }
-                }
-            }
-        }
-        
-        function renderJournal() {
-            const container = document.getElementById('list');
-            if (!container) return;
-            container.innerHTML = '';
-            const query = document.getElementById('search')?.value.toLowerCase().trim() || '';
-            
-            if (!ALL_DATA.journal || ALL_DATA.journal.length === 0) {
-                container.innerHTML = '<div class="empty-state">Нет данных</div>';
-                return;
-            }
-            
-            let filteredStudents = filterStudents(ALL_DATA.journal);
-            
-            const sortedByTotal = [...filteredStudents].sort((a, b) => {
-                const avgA = parseFloat(String(a.totalAverage).replace(',', '.'));
-                const avgB = parseFloat(String(b.totalAverage).replace(',', '.'));
-                if (isNaN(avgA)) return 1;
-                if (isNaN(avgB)) return -1;
-                return avgB - avgA;
-            });
-            const topNames = sortedByTotal.slice(0, 3).map(s => s.studentName);
-            const crowns = ['🥇', '🥈', '🥉'];
-            
-            const list = filteredStudents
-                .filter(s => s && s.studentName && s.studentName.toLowerCase().includes(query))
-                .sort((a, b) => a.studentName.localeCompare(b.studentName));
-            
-            if (list.length === 0) {
-                container.innerHTML = '<div class="empty-state">Ничего не найдено</div>';
-                return;
-            }
-            
-            list.forEach(s => {
-                const card = document.createElement('div');
-                card.className = 'card';
-                const absCount = ALL_DATA.absences[s.studentName] || "0";
-                const tIdx = topNames.indexOf(s.studentName);
-                
-                let subsHtml = '';
-                if (s.subjects && Array.isArray(s.subjects)) {
-                    subsHtml = s.subjects.map(sub => {
-                        const isExam = isExamSubject(sub.subject);
-                        
-                        let marksHtml = '';
-                        if (sub.marks && Array.isArray(sub.marks) && sub.marks.length > 0) {
-                            marksHtml = sub.marks.map(m => `<div class="mark ${getStyleForScore(m)}">${m}</div>`).join('');
-                        } else {
-                            marksHtml = '<div style="font-size:10px; opacity:0.4; padding:6px;">Нет отметок</div>';
-                        }
-                        
-                        const avgDisplay = sub.avg && sub.avg !== '—' ? sub.avg : '—';
-                        const examClass = isExam ? 'exam-subject' : '';
-                        
-                        const tooltipId = 'tooltip_' + Math.random().toString(36).substr(2, 9);
-                        const examIcon = isExam ? `
-                            <span class="exam-icon">!</span>
-                        ` : '';
-                        
-                        const tooltipHtml = isExam ? `
-                            <div class="exam-tooltip" id="${tooltipId}">
-                                <div class="tooltip-title">📝 Экзаменационный предмет</div>
-                                <div class="tooltip-text">Итоговая отметка может <strong>отличаться</strong> от текущей успеваемости и выставляется по результатам экзамена.</div>
-                                <div class="tooltip-hint">Нажмите на подсказку, чтобы скрыть</div>
-                            </div>
-                        ` : '';
-                        
-                        return `<div class="sub-item ${examClass}" data-tooltip="${tooltipId}" data-tooltip-shown="false">
-                            <div class="sub-row">
-                                <div class="subject-name-wrapper">
-                                    <span>${escapeHtml(sub.subject || 'Без названия')}</span>
-                                    ${examIcon}
-                                </div>
-                                <span class="score-pill ${getStyleForScore(avgDisplay)}">${avgDisplay}</span>
-                            </div>
-                            <div class="marks-box">
-                                <div class="marks-row">${marksHtml}</div>
-                            </div>
-                            ${tooltipHtml}
-                        </div>`;
-                    }).join('');
-                } else {
-                    subsHtml = '<div style="font-size:11px; opacity:0.4; text-align:center; padding:10px;">Нет предметов</div>';
-                }
-                
-                const totalDisplay = s.totalAverage && s.totalAverage !== '—' ? s.totalAverage : '—';
-                
-                card.innerHTML = `
-                    <div class="student-header">
-                        <span class="student-name">
-                            ${escapeHtml(s.studentName)} ${tIdx !== -1 ? crowns[tIdx] : ''}
-                            <span class="abs-badge">⏳ ${absCount}</span>
-                        </span>
-                        <span class="score-pill ${getStyleForScore(totalDisplay)}">${totalDisplay}</span>
-                    </div>
-                    <div class="subs-container">${subsHtml}</div>`;
-                
-                card.onclick = function(e) {
-                    e.stopPropagation();
-                    const subsContainer = this.querySelector('.subs-container');
-                    if (subsContainer) {
-                        subsContainer.classList.toggle('open');
-                        if (subsContainer.classList.contains('open')) {
-                            this.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-                        }
-                    }
-                    if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
-                };
-                
-                container.appendChild(card);
-            });
-            
-            document.querySelectorAll('.sub-item').forEach(item => {
-                item.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    const marksBox = this.querySelector('.marks-box');
-                    if (marksBox) marksBox.classList.toggle('open');
-                    
-                    if (this.classList.contains('exam-subject')) {
-                        const tooltipId = this.dataset.tooltip;
-                        const tooltip = document.getElementById(tooltipId);
-                        if (tooltip && this.dataset.tooltipShown === 'false') {
-                            tooltip.classList.add('open');
-                            this.dataset.tooltipShown = 'true';
-                            
-                            tooltip.onclick = function(e) {
-                                e.stopPropagation();
-                                this.classList.remove('open');
-                                if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
-                            };
-                            
-                            if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
-                        }
-                    }
-                });
-            });
-        }
-        
-        function escapeHtml(str) {
-            if (!str) return '';
-            return str.replace(/[&<>]/g, function(m) {
-                if (m === '&') return '&amp;';
-                if (m === '<') return '&lt;';
-                if (m === '>') return '&gt;';
-                return m;
-            });
         }
         
         function forceUpdate() {
@@ -988,10 +1377,77 @@
             }, 500);
         }
         
+        // ============================================================
+        // 8. ОБРАБОТЧИКИ СОБЫТИЙ
+        // ============================================================
+        // Навигация
+        document.querySelectorAll('.nav-item').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const page = this.dataset.page;
+                switchPage(page);
+                if (page === 'students') renderStudents();
+                if (page === 'journal') renderJournal();
+                if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+            });
+        });
+        
+        // Поиск
         document.getElementById('search')?.addEventListener('input', () => renderJournal());
+        
+        // Обновление
         document.getElementById('retryButton')?.addEventListener('click', () => forceUpdate());
         document.getElementById('fabUpdate')?.addEventListener('click', () => forceUpdate());
         
+        // Попап "Это вы?"
+        document.getElementById('btnIdentityYes')?.addEventListener('click', async function() {
+            const popup = document.getElementById('identityPopup');
+            popup.classList.remove('open');
+            
+            const userId = tg ? String(tg.initDataUnsafe?.user?.id || '') : '';
+            if (!userId || !currentStudentForIdentity) {
+                if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
+                return;
+            }
+            
+            // Отправляем уведомление владельцу
+            const sent = await notifyOwner(userId, currentStudentForIdentity);
+            
+            // Показываем уведомление пользователю
+            if (tg && tg.HapticFeedback) {
+                if (sent) {
+                    tg.HapticFeedback.notificationOccurred('success');
+                    tg.showAlert('✅ Запрос отправлен! Ожидайте подтверждения.');
+                } else {
+                    tg.HapticFeedback.notificationOccurred('error');
+                    tg.showAlert('❌ Ошибка отправки. Попробуйте позже.');
+                }
+            } else {
+                alert(sent ? '✅ Запрос отправлен!' : '❌ Ошибка отправки');
+            }
+            
+            currentStudentForIdentity = null;
+        });
+        
+        document.getElementById('btnIdentityNo')?.addEventListener('click', function() {
+            document.getElementById('identityPopup').classList.remove('open');
+            currentStudentForIdentity = null;
+            if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+        });
+        
+        // Закрытие попапа по клику вне его
+        document.addEventListener('click', function(e) {
+            const popup = document.getElementById('identityPopup');
+            if (popup.classList.contains('open')) {
+                if (!popup.contains(e.target)) {
+                    popup.classList.remove('open');
+                    currentStudentForIdentity = null;
+                }
+            }
+        });
+        
+        // ============================================================
+        // 9. ЗАПУСК
+        // ============================================================
         if (tg) {
             tg.onEvent('backButtonClicked', () => tg.close());
         }
