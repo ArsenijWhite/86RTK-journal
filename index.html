@@ -257,7 +257,7 @@
             box-shadow: 0 7px 0 rgba(255,255,255,0.6), 0 14px 0 rgba(255,255,255,0.6);
         }
         
-        /* CSS-логотип профиля */
+        /* КНОПКА ПРОФИЛЯ (без аватарок) */
         .profile-btn {
             width: 44px;
             height: 44px;
@@ -292,32 +292,33 @@
         .profile-btn .profile-icon {
             width: 24px;
             height: 24px;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            color: #94a3b8;
         }
         .profile-btn .profile-icon svg {
             width: 100%;
             height: 100%;
-            stroke: #94a3b8;
+            stroke: currentColor;
             fill: none;
             transition: all 0.3s ease;
         }
-        .profile-btn.active .profile-icon svg { stroke: #38bdf8; filter: drop-shadow(0 0 8px rgba(56,189,248,0.3)); }
+        .profile-btn.active .profile-icon { color: #38bdf8; filter: drop-shadow(0 0 8px rgba(56,189,248,0.3)); }
         
-        .profile-btn .profile-avatar {
+        .profile-btn .mode-label {
             display: none;
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            object-fit: cover;
             position: absolute;
-            top: 0;
-            left: 0;
+            bottom: -18px;
+            font-size: 7px;
+            color: var(--muted);
+            letter-spacing: 0.3px;
+            white-space: nowrap;
         }
-        .profile-btn.active .profile-avatar { display: block; }
-        .profile-btn.active .profile-icon { display: none; }
+        .profile-btn.active .mode-label {
+            display: block;
+        }
 
         .header-sub { 
             font-size: 11px; 
@@ -593,28 +594,6 @@
             position: relative;
             z-index: 1;
         }
-        .card-avatar {
-            width: 64px;
-            height: 64px;
-            border-radius: 50%;
-            flex-shrink: 0;
-            overflow: hidden;
-            box-shadow: 0 4px 20px rgba(56, 189, 248, 0.3);
-            background: linear-gradient(135deg, #38bdf8, #0ea5e9);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .card-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        .card-avatar .avatar-placeholder {
-            font-size: 26px;
-            font-weight: 700;
-            color: white;
-        }
         .card-user-info { flex: 1; min-width: 0; }
         .card-user-name { font-size: 19px; font-weight: 700; color: var(--text); margin-bottom: 2px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
         .card-user-badge {
@@ -784,27 +763,6 @@
             gap: 12px;
         }
         .student-select-list .student-item:active { transform: scale(0.97); background: rgba(255,255,255,0.06); }
-        .student-select-list .student-item .s-avatar {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            flex-shrink: 0;
-            overflow: hidden;
-            background: linear-gradient(135deg, #38bdf8, #0ea5e9);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .student-select-list .student-item .s-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        .student-select-list .student-item .s-avatar .placeholder {
-            font-size: 14px;
-            font-weight: 700;
-            color: white;
-        }
         .student-select-list .student-item .s-name { font-size: 14px; font-weight: 500; color: var(--text); }
         .student-select-list .student-item .s-group { font-size: 11px; color: var(--muted); margin-left: auto; }
 
@@ -827,6 +785,12 @@
             cursor: pointer;
         }
         .fab-update:active { transform: scale(0.92); }
+
+        /* Скрываем поиск при открытой карточке */
+        .search-hidden #search,
+        .search-hidden .header-sub {
+            display: none;
+        }
 
         @supports (padding-bottom: env(safe-area-inset-bottom)) {
             body { padding-bottom: calc(30px + env(safe-area-inset-bottom)); }
@@ -860,13 +824,13 @@
             </div>
             <div class="profile-btn" id="profileBtn">
                 <span class="ring"></span>
-                <img class="profile-avatar" id="profileAvatar" src="" alt="avatar">
-                <span class="profile-icon">
+                <span class="profile-icon" id="profileIcon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                         <circle cx="12" cy="7" r="4"/>
                     </svg>
                 </span>
+                <span class="mode-label" id="modeLabel">ЖУРНАЛ</span>
             </div>
         </div>
         
@@ -919,8 +883,8 @@
         // 3. ОСТАЛЬНОЙ КОД
         // ============================================================
         let tg = null;
-        let userPhotoUrl = null;
         let userId = null;
+        let isCardMode = false; // true = показываем карточку, false = журнал
         
         try {
             if (window.Telegram && window.Telegram.WebApp) {
@@ -928,13 +892,10 @@
                 tg.ready();
                 tg.expand();
                 
-                // Получаем данные пользователя
                 const user = tg.initDataUnsafe?.user;
                 if (user) {
                     userId = String(user.id);
-                    // Получаем фото профиля (если есть)
-                    userPhotoUrl = user.photo_url || null;
-                    console.log('👤 Пользователь:', user.first_name, 'Фото:', userPhotoUrl ? '✅ есть' : '❌ нет');
+                    console.log('👤 Пользователь:', user.first_name);
                 }
             }
         } catch(e) {
@@ -952,6 +913,7 @@
         let ALL_DATA = { journal: [], absences: {} };
         let isLoading = false;
         let selectedStudentForIdentity = null;
+        let boundStudent = null; // имя привязанного студента
         
         // ============================================================
         // 4. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
@@ -1025,21 +987,6 @@
                 if (m === '>') return '&gt;';
                 return m;
             });
-        }
-        
-        // Функция для получения аватарки из Telegram или инициалов
-        function getTelegramAvatar() {
-            if (userPhotoUrl) {
-                return `<img src="${userPhotoUrl}" alt="avatar">`;
-            }
-            // Если фото нет, показываем иконку пользователя
-            return `<span class="avatar-placeholder">${tg?.initDataUnsafe?.user?.first_name?.charAt(0) || '👤'}</span>`;
-        }
-        
-        // Функция для аватарки студента (пока используем инициалы, т.к. фото студентов нет в API)
-        function getStudentAvatar(studentName) {
-            // В будущем можно добавить массив с фото студентов
-            return `<span class="avatar-placeholder">${getInitials(studentName)}</span>`;
         }
         
         function showError(message) {
@@ -1174,7 +1121,6 @@
                     <div class="card-close" onclick="closeCard()">✕</div>
                     <div class="card-header">
                         <div class="card-user">
-                            <div class="card-avatar">${getStudentAvatar(student.studentName)}</div>
                             <div class="card-user-info">
                                 <div class="card-user-name">${escapeHtml(student.studentName)} ${badge}</div>
                                 <div class="card-user-meta">
@@ -1200,11 +1146,22 @@
             `;
         }
         
-        function openCard(name) {
+        function openCard(name, mode = 'card') {
+            if (mode === 'card') {
+                isCardMode = true;
+                document.body.classList.add('search-hidden');
+                updateProfileButton();
+            }
             document.getElementById('cardOverlay').classList.add('open');
             renderCard(name);
         }
-        function closeCard() { document.getElementById('cardOverlay').classList.remove('open'); }
+        
+        function closeCard() {
+            document.getElementById('cardOverlay').classList.remove('open');
+            isCardMode = false;
+            document.body.classList.remove('search-hidden');
+            updateProfileButton();
+        }
         
         // ============================================================
         // 7. РЕНДЕРИНГ ЖУРНАЛА
@@ -1342,47 +1299,40 @@
                 });
             });
             
-            updateProfile();
+            updateProfileButton();
         }
         
         // ============================================================
-        // 8. ПРОФИЛЬ (с фото из Telegram)
+        // 8. КНОПКА ПРОФИЛЯ
         // ============================================================
-        function updateProfile() {
-            const bound = userId && BINDINGS[userId] ? BINDINGS[userId] : null;
+        function updateProfileButton() {
             const btn = document.getElementById('profileBtn');
-            const avatar = document.getElementById('profileAvatar');
+            const icon = document.getElementById('profileIcon');
+            const label = document.getElementById('modeLabel');
             
-            if (bound) {
-                // Если привязан - показываем фото пользователя или инициалы
-                if (userPhotoUrl) {
-                    avatar.src = userPhotoUrl;
-                    avatar.style.display = 'block';
-                } else {
-                    // Если фото нет, показываем инициалы через псевдоэлемент или оставляем иконку
-                    avatar.style.display = 'none';
-                    // Показываем иконку с инициалами
-                    const icon = btn.querySelector('.profile-icon');
-                    icon.style.display = 'block';
-                    // Меняем иконку на инициалы
-                    const student = ALL_DATA.journal.find(s => s.studentName === bound);
-                    if (student) {
-                        icon.innerHTML = `<span style="font-size:16px;font-weight:700;color:white;">${getInitials(student.studentName)}</span>`;
-                    }
-                }
+            boundStudent = userId && BINDINGS[userId] ? BINDINGS[userId] : null;
+            
+            if (boundStudent) {
                 btn.classList.add('active');
+                // Показываем инициалы на кнопке
+                const initials = getInitials(boundStudent);
+                icon.innerHTML = `<span style="font-size:16px;font-weight:700;color:white;">${initials}</span>`;
+                
+                // Меняем подпись в зависимости от режима
+                if (isCardMode) {
+                    label.textContent = 'ЖУРНАЛ';
+                } else {
+                    label.textContent = 'МОЯ КАРТОЧКА';
+                }
             } else {
-                // Не привязан - показываем иконку
                 btn.classList.remove('active');
-                const icon = btn.querySelector('.profile-icon');
-                icon.style.display = 'block';
                 icon.innerHTML = `
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                         <circle cx="12" cy="7" r="4"/>
                     </svg>
                 `;
-                avatar.style.display = 'none';
+                label.textContent = '';
             }
         }
         
@@ -1409,7 +1359,6 @@
                 const item = document.createElement('div');
                 item.className = 'student-item';
                 item.innerHTML = `
-                    <div class="s-avatar"><span class="placeholder">${getInitials(s.studentName)}</span></div>
                     <span class="s-name">${escapeHtml(s.studentName)}</span>
                     <span class="s-group">${getGroup(s.studentName)}</span>
                 `;
@@ -1456,9 +1405,10 @@
                         clearTimeout(timeoutId);
                         processAllAverages();
                         renderJournal();
-                        updateProfile();
+                        updateProfileButton();
                         hideLoader();
                         isLoading = false;
+                        checkAndOpenCard();
                         return;
                     }
                 } catch(e) {}
@@ -1497,12 +1447,14 @@
                 localStorage.setItem(CACHE_KEY, JSON.stringify(ALL_DATA));
                 
                 renderJournal();
-                updateProfile();
+                updateProfileButton();
                 hideLoader();
                 
                 if (tg && tg.HapticFeedback) {
                     tg.HapticFeedback.notificationOccurred('success');
                 }
+                
+                checkAndOpenCard();
                 
             } catch (e) {
                 console.error('Error:', e);
@@ -1513,8 +1465,9 @@
                     setTimeout(() => {
                         processAllAverages();
                         renderJournal();
-                        updateProfile();
+                        updateProfileButton();
                         hideLoader();
+                        checkAndOpenCard();
                     }, 800);
                 } else {
                     showError('Проверьте подключение к интернету');
@@ -1560,15 +1513,33 @@
             }, 500);
         }
         
+        // Проверяем, привязан ли пользователь, и открываем карточку
+        function checkAndOpenCard() {
+            boundStudent = userId && BINDINGS[userId] ? BINDINGS[userId] : null;
+            if (boundStudent) {
+                // Открываем карточку с задержкой, чтобы UI успел отрендериться
+                setTimeout(() => {
+                    openCard(boundStudent);
+                }, 300);
+            }
+        }
+        
         // ============================================================
         // 11. ОБРАБОТЧИКИ СОБЫТИЙ
         // ============================================================
         document.getElementById('profileBtn').addEventListener('click', function(e) {
             e.stopPropagation();
-            const bound = userId && BINDINGS[userId] ? BINDINGS[userId] : null;
+            boundStudent = userId && BINDINGS[userId] ? BINDINGS[userId] : null;
             
-            if (bound) {
-                openCard(bound);
+            if (boundStudent) {
+                // Переключаем режим
+                if (isCardMode) {
+                    // Закрываем карточку и показываем журнал
+                    closeCard();
+                } else {
+                    // Открываем карточку
+                    openCard(boundStudent);
+                }
             } else {
                 showStudentSelect();
             }
