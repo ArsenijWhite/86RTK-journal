@@ -258,7 +258,7 @@
             box-shadow: 0 7px 0 rgba(255,255,255,0.6), 0 14px 0 rgba(255,255,255,0.6);
         }
         
-        /* КНОПКА ПРОФИЛЯ */
+        /* КНОПКА ПРОФИЛЯ (только после привязки) */
         .profile-btn {
             width: 40px;
             height: 40px;
@@ -491,8 +491,8 @@
             font-weight: 700; 
             margin-right: 2px; 
         }
-        
-        /* ===== КАРТОЧКА СТУДЕНТА (ПОПАП) ===== */
+
+        /* ===== КАРТОЧКА СТУДЕНТА (ОВЕРЛЕЙ) ===== */
         .card-overlay {
             display: none;
             position: fixed;
@@ -525,6 +525,11 @@
         @keyframes fadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
+        }
+        
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px) scale(0.96); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
         }
         
         .student-tile {
@@ -1232,7 +1237,7 @@
             }
         } catch(e) {}
         
-        const CACHE_KEY = 'journal_86rtk_v11';
+        const CACHE_KEY = 'journal_86rtk_v12';
         const APPROVAL_KEY = 'approval_shown_v1';
         
         const EXAM_SUBJECTS = [
@@ -1244,9 +1249,7 @@
         let ALL_DATA = { journal: [], absences: {} };
         let isLoading = false;
         let currentStudentForIdentity = null;
-        let isCardOpen = false;
         let approvalShown = localStorage.getItem(APPROVAL_KEY) === 'true';
-        let wasBoundBefore = false;
         
         // ============================================================
         // 4. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
@@ -1378,21 +1381,27 @@
         }
         
         // ============================================================
-        // 6. РЕНДЕРИНГ КАРТОЧКИ СТУДЕНТА (ОВЕРЛЕЙ)
+        // 6. РЕНДЕРИНГ КАРТОЧКИ СТУДЕНТА (по фамилии)
         // ============================================================
-        function renderStudentCard() {
+        function renderStudentCard(studentName) {
             const container = document.getElementById('cardWrapper');
             if (!container) return;
             
-            const userId = tg ? String(tg.initDataUnsafe?.user?.id || '') : '';
-            const boundStudent = userId && BINDINGS[userId] ? BINDINGS[userId] : null;
-            
-            if (!boundStudent) {
-                container.innerHTML = '';
+            if (!studentName) {
+                container.innerHTML = `
+                    <div class="student-tile">
+                        <div class="tile-close" onclick="closeCard()">✕</div>
+                        <div style="text-align:center;padding:30px 20px;color:var(--muted);">
+                            <div style="font-size:36px;margin-bottom:12px;">👤</div>
+                            <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:4px;">Выберите студента</div>
+                            <div style="font-size:12px;">Нажмите на фамилию в журнале</div>
+                        </div>
+                    </div>
+                `;
                 return;
             }
             
-            const student = ALL_DATA.journal.find(s => s.studentName === boundStudent);
+            const student = ALL_DATA.journal.find(s => s.studentName === studentName);
             if (!student) {
                 container.innerHTML = `
                     <div class="student-tile">
@@ -1405,6 +1414,9 @@
                 `;
                 return;
             }
+            
+            const userId = tg ? String(tg.initDataUnsafe?.user?.id || '') : '';
+            const isBoundToMe = userId && BINDINGS[userId] === student.studentName;
             
             const sortedStudents = [...ALL_DATA.journal].filter(s => s && s.studentName)
                 .sort((a, b) => a.studentName.localeCompare(b.studentName));
@@ -1476,6 +1488,7 @@
             }
             
             const subjectsCount = student.subjects ? student.subjects.length : 0;
+            const badge = isBoundToMe ? `<span class="tile-badge">✅ Вы</span>` : '';
             
             container.innerHTML = `
                 <div class="student-tile">
@@ -1485,7 +1498,7 @@
                         <div class="tile-info">
                             <div class="tile-name">
                                 ${escapeHtml(student.studentName)}
-                                <span class="tile-badge">✅ Вы</span>
+                                ${badge}
                             </div>
                             <div class="tile-group">${getGroup(student.studentName)} • ID: #${studentId}</div>
                         </div>
@@ -1543,9 +1556,12 @@
         // ============================================================
         // 7. УПРАВЛЕНИЕ КАРТОЧКОЙ
         // ============================================================
-        function openCard() {
+        let currentCardStudent = null;
+        
+        function openCard(studentName) {
+            currentCardStudent = studentName || null;
             const overlay = document.getElementById('cardOverlay');
-            renderStudentCard();
+            renderStudentCard(currentCardStudent);
             overlay.classList.add('open');
             if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
         }
@@ -1663,26 +1679,8 @@
                 card.onclick = function(e) {
                     e.stopPropagation();
                     
-                    // Если уже привязан - просто открываем предметы
-                    if (isBoundToMe || !userId) {
-                        const subsContainer = this.querySelector('.subs-container');
-                        if (subsContainer) {
-                            subsContainer.classList.toggle('open');
-                            if (subsContainer.classList.contains('open')) {
-                                this.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-                            }
-                        }
-                        if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
-                        return;
-                    }
-                    
-                    // Показываем попап "Это вы?"
-                    currentStudentForIdentity = s.studentName;
-                    const popup = document.getElementById('identityPopup');
-                    document.getElementById('popupStudentName').textContent = s.studentName;
-                    popup.classList.add('open');
-                    
-                    if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+                    // Открываем карточку с этим студентом
+                    openCard(s.studentName);
                 };
                 
                 container.appendChild(card);
@@ -1713,7 +1711,6 @@
                 });
             });
             
-            // Обновляем профиль
             updateProfile();
         }
         
@@ -1744,9 +1741,7 @@
             const userId = tg ? String(tg.initDataUnsafe?.user?.id || '') : '';
             const boundStudent = userId && BINDINGS[userId] ? BINDINGS[userId] : null;
             
-            // Если есть привязка и уведомление ещё не показывалось
             if (boundStudent && !approvalShown) {
-                // Показываем уведомление
                 const overlay = document.getElementById('approvalOverlay');
                 overlay.classList.add('open');
                 approvalShown = true;
@@ -1890,10 +1885,16 @@
         // ============================================================
         // 12. ОБРАБОТЧИКИ СОБЫТИЙ
         // ============================================================
-        // Профиль
-        document.getElementById('profileBtn')?.addEventListener('click', openCard);
+        // Профиль - открывает карточку привязанного студента
+        document.getElementById('profileBtn')?.addEventListener('click', function() {
+            const userId = tg ? String(tg.initDataUnsafe?.user?.id || '') : '';
+            const boundStudent = userId && BINDINGS[userId] ? BINDINGS[userId] : null;
+            if (boundStudent) {
+                openCard(boundStudent);
+            }
+        });
         
-        // Закрытие карточки по клику вне
+        // Закрытие карточки по клику на оверлей
         document.getElementById('cardOverlay')?.addEventListener('click', function(e) {
             if (e.target === this) closeCard();
         });
@@ -1905,7 +1906,7 @@
         document.getElementById('retryButton')?.addEventListener('click', () => forceUpdate());
         document.getElementById('fabUpdate')?.addEventListener('click', () => forceUpdate());
         
-        // Попап "Это вы?"
+        // Попап "Это вы?" - теперь ТОЛЬКО для отправки запроса
         document.getElementById('btnIdentityYes')?.addEventListener('click', async function() {
             const popup = document.getElementById('identityPopup');
             popup.classList.remove('open');
@@ -1962,7 +1963,6 @@
             tg.onEvent('backButtonClicked', () => tg.close());
         }
         
-        // Делаем функции глобальными для onclick
         window.openCard = openCard;
         window.closeCard = closeCard;
         
