@@ -1321,29 +1321,47 @@
         }
         
         // ============================================================
-        // 9. ВЫБОР СТУДЕНТА
+        // 9. ВЫБОР СТУДЕНТА (ПОПАП)
         // ============================================================
         function showStudentSelect() {
             const popup = document.getElementById('identityPopup');
             const list = document.getElementById('studentSelectList');
-            document.getElementById('popupSubText').textContent = 'Выберите свою фамилию из списка:';
+            const sub = document.getElementById('popupSubText');
+            
+            sub.textContent = 'Выберите свою фамилию из списка:';
             list.innerHTML = '';
             
             const sorted = [...ALL_DATA.journal].filter(s => s && s.studentName).sort((a,b) => a.studentName.localeCompare(b.studentName));
+            
+            if (sorted.length === 0) {
+                list.innerHTML = '<div style="padding:20px;text-align:center;color:var(--muted);">Нет студентов</div>';
+                popup.classList.add('open');
+                return;
+            }
+            
             sorted.forEach(s => {
                 const item = document.createElement('div');
                 item.className = 'student-item';
-                item.innerHTML = `<div class="s-avatar">${getInitials(s.studentName)}</div><span class="s-name">${escapeHtml(s.studentName)}</span><span class="s-group">${getGroup(s.studentName)}</span>`;
+                item.innerHTML = `
+                    <div class="s-avatar">${getInitials(s.studentName)}</div>
+                    <span class="s-name">${escapeHtml(s.studentName)}</span>
+                    <span class="s-group">${getGroup(s.studentName)}</span>
+                `;
                 item.onclick = function() {
                     selectedStudentForIdentity = s.studentName;
-                    document.querySelectorAll('.student-item').forEach(el => { el.style.background = 'transparent'; el.style.border = 'none'; });
+                    document.querySelectorAll('.student-item').forEach(el => {
+                        el.style.background = 'transparent';
+                        el.style.border = 'none';
+                    });
                     this.style.background = 'rgba(56, 189, 248, 0.1)';
                     this.style.border = '1px solid rgba(56, 189, 248, 0.2)';
-                    document.getElementById('popupSubText').textContent = `Вы выбрали: ${s.studentName}`;
+                    sub.textContent = `✅ Вы выбрали: ${s.studentName}`;
                 };
                 list.appendChild(item);
             });
+            
             popup.classList.add('open');
+            if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
         }
         
         // ============================================================
@@ -1479,55 +1497,95 @@
         // ============================================================
         // 11. ОБРАБОТЧИКИ СОБЫТИЙ
         // ============================================================
-        document.getElementById('profileBtn').onclick = function() {
+        // КЛИК ПО ПРОФИЛЮ - открываем попап или карточку
+        document.getElementById('profileBtn').addEventListener('click', function(e) {
+            e.stopPropagation();
             const userId = tg ? String(tg.initDataUnsafe?.user?.id || '') : '';
             const bound = userId && BINDINGS[userId] ? BINDINGS[userId] : null;
+            
             if (bound) {
+                // Если привязан - открываем карточку
                 openCard(bound);
             } else {
+                // Если не привязан - показываем список для выбора
                 showStudentSelect();
             }
-        };
+        });
         
-        document.getElementById('cardOverlay').onclick = function(e) { if (e.target === this) closeCard(); };
-        document.getElementById('search').oninput = renderJournal;
-        document.getElementById('fabUpdate').onclick = function() { forceUpdate(); };
-        document.getElementById('retryButton').onclick = function() { forceUpdate(); };
+        document.getElementById('cardOverlay').addEventListener('click', function(e) {
+            if (e.target === this) closeCard();
+        });
         
-        document.getElementById('btnIdentityYes').onclick = async function() {
+        document.getElementById('search').addEventListener('input', renderJournal);
+        document.getElementById('fabUpdate').addEventListener('click', forceUpdate);
+        document.getElementById('retryButton').addEventListener('click', forceUpdate);
+        
+        // Кнопка "Да, это я"
+        document.getElementById('btnIdentityYes').addEventListener('click', async function() {
             if (!selectedStudentForIdentity) {
-                if (tg) tg.showAlert('❌ Выберите свою фамилию из списка.');
-                else alert('❌ Выберите свою фамилию из списка.');
+                if (tg) {
+                    tg.HapticFeedback.notificationOccurred('error');
+                    tg.showAlert('❌ Выберите свою фамилию из списка.');
+                } else {
+                    alert('❌ Выберите свою фамилию из списка.');
+                }
                 return;
             }
+            
             document.getElementById('identityPopup').classList.remove('open');
             const userId = tg ? String(tg.initDataUnsafe?.user?.id || '') : '';
-            if (!userId) return;
+            
+            if (!userId) {
+                if (tg) tg.showAlert('❌ Ошибка: не удалось определить пользователя');
+                return;
+            }
+            
             const sent = await notifyOwner(userId, selectedStudentForIdentity);
+            
             if (tg) {
-                tg.showAlert(sent ? '✅ Запрос отправлен!' : '❌ Ошибка отправки');
-                if (sent) tg.HapticFeedback.notificationOccurred('success');
-                else tg.HapticFeedback.notificationOccurred('error');
+                if (sent) {
+                    tg.HapticFeedback.notificationOccurred('success');
+                    tg.showAlert('✅ Запрос отправлен! Ожидайте подтверждения.');
+                } else {
+                    tg.HapticFeedback.notificationOccurred('error');
+                    tg.showAlert('❌ Ошибка отправки. Попробуйте позже.');
+                }
             } else {
                 alert(sent ? '✅ Запрос отправлен!' : '❌ Ошибка отправки');
             }
+            
             selectedStudentForIdentity = null;
-            document.querySelectorAll('.student-item').forEach(el => { el.style.background = 'transparent'; el.style.border = 'none'; });
-        };
+            document.querySelectorAll('.student-item').forEach(el => {
+                el.style.background = 'transparent';
+                el.style.border = 'none';
+            });
+            document.getElementById('popupSubText').textContent = 'Выберите свою фамилию из списка:';
+        });
         
-        document.getElementById('btnIdentityNo').onclick = function() {
+        // Кнопка "Нет"
+        document.getElementById('btnIdentityNo').addEventListener('click', function() {
             document.getElementById('identityPopup').classList.remove('open');
             selectedStudentForIdentity = null;
-            document.querySelectorAll('.student-item').forEach(el => { el.style.background = 'transparent'; el.style.border = 'none'; });
-        };
+            document.querySelectorAll('.student-item').forEach(el => {
+                el.style.background = 'transparent';
+                el.style.border = 'none';
+            });
+            document.getElementById('popupSubText').textContent = 'Выберите свою фамилию из списка:';
+            if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+        });
         
+        // Закрытие попапа по клику вне
         document.addEventListener('click', function(e) {
             const popup = document.getElementById('identityPopup');
             if (popup.classList.contains('open')) {
                 if (!popup.contains(e.target)) {
                     popup.classList.remove('open');
                     selectedStudentForIdentity = null;
-                    document.querySelectorAll('.student-item').forEach(el => { el.style.background = 'transparent'; el.style.border = 'none'; });
+                    document.querySelectorAll('.student-item').forEach(el => {
+                        el.style.background = 'transparent';
+                        el.style.border = 'none';
+                    });
+                    document.getElementById('popupSubText').textContent = 'Выберите свою фамилию из списка:';
                 }
             }
         });
