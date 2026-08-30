@@ -858,16 +858,15 @@
         // ============================================================
         // 1. НАСТРОЙКИ
         // ============================================================
-        const API_JOURNAL = 'https://script.google.com/macros/s/AKfycbwtV3eFenNotdiVr3u1DQPJdOLn2fieHDsvWUwlsQquKURzkLkW4wuTiLqkNFnWCH0v/exec';
-        const API_ABSENCES = 'https://script.google.com/macros/s/AKfycbyux4wfN_lVoodDq-JHHjbYAGuJys_DsZ2mADyUGdw1MERG-iZK833dN0tSzI7lq_QeZg/exec';
-        const BOT_TOKEN = '8559243948:AAFAW1LdoTmE1a0I1pTgOvv6c9jDLz_1nnI';
-        const OWNER_CHAT_ID = '5753985995';
+        var API_JOURNAL = 'https://script.google.com/macros/s/AKfycbwtV3eFenNotdiVr3u1DQPJdOLn2fieHDsvWUwlsQquKURzkLkW4wuTiLqkNFnWCH0v/exec';
+        var API_ABSENCES = 'https://script.google.com/macros/s/AKfycbyux4wfN_lVoodDq-JHHjbYAGuJys_DsZ2mADyUGdw1MERG-iZK833dN0tSzI7lq_QeZg/exec';
+        var BOT_TOKEN = '8559243948:AAFAW1LdoTmE1a0I1pTgOvv6c9jDLz_1nnI';
+        var OWNER_CHAT_ID = '5753985995';
         
         // ============================================================
-        // 2. ПРИВЯЗКА СТУДЕНТОВ (ПРАВИЛЬНЫЙ СИНТАКСИС)
+        // 2. ПРИВЯЗКА СТУДЕНТОВ
         // ============================================================
-        const BINDINGS = {
-            // 'telegram_user_id' : 'полное имя студента (как в журнале)'
+        var BINDINGS = {
             '5753985995': 'Беляцкий',
             '1939232438': 'Конюк'
         };
@@ -875,11 +874,10 @@
         // ============================================================
         // 3. ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ
         // ============================================================
-        let tg = null;
-        let userId = null;
-        let isCardMode = false;
-        let cardOpened = false;
-        let appReady = false;
+        var tg = null;
+        var userId = null;
+        var isCardMode = false;
+        var cardOpened = false;
         
         try {
             if (window.Telegram && window.Telegram.WebApp) {
@@ -887,28 +885,27 @@
                 tg.ready();
                 tg.expand();
                 
-                const user = tg.initDataUnsafe?.user;
+                var user = tg.initDataUnsafe?.user;
                 if (user) {
                     userId = String(user.id);
                     console.log('👤 Пользователь ID:', userId);
-                    console.log('👤 Привязан к:', BINDINGS[userId] || 'не найден');
                 }
             }
         } catch(e) {
             console.warn('Telegram WebApp не доступен:', e);
         }
         
-        const CACHE_KEY = 'journal_86rtk_v22';
+        var CACHE_KEY = 'journal_86rtk_v23';
         
-        const EXAM_SUBJECTS = [
+        var EXAM_SUBJECTS = [
             'Цифровая и микропроцессорная техника',
             'Промышленная электроника и микроэлектроника',
             'Автоматизация производства'
         ];
         
-        let ALL_DATA = { journal: [], absences: {} };
-        let isLoading = false;
-        let selectedStudentForIdentity = null;
+        var ALL_DATA = { journal: [], absences: {} };
+        var isLoading = false;
+        var selectedStudentForIdentity = null;
         
         // ============================================================
         // 4. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
@@ -920,44 +917,48 @@
         
         function findStudentByName(name) {
             if (!name) return null;
-            // Ищем точное совпадение
-            let found = ALL_DATA.journal.find(s => s.studentName === name);
+            var found = ALL_DATA.journal.find(function(s) { return s.studentName === name; });
             if (found) return found;
-            // Ищем по фамилии (если имя состоит из нескольких частей)
-            const lastName = name.split(' ')[0];
-            found = ALL_DATA.journal.find(s => s.studentName && s.studentName.startsWith(lastName));
+            var lastName = name.split(' ')[0];
+            found = ALL_DATA.journal.find(function(s) { return s.studentName && s.studentName.startsWith(lastName); });
             return found || null;
         }
         
         function isExamSubject(subjectName) {
             if (!subjectName) return false;
-            const name = subjectName.toLowerCase().trim();
-            return EXAM_SUBJECTS.some(exam => name.includes(exam.toLowerCase()) || exam.toLowerCase().includes(name));
+            var name = subjectName.toLowerCase().trim();
+            for (var i = 0; i < EXAM_SUBJECTS.length; i++) {
+                if (name.includes(EXAM_SUBJECTS[i].toLowerCase()) || EXAM_SUBJECTS[i].toLowerCase().includes(name)) {
+                    return true;
+                }
+            }
+            return false;
         }
         
         function calculateAverage(marks) {
             if (!marks || marks.length === 0) return null;
-            let sum = 0;
-            let count = 0;
-            for (let m of marks) {
-                let val = parseFloat(String(m).replace(',', '.'));
+            var sum = 0;
+            var count = 0;
+            for (var i = 0; i < marks.length; i++) {
+                var val = parseFloat(String(marks[i]).replace(',', '.'));
                 if (!isNaN(val) && val > 0) {
                     sum += val;
                     count++;
                 }
             }
             if (count === 0) return null;
-            let avg = sum / count;
+            var avg = sum / count;
             return avg.toFixed(1).replace('.', ',');
         }
         
         function calculateTotalAverage(subjects) {
             if (!subjects || subjects.length === 0) return null;
-            let sum = 0;
-            let count = 0;
-            for (let sub of subjects) {
+            var sum = 0;
+            var count = 0;
+            for (var i = 0; i < subjects.length; i++) {
+                var sub = subjects[i];
                 if (sub.avg && sub.avg !== '—') {
-                    let val = parseFloat(String(sub.avg).replace(',', '.'));
+                    var val = parseFloat(String(sub.avg).replace(',', '.'));
                     if (!isNaN(val) && val > 0) {
                         sum += val;
                         count++;
@@ -965,13 +966,13 @@
                 }
             }
             if (count === 0) return null;
-            let avg = sum / count;
+            var avg = sum / count;
             return avg.toFixed(1).replace('.', ',');
         }
         
         function getStyleForScore(score) {
             if (!score || score === '—' || score === '0,0') return 'm-none';
-            const v = parseFloat(String(score).replace(',', '.'));
+            var v = parseFloat(String(score).replace(',', '.'));
             if (isNaN(v)) return 'm-none';
             if (v >= 9.5) return 'm-gold';
             if (v >= 7.5) return 'm-high';
@@ -981,7 +982,7 @@
         
         function getInitials(name) {
             if (!name) return '?';
-            const parts = name.trim().split(' ');
+            var parts = name.trim().split(' ');
             if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
             return (parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase();
         }
@@ -1001,10 +1002,10 @@
         }
         
         function showError(message) {
-            const loader = document.getElementById('loader');
-            const loaderStatus = document.getElementById('loaderStatus');
-            const errorContainer = document.getElementById('errorContainer');
-            const errorMessage = document.getElementById('errorMessage');
+            var loader = document.getElementById('loader');
+            var loaderStatus = document.getElementById('loaderStatus');
+            var errorContainer = document.getElementById('errorContainer');
+            var errorMessage = document.getElementById('errorMessage');
             loader.classList.add('error-mode');
             loaderStatus.textContent = 'Ошибка соединения';
             errorMessage.textContent = message || 'Не удалось подключиться к серверу';
@@ -1012,116 +1013,116 @@
         }
         
         function hideError() {
-            const loader = document.getElementById('loader');
-            const errorContainer = document.getElementById('errorContainer');
+            var loader = document.getElementById('loader');
+            var errorContainer = document.getElementById('errorContainer');
             loader.classList.remove('error-mode');
             errorContainer.classList.remove('visible');
             document.getElementById('loaderStatus').textContent = 'Загрузка данных';
         }
         
         // ============================================================
-        // 5. ОТПРАВКА УВЕДОМЛЕНИЯ ВЛАДЕЛЬЦУ
+        // 5. ОТПРАВКА УВЕДОМЛЕНИЯ
         // ============================================================
-        async function notifyOwner(userId, studentName) {
-            try {
-                const message = '🔔 <b>Новая привязка!</b>\n\n' +
-                    '👤 Студент: <b>' + escapeHtml(studentName) + '</b>\n' +
-                    '🆔 Telegram ID: <code>' + userId + '</code>\n\n' +
-                    'Для привязки добавьте в BINDINGS:\n' +
-                    '<code>\'' + userId + '\' : \'' + escapeHtml(studentName) + '\'</code>';
-                
-                const url = 'https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage';
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        chat_id: OWNER_CHAT_ID,
-                        text: message,
-                        parse_mode: 'HTML'
-                    })
-                });
-                
-                const data = await response.json();
+        function notifyOwner(userId, studentName) {
+            var message = '🔔 <b>Новая привязка!</b>\n\n' +
+                '👤 Студент: <b>' + escapeHtml(studentName) + '</b>\n' +
+                '🆔 Telegram ID: <code>' + userId + '</code>\n\n' +
+                'Для привязки добавьте в BINDINGS:\n' +
+                '<code>\'' + userId + '\' : \'' + escapeHtml(studentName) + '\'</code>';
+            
+            var url = 'https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage';
+            fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: OWNER_CHAT_ID,
+                    text: message,
+                    parse_mode: 'HTML'
+                })
+            }).then(function(r) { return r.json(); }).then(function(data) {
                 if (data.ok) {
-                    console.log('✅ Уведомление отправлено владельцу');
-                    return true;
+                    console.log('✅ Уведомление отправлено');
                 } else {
-                    console.error('❌ Ошибка отправки:', data);
-                    return false;
+                    console.error('❌ Ошибка:', data);
                 }
-            } catch (e) {
-                console.error('❌ Ошибка при отправке уведомления:', e);
-                return false;
-            }
+            }).catch(function(e) {
+                console.error('❌ Ошибка:', e);
+            });
         }
         
         // ============================================================
         // 6. КАРТОЧКА СТУДЕНТА
         // ============================================================
         function toggleMarks(id) {
-            const el = document.getElementById(id);
+            var el = document.getElementById(id);
             if (el) el.classList.toggle('open');
         }
         
         function renderCard(studentName) {
-            const container = document.getElementById('cardWrapper');
+            var container = document.getElementById('cardWrapper');
             if (!studentName) {
                 container.innerHTML = '<div class="student-card"><div class="card-close" onclick="closeCard()">✕</div><div style="text-align:center;padding:40px 20px;color:var(--muted);">Выберите студента</div></div>';
                 return;
             }
             
-            const student = findStudentByName(studentName);
+            var student = findStudentByName(studentName);
             if (!student) {
                 container.innerHTML = '<div class="student-card"><div class="card-close" onclick="closeCard()">✕</div><div style="text-align:center;padding:40px 20px;color:var(--muted);">Студент не найден</div></div>';
                 return;
             }
             
-            const isBound = userId && getBoundStudent() === student.studentName;
-            const absCount = ALL_DATA.absences[student.studentName] || '0';
-            const totalAvg = student.totalAverage || '—';
-            const avgNum = parseFloat(String(totalAvg).replace(',', '.'));
-            let avgClass = 'gold';
+            var isBound = userId && getBoundStudent() === student.studentName;
+            var absCount = ALL_DATA.absences[student.studentName] || '0';
+            var totalAvg = student.totalAverage || '—';
+            var avgNum = parseFloat(String(totalAvg).replace(',', '.'));
+            var avgClass = 'gold';
             if (isNaN(avgNum)) avgClass = 'gold';
             else if (avgNum >= 7.5) avgClass = 'gold';
             else if (avgNum >= 5) avgClass = 'orange';
             else avgClass = 'red';
             
-            const sorted = [...ALL_DATA.journal].filter(s => s && s.studentName).sort((a,b) => a.studentName.localeCompare(b.studentName));
-            const idx = sorted.findIndex(s => s.studentName === student.studentName) + 1;
-            const studentId = String(idx).padStart(3, '0');
+            var sorted = ALL_DATA.journal.filter(function(s) { return s && s.studentName; }).sort(function(a, b) { return a.studentName.localeCompare(b.studentName); });
+            var idx = sorted.findIndex(function(s) { return s.studentName === student.studentName; }) + 1;
+            var studentId = String(idx).padStart(3, '0');
             
-            let subjectsHtml = '';
-            const icons = ['📐','💻','⚡','🔌','🏭','📡','🔧','📊','🎯','🧮','📈','🔬'];
-            const colors = ['blue','pink','purple','green','orange','blue','pink','purple','green','orange','blue','pink'];
+            var subjectsHtml = '';
+            var icons = ['📐','💻','⚡','🔌','🏭','📡','🔧','📊','🎯','🧮','📈','🔬'];
+            var colors = ['blue','pink','purple','green','orange','blue','pink','purple','green','orange','blue','pink'];
             
             if (student.subjects && Array.isArray(student.subjects)) {
-                student.subjects.forEach((sub, i) => {
-                    const isExam = isExamSubject(sub.subject);
-                    const avg = sub.avg || '—';
-                    const num = parseFloat(String(avg).replace(',', '.'));
-                    let sc = 'gray';
+                for (var i = 0; i < student.subjects.length; i++) {
+                    var sub = student.subjects[i];
+                    var isExam = isExamSubject(sub.subject);
+                    var avg = sub.avg || '—';
+                    var num = parseFloat(String(avg).replace(',', '.'));
+                    var sc = 'gray';
                     if (!isNaN(num)) { if (num >= 7.5) sc = 'gold'; else if (num >= 5) sc = 'orange'; else sc = 'red'; }
                     
-                    let marksHtml = '';
+                    var marksHtml = '';
                     if (sub.marks && sub.marks.length) {
-                        marksHtml = sub.marks.map(function(m) {
-                            const n = parseFloat(String(m).replace(',', '.'));
-                            let bg = '#475569';
+                        var marksArr = [];
+                        for (var j = 0; j < sub.marks.length; j++) {
+                            var m = sub.marks[j];
+                            var n = parseFloat(String(m).replace(',', '.'));
+                            var bg = '#475569';
                             if (!isNaN(n)) { if (n >= 7.5) bg = '#10b981'; else if (n >= 5) bg = '#f59e0b'; else bg = '#ef4444'; }
-                            return '<span class="mark-item" style="background:' + bg + ';">' + m + '</span>';
-                        }).join('');
-                    } else { marksHtml = '<span class="no-marks">Нет оценок</span>'; }
+                            marksArr.push('<span class="mark-item" style="background:' + bg + ';">' + m + '</span>');
+                        }
+                        marksHtml = marksArr.join('');
+                    } else {
+                        marksHtml = '<span class="no-marks">Нет оценок</span>';
+                    }
                     
-                    const id = 'm_' + i + '_' + Math.random().toString(36).substr(2, 4);
-                    subjectsHtml += '\n                        <div class="subject-row ' + (isExam ? 'exam' : '') + '" onclick="toggleMarks(\'' + id + '\')">\n                            <div class="subject-icon ' + colors[i % colors.length] + '">' + icons[i % icons.length] + '</div>\n                            <div class="subject-info"><div class="subject-name">' + escapeHtml(sub.subject || 'Без названия') + (isExam ? ' <span class="exam-badge">📝 Экзамен</span>' : '') + '</div></div>\n                            <div class="subject-score ' + sc + '">' + avg + '</div>\n                        </div>\n                        <div class="subject-marks-container" id="' + id + '">' + marksHtml + '</div>';
-                });
+                    var id = 'm_' + i + '_' + Math.random().toString(36).substr(2, 4);
+                    subjectsHtml += '<div class="subject-row ' + (isExam ? 'exam' : '') + '" onclick="toggleMarks(\'' + id + '\')"><div class="subject-icon ' + colors[i % colors.length] + '">' + icons[i % icons.length] + '</div><div class="subject-info"><div class="subject-name">' + escapeHtml(sub.subject || 'Без названия') + (isExam ? ' <span class="exam-badge">📝 Экзамен</span>' : '') + '</div></div><div class="subject-score ' + sc + '">' + avg + '</div></div><div class="subject-marks-container" id="' + id + '">' + marksHtml + '</div>';
+                }
             }
             
-            const subjectsCount = student.subjects ? student.subjects.length : 0;
-            const statusText = avgNum >= 9 ? '🏆 Отлично' : avgNum >= 7.5 ? '✅ Хорошо' : avgNum >= 5 ? '⚠️ Удовлетворительно' : '❌ Требуется внимание';
-            const badge = isBound ? '<span class="card-user-badge">✅ Вы</span>' : '';
+            var subjectsCount = student.subjects ? student.subjects.length : 0;
+            var statusText = avgNum >= 9 ? '🏆 Отлично' : avgNum >= 7.5 ? '✅ Хорошо' : avgNum >= 5 ? '⚠️ Удовлетворительно' : '❌ Требуется внимание';
+            var badge = isBound ? '<span class="card-user-badge">✅ Вы</span>' : '';
             
-            container.innerHTML = '\n                <div class="student-card">\n                    <div class="card-close" onclick="closeCard()">✕</div>\n                    <div class="card-header">\n                        <div class="card-user">\n                            <div class="card-user-info">\n                                <div class="card-user-name">' + escapeHtml(student.studentName) + ' ' + badge + '</div>\n                                <div class="card-user-meta">\n                                    <span class="tag">' + getGroup(student.studentName) + '</span>\n                                    <span>• ID: #' + studentId + '</span>\n                                    <span>• ' + subjectsCount + ' предметов</span>\n                                </div>\n                            </div>\n                        </div>\n                        <div class="card-stats">\n                            <div class="stat-circle ' + avgClass + '">' + totalAvg + '</div>\n                            <div class="stat-info">\n                                <div class="stat-label">Средний балл</div>\n                                <div class="stat-value">' + statusText + ' <span>• Отгулы: ' + absCount + '</span></div>\n                            </div>\n                        </div>\n                    </div>\n                    <div class="card-body">\n                        <div class="card-body-title">📋 Предметы <span class="count">' + subjectsCount + '</span></div>\n                        ' + subjectsHtml + '\n                    </div>\n                </div>';
+            container.innerHTML = '<div class="student-card"><div class="card-close" onclick="closeCard()">✕</div><div class="card-header"><div class="card-user"><div class="card-user-info"><div class="card-user-name">' + escapeHtml(student.studentName) + ' ' + badge + '</div><div class="card-user-meta"><span class="tag">' + getGroup(student.studentName) + '</span><span>• ID: #' + studentId + '</span><span>• ' + subjectsCount + ' предметов</span></div></div></div><div class="card-stats"><div class="stat-circle ' + avgClass + '">' + totalAvg + '</div><div class="stat-info"><div class="stat-label">Средний балл</div><div class="stat-value">' + statusText + ' <span>• Отгулы: ' + absCount + '</span></div></div></div></div><div class="card-body"><div class="card-body-title">📋 Предметы <span class="count">' + subjectsCount + '</span></div>' + subjectsHtml + '</div></div>';
         }
         
         function openCard(name) {
@@ -1148,29 +1149,29 @@
         // 7. РЕНДЕРИНГ ЖУРНАЛА
         // ============================================================
         function renderJournal() {
-            const container = document.getElementById('list');
+            var container = document.getElementById('list');
             if (!container) return;
             container.innerHTML = '';
-            const query = document.getElementById('search')?.value.toLowerCase().trim() || '';
+            var query = document.getElementById('search')?.value.toLowerCase().trim() || '';
             
             if (!ALL_DATA.journal || ALL_DATA.journal.length === 0) {
                 container.innerHTML = '<div class="empty-state">Нет данных</div>';
                 return;
             }
             
-            let filteredStudents = ALL_DATA.journal.filter(function(s) { return s && s.studentName; });
+            var filteredStudents = ALL_DATA.journal.filter(function(s) { return s && s.studentName; });
             
-            const sortedByTotal = [...filteredStudents].sort(function(a, b) {
-                const avgA = parseFloat(String(a.totalAverage).replace(',', '.'));
-                const avgB = parseFloat(String(b.totalAverage).replace(',', '.'));
+            var sortedByTotal = filteredStudents.slice().sort(function(a, b) {
+                var avgA = parseFloat(String(a.totalAverage).replace(',', '.'));
+                var avgB = parseFloat(String(b.totalAverage).replace(',', '.'));
                 if (isNaN(avgA)) return 1;
                 if (isNaN(avgB)) return -1;
                 return avgB - avgA;
             });
-            const topNames = sortedByTotal.slice(0, 3).map(function(s) { return s.studentName; });
-            const crowns = ['🥇', '🥈', '🥉'];
+            var topNames = sortedByTotal.slice(0, 3).map(function(s) { return s.studentName; });
+            var crowns = ['🥇', '🥈', '🥉'];
             
-            const list = filteredStudents
+            var list = filteredStudents
                 .filter(function(s) { return s && s.studentName && s.studentName.toLowerCase().includes(query); })
                 .sort(function(a, b) { return a.studentName.localeCompare(b.studentName); });
             
@@ -1179,64 +1180,75 @@
                 return;
             }
             
-            list.forEach(function(s) {
-                const card = document.createElement('div');
+            for (var sIdx = 0; sIdx < list.length; sIdx++) {
+                var s = list[sIdx];
+                var card = document.createElement('div');
                 card.className = 'card';
-                const absCount = ALL_DATA.absences[s.studentName] || '0';
-                const tIdx = topNames.indexOf(s.studentName);
+                var absCount = ALL_DATA.absences[s.studentName] || '0';
+                var tIdx = topNames.indexOf(s.studentName);
                 
-                const isBoundToMe = userId && getBoundStudent() === s.studentName;
+                var isBoundToMe = userId && getBoundStudent() === s.studentName;
                 
-                let subsHtml = '';
+                var subsHtml = '';
                 if (s.subjects && Array.isArray(s.subjects)) {
-                    subsHtml = s.subjects.map(function(sub) {
-                        const isExam = isExamSubject(sub.subject);
+                    var subItems = [];
+                    for (var si = 0; si < s.subjects.length; si++) {
+                        var sub = s.subjects[si];
+                        var isExam = isExamSubject(sub.subject);
                         
-                        let marksHtml = '';
+                        var marksHtml = '';
                         if (sub.marks && Array.isArray(sub.marks) && sub.marks.length > 0) {
-                            marksHtml = sub.marks.map(function(m) { return '<div class="mark ' + getStyleForScore(m) + '">' + m + '</div>'; }).join('');
+                            var marksArr = [];
+                            for (var mi = 0; mi < sub.marks.length; mi++) {
+                                marksArr.push('<div class="mark ' + getStyleForScore(sub.marks[mi]) + '">' + sub.marks[mi] + '</div>');
+                            }
+                            marksHtml = marksArr.join('');
                         } else {
                             marksHtml = '<div style="font-size:10px; opacity:0.4; padding:6px;">Нет отметок</div>';
                         }
                         
-                        const avgDisplay = sub.avg && sub.avg !== '—' ? sub.avg : '—';
-                        const examClass = isExam ? 'exam-subject' : '';
+                        var avgDisplay = sub.avg && sub.avg !== '—' ? sub.avg : '—';
+                        var examClass = isExam ? 'exam-subject' : '';
                         
-                        const tooltipId = 'tooltip_' + Math.random().toString(36).substr(2, 9);
-                        const examIcon = isExam ? '<span class="exam-icon">!</span>' : '';
+                        var tooltipId = 'tooltip_' + Math.random().toString(36).substr(2, 9);
+                        var examIcon = isExam ? '<span class="exam-icon">!</span>' : '';
                         
-                        const tooltipHtml = isExam ? '\n                            <div class="exam-tooltip" id="' + tooltipId + '">\n                                <div class="tooltip-title">📝 Экзаменационный предмет</div>\n                                <div class="tooltip-text">Итоговая отметка может <strong>отличаться</strong> от текущей успеваемости и выставляется по результатам экзамена.</div>\n                                <div class="tooltip-hint">Нажмите на подсказку, чтобы скрыть</div>\n                            </div>' : '';
+                        var tooltipHtml = isExam ? '<div class="exam-tooltip" id="' + tooltipId + '"><div class="tooltip-title">📝 Экзаменационный предмет</div><div class="tooltip-text">Итоговая отметка может <strong>отличаться</strong> от текущей успеваемости и выставляется по результатам экзамена.</div><div class="tooltip-hint">Нажмите на подсказку, чтобы скрыть</div></div>' : '';
                         
-                        return '<div class="sub-item ' + examClass + '" data-tooltip="' + tooltipId + '" data-tooltip-shown="false">\n                            <div class="sub-row">\n                                <div class="subject-name-wrapper">\n                                    <span>' + escapeHtml(sub.subject || 'Без названия') + '</span>\n                                    ' + examIcon + '\n                                </div>\n                                <span class="score-pill ' + getStyleForScore(avgDisplay) + '">' + avgDisplay + '</span>\n                            </div>\n                            <div class="marks-box">\n                                <div class="marks-row">' + marksHtml + '</div>\n                            </div>\n                            ' + tooltipHtml + '\n                        </div>';
-                    }).join('');
+                        subItems.push('<div class="sub-item ' + examClass + '" data-tooltip="' + tooltipId + '" data-tooltip-shown="false"><div class="sub-row"><div class="subject-name-wrapper"><span>' + escapeHtml(sub.subject || 'Без названия') + '</span>' + examIcon + '</div><span class="score-pill ' + getStyleForScore(avgDisplay) + '">' + avgDisplay + '</span></div><div class="marks-box"><div class="marks-row">' + marksHtml + '</div></div>' + tooltipHtml + '</div>');
+                    }
+                    subsHtml = subItems.join('');
                 } else {
                     subsHtml = '<div style="font-size:11px; opacity:0.4; text-align:center; padding:10px;">Нет предметов</div>';
                 }
                 
-                const totalDisplay = s.totalAverage && s.totalAverage !== '—' ? s.totalAverage : '—';
+                var totalDisplay = s.totalAverage && s.totalAverage !== '—' ? s.totalAverage : '—';
                 
-                const identityBadge = isBoundToMe ? 
-                    '<span style="font-size:9px;background:var(--success);color:white;padding:1px 8px;border-radius:10px;margin-left:6px;">✅ Вы</span>' : '';
+                var identityBadge = isBoundToMe ? '<span style="font-size:9px;background:var(--success);color:white;padding:1px 8px;border-radius:10px;margin-left:6px;">✅ Вы</span>' : '';
                 
-                card.innerHTML = '\n                    <div class="student-header">\n                        <span class="student-name">\n                            ' + escapeHtml(s.studentName) + ' ' + (tIdx !== -1 ? crowns[tIdx] : '') + '\n                            <span class="abs-badge">⏳ ' + absCount + '</span>\n                            ' + identityBadge + '\n                        </span>\n                        <span class="score-pill ' + getStyleForScore(totalDisplay) + '">' + totalDisplay + '</span>\n                    </div>\n                    <div class="subs-container">' + subsHtml + '</div>';
+                card.innerHTML = '<div class="student-header"><span class="student-name">' + escapeHtml(s.studentName) + ' ' + (tIdx !== -1 ? crowns[tIdx] : '') + '<span class="abs-badge">⏳ ' + absCount + '</span>' + identityBadge + '</span><span class="score-pill ' + getStyleForScore(totalDisplay) + '">' + totalDisplay + '</span></div><div class="subs-container">' + subsHtml + '</div>';
                 
-                card.onclick = function(e) {
-                    e.stopPropagation();
-                    openCard(s.studentName);
-                };
+                card.onclick = function(name) {
+                    return function(e) {
+                        e.stopPropagation();
+                        openCard(name);
+                    };
+                }(s.studentName);
                 
                 container.appendChild(card);
-            });
+            }
             
-            document.querySelectorAll('.sub-item').forEach(function(item) {
+            var subItems = document.querySelectorAll('.sub-item');
+            for (var si2 = 0; si2 < subItems.length; si2++) {
+                var item = subItems[si2];
                 item.addEventListener('click', function(e) {
                     e.stopPropagation();
-                    const marksBox = this.querySelector('.marks-box');
+                    var marksBox = this.querySelector('.marks-box');
                     if (marksBox) marksBox.classList.toggle('open');
                     
                     if (this.classList.contains('exam-subject')) {
-                        const tooltipId = this.dataset.tooltip;
-                        const tooltip = document.getElementById(tooltipId);
+                        var tooltipId = this.dataset.tooltip;
+                        var tooltip = document.getElementById(tooltipId);
                         if (tooltip && this.dataset.tooltipShown === 'false') {
                             tooltip.classList.add('open');
                             this.dataset.tooltipShown = 'true';
@@ -1251,7 +1263,7 @@
                         }
                     }
                 });
-            });
+            }
             
             updateProfileButton();
         }
@@ -1260,15 +1272,15 @@
         // 8. КНОПКА ПРОФИЛЯ
         // ============================================================
         function updateProfileButton() {
-            const btn = document.getElementById('profileBtn');
-            const icon = document.getElementById('profileIcon');
-            const label = document.getElementById('modeLabel');
+            var btn = document.getElementById('profileBtn');
+            var icon = document.getElementById('profileIcon');
+            var label = document.getElementById('modeLabel');
             
-            const boundStudent = getBoundStudent();
+            var boundStudent = getBoundStudent();
             
             if (boundStudent) {
                 btn.classList.add('active');
-                const initials = getInitials(boundStudent);
+                var initials = getInitials(boundStudent);
                 icon.innerHTML = '<span style="font-size:16px;font-weight:700;color:white;">' + initials + '</span>';
                 
                 if (isCardMode) {
@@ -1278,23 +1290,23 @@
                 }
             } else {
                 btn.classList.remove('active');
-                icon.innerHTML = '\n                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">\n                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>\n                        <circle cx="12" cy="7" r="4"/>\n                    </svg>\n                ';
+                icon.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
                 label.textContent = '';
             }
         }
         
         // ============================================================
-        // 9. ВЫБОР СТУДЕНТА (ПОПАП)
+        // 9. ВЫБОР СТУДЕНТА
         // ============================================================
         function showStudentSelect() {
-            const popup = document.getElementById('identityPopup');
-            const list = document.getElementById('studentSelectList');
-            const sub = document.getElementById('popupSubText');
+            var popup = document.getElementById('identityPopup');
+            var list = document.getElementById('studentSelectList');
+            var sub = document.getElementById('popupSubText');
             
             sub.textContent = 'Выберите свою фамилию из списка:';
             list.innerHTML = '';
             
-            const sorted = [...ALL_DATA.journal].filter(function(s) { return s && s.studentName; }).sort(function(a, b) { return a.studentName.localeCompare(b.studentName); });
+            var sorted = ALL_DATA.journal.filter(function(s) { return s && s.studentName; }).sort(function(a, b) { return a.studentName.localeCompare(b.studentName); });
             
             if (sorted.length === 0) {
                 list.innerHTML = '<div style="padding:20px;text-align:center;color:var(--muted);">Нет студентов</div>';
@@ -1302,46 +1314,50 @@
                 return;
             }
             
-            sorted.forEach(function(s) {
-                const item = document.createElement('div');
+            for (var i = 0; i < sorted.length; i++) {
+                var s = sorted[i];
+                var item = document.createElement('div');
                 item.className = 'student-item';
-                item.innerHTML = '\n                    <span class="s-name">' + escapeHtml(s.studentName) + '</span>\n                    <span class="s-group">' + getGroup(s.studentName) + '</span>\n                ';
-                item.onclick = function() {
-                    selectedStudentForIdentity = s.studentName;
-                    document.querySelectorAll('.student-item').forEach(function(el) {
-                        el.style.background = 'transparent';
-                        el.style.border = 'none';
-                    });
-                    this.style.background = 'rgba(56, 189, 248, 0.1)';
-                    this.style.border = '1px solid rgba(56, 189, 248, 0.2)';
-                    sub.textContent = '✅ Вы выбрали: ' + s.studentName;
-                };
+                item.innerHTML = '<span class="s-name">' + escapeHtml(s.studentName) + '</span><span class="s-group">' + getGroup(s.studentName) + '</span>';
+                item.onclick = function(name) {
+                    return function() {
+                        selectedStudentForIdentity = name;
+                        var items = document.querySelectorAll('.student-item');
+                        for (var j = 0; j < items.length; j++) {
+                            items[j].style.background = 'transparent';
+                            items[j].style.border = 'none';
+                        }
+                        this.style.background = 'rgba(56, 189, 248, 0.1)';
+                        this.style.border = '1px solid rgba(56, 189, 248, 0.2)';
+                        document.getElementById('popupSubText').textContent = '✅ Вы выбрали: ' + name;
+                    };
+                }(s.studentName);
                 list.appendChild(item);
-            });
+            }
             
             popup.classList.add('open');
             if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
         }
         
         // ============================================================
-        // 10. ЗАГРУЗКА ДАННЫХ
+        // 10. ЗАГРУЗКА ДАННЫХ (сокращенное время)
         // ============================================================
         function loadData() {
             if (isLoading) return;
             isLoading = true;
             
-            const loader = document.getElementById('loader');
-            const loaderStatus = document.getElementById('loaderStatus');
+            var loader = document.getElementById('loader');
+            var loaderStatus = document.getElementById('loaderStatus');
             loader.style.display = 'flex';
             loader.style.opacity = '1';
             hideError();
-            loaderStatus.textContent = 'Загрузка данных';
+            loaderStatus.textContent = 'Загрузка журнала';
             
-            // Пробуем загрузить из кеша
+            // Пробуем загрузить из кеша (мгновенно)
             try {
-                const cached = localStorage.getItem(CACHE_KEY);
+                var cached = localStorage.getItem(CACHE_KEY);
                 if (cached) {
-                    const data = JSON.parse(cached);
+                    var data = JSON.parse(cached);
                     if (data.journal && data.journal.length > 0) {
                         ALL_DATA = data;
                         processAllAverages();
@@ -1350,12 +1366,11 @@
                         hideLoader();
                         isLoading = false;
                         
-                        // Открываем карточку если есть привязка
                         if (!cardOpened) {
-                            const bound = getBoundStudent();
+                            var bound = getBoundStudent();
                             if (bound) {
                                 cardOpened = true;
-                                setTimeout(function() { openCard(bound); }, 300);
+                                setTimeout(function() { openCard(bound); }, 200);
                             }
                         }
                         return;
@@ -1366,23 +1381,28 @@
             }
             
             // Загружаем с сервера
-            loaderStatus.textContent = 'Загрузка с сервера';
+            loaderStatus.textContent = 'Загрузка журнала';
+            
+            var controller = new AbortController();
+            var timeoutId = setTimeout(function() { controller.abort(); }, 8000);
             
             Promise.all([
-                fetch(API_JOURNAL).then(function(r) { return r.json(); }),
-                fetch(API_ABSENCES).then(function(r) { return r.json(); })
+                fetch(API_JOURNAL, { signal: controller.signal }).then(function(r) { return r.json(); }),
+                fetch(API_ABSENCES, { signal: controller.signal }).then(function(r) { return r.json(); })
             ]).then(function(results) {
-                const resJ = results[0];
-                const resA = results[1];
+                clearTimeout(timeoutId);
+                var resJ = results[0];
+                var resA = results[1];
                 
-                const absMap = {};
+                var absMap = {};
                 if (Array.isArray(resA)) {
-                    resA.forEach(function(a) { 
-                        if (a && a.name) absMap[a.name.trim()] = a.count || '0'; 
-                    });
+                    for (var i = 0; i < resA.length; i++) {
+                        var a = resA[i];
+                        if (a && a.name) absMap[a.name.trim()] = a.count || '0';
+                    }
                 }
                 
-                let journalData = [];
+                var journalData = [];
                 if (Array.isArray(resJ)) journalData = resJ;
                 else if (resJ && resJ.journal && Array.isArray(resJ.journal)) journalData = resJ.journal;
                 else if (resJ && !resJ.error) journalData = resJ;
@@ -1403,24 +1423,24 @@
                     tg.HapticFeedback.notificationOccurred('success');
                 }
                 
-                // Открываем карточку если есть привязка
                 if (!cardOpened) {
-                    const bound = getBoundStudent();
+                    var bound = getBoundStudent();
                     if (bound) {
                         cardOpened = true;
-                        setTimeout(function() { openCard(bound); }, 300);
+                        setTimeout(function() { openCard(bound); }, 200);
                     }
                 }
                 
                 isLoading = false;
             }).catch(function(e) {
+                clearTimeout(timeoutId);
                 console.error('Ошибка загрузки:', e);
                 
-                // Пробуем использовать кеш если есть
+                // Пробуем использовать кеш
                 try {
-                    const cached = localStorage.getItem(CACHE_KEY);
+                    var cached = localStorage.getItem(CACHE_KEY);
                     if (cached) {
-                        const data = JSON.parse(cached);
+                        var data = JSON.parse(cached);
                         if (data.journal && data.journal.length > 0) {
                             ALL_DATA = data;
                             processAllAverages();
@@ -1430,10 +1450,10 @@
                             isLoading = false;
                             
                             if (!cardOpened) {
-                                const bound = getBoundStudent();
+                                var bound = getBoundStudent();
                                 if (bound) {
                                     cardOpened = true;
-                                    setTimeout(function() { openCard(bound); }, 300);
+                                    setTimeout(function() { openCard(bound); }, 200);
                                 }
                             }
                             return;
@@ -1449,17 +1469,19 @@
         }
         
         function processAllAverages() {
-            for (let student of ALL_DATA.journal) {
+            for (var i = 0; i < ALL_DATA.journal.length; i++) {
+                var student = ALL_DATA.journal[i];
                 if (student.subjects && Array.isArray(student.subjects)) {
-                    for (let subject of student.subjects) {
-                        const calculatedAvg = calculateAverage(subject.marks);
+                    for (var j = 0; j < student.subjects.length; j++) {
+                        var subject = student.subjects[j];
+                        var calculatedAvg = calculateAverage(subject.marks);
                         if (calculatedAvg) {
                             subject.avg = calculatedAvg;
                         } else if (!subject.avg || subject.avg === '—') {
                             subject.avg = '—';
                         }
                     }
-                    const totalAvg = calculateTotalAverage(student.subjects);
+                    var totalAvg = calculateTotalAverage(student.subjects);
                     if (totalAvg) {
                         student.totalAverage = totalAvg;
                     } else if (!student.totalAverage || student.totalAverage === '0,0') {
@@ -1476,21 +1498,21 @@
         }
         
         function hideLoader() {
-            const loader = document.getElementById('loader');
-            const mainContent = document.getElementById('main-content');
+            var loader = document.getElementById('loader');
+            var mainContent = document.getElementById('main-content');
             loader.style.opacity = '0';
             setTimeout(function() {
                 loader.style.display = 'none';
                 mainContent.classList.add('visible');
-            }, 500);
+            }, 400);
         }
         
         // ============================================================
-        // 11. ОБРАБОТЧИКИ СОБЫТИЙ
+        // 11. ОБРАБОТЧИКИ
         // ============================================================
         document.getElementById('profileBtn').addEventListener('click', function(e) {
             e.stopPropagation();
-            const bound = getBoundStudent();
+            var bound = getBoundStudent();
             
             if (bound) {
                 if (isCardMode) {
@@ -1539,34 +1561,37 @@
             }
             
             selectedStudentForIdentity = null;
-            document.querySelectorAll('.student-item').forEach(function(el) {
-                el.style.background = 'transparent';
-                el.style.border = 'none';
-            });
+            var items = document.querySelectorAll('.student-item');
+            for (var i = 0; i < items.length; i++) {
+                items[i].style.background = 'transparent';
+                items[i].style.border = 'none';
+            }
             document.getElementById('popupSubText').textContent = 'Выберите свою фамилию из списка:';
         });
         
         document.getElementById('btnIdentityNo').addEventListener('click', function() {
             document.getElementById('identityPopup').classList.remove('open');
             selectedStudentForIdentity = null;
-            document.querySelectorAll('.student-item').forEach(function(el) {
-                el.style.background = 'transparent';
-                el.style.border = 'none';
-            });
+            var items = document.querySelectorAll('.student-item');
+            for (var i = 0; i < items.length; i++) {
+                items[i].style.background = 'transparent';
+                items[i].style.border = 'none';
+            }
             document.getElementById('popupSubText').textContent = 'Выберите свою фамилию из списка:';
             if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
         });
         
         document.addEventListener('click', function(e) {
-            const popup = document.getElementById('identityPopup');
+            var popup = document.getElementById('identityPopup');
             if (popup.classList.contains('open')) {
                 if (!popup.contains(e.target)) {
                     popup.classList.remove('open');
                     selectedStudentForIdentity = null;
-                    document.querySelectorAll('.student-item').forEach(function(el) {
-                        el.style.background = 'transparent';
-                        el.style.border = 'none';
-                    });
+                    var items = document.querySelectorAll('.student-item');
+                    for (var i = 0; i < items.length; i++) {
+                        items[i].style.background = 'transparent';
+                        items[i].style.border = 'none';
+                    }
                     document.getElementById('popupSubText').textContent = 'Выберите свою фамилию из списка:';
                 }
             }
