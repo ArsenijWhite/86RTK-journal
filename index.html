@@ -258,14 +258,14 @@
             box-shadow: 0 7px 0 rgba(255,255,255,0.6), 0 14px 0 rgba(255,255,255,0.6);
         }
         
-        /* КНОПКА ПРОФИЛЯ */
+        /* КНОПКА ПРОФИЛЯ - ВСЕГДА ВИДНА */
         .profile-btn {
             width: 40px;
             height: 40px;
             border-radius: 50%;
             background: linear-gradient(135deg, #38bdf8, #0ea5e9);
             border: 2px solid rgba(255,255,255,0.1);
-            display: none;
+            display: flex;
             align-items: center;
             justify-content: center;
             font-size: 16px;
@@ -276,10 +276,6 @@
             flex-shrink: 0;
             box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3);
             position: relative;
-        }
-        
-        .profile-btn.show {
-            display: flex;
         }
         
         .profile-btn:active {
@@ -295,6 +291,21 @@
             background: var(--success);
             border-radius: 50%;
             border: 2px solid var(--bg);
+        }
+        
+        .profile-btn .badge-offline {
+            position: absolute;
+            bottom: 1px;
+            right: 1px;
+            width: 10px;
+            height: 10px;
+            background: var(--muted);
+            border-radius: 50%;
+            border: 2px solid var(--bg);
+        }
+        
+        .profile-btn .profile-icon {
+            font-size: 18px;
         }
         
         .header-sub { 
@@ -849,6 +860,7 @@
             border-radius: 20px;
         }
 
+        /* Стили для предметов в карточке - кликабельные */
         .subject-row {
             display: flex;
             align-items: center;
@@ -946,6 +958,33 @@
             padding: 1px 6px;
             border-radius: 8px;
             margin-left: 4px;
+        }
+
+        /* Контейнер для оценок внутри предмета */
+        .subject-marks-container {
+            display: none;
+            margin-top: 6px;
+            padding: 8px 10px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+        
+        .subject-marks-container.open {
+            display: flex;
+        }
+        
+        .subject-marks-container .mark-item {
+            width: 26px;
+            height: 26px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 700;
+            color: white;
         }
 
         .fab-update { 
@@ -1086,8 +1125,8 @@
                 Журнал 86РТК
             </div>
             <div class="profile-btn" id="profileBtn">
-                <span id="profileInitials">ИИ</span>
-                <span class="badge-online"></span>
+                <span id="profileContent">👤</span>
+                <span class="badge-offline" id="profileBadge"></span>
             </div>
         </div>
         
@@ -1154,7 +1193,7 @@
             }
         } catch(e) {}
         
-        const CACHE_KEY = 'journal_86rtk_v14';
+        const CACHE_KEY = 'journal_86rtk_v15';
         
         const EXAM_SUBJECTS = [
             'Цифровая и микропроцессорная техника',
@@ -1368,9 +1407,10 @@
                         else scoreClass = 'red';
                     }
                     
-                    let marksHtml = '';
+                    // Собираем все оценки для отображения
+                    let marksListHtml = '';
                     if (sub.marks && Array.isArray(sub.marks) && sub.marks.length > 0) {
-                        marksHtml = sub.marks.map(m => {
+                        marksListHtml = sub.marks.map(m => {
                             const mNum = parseFloat(String(m).replace(',', '.'));
                             let bg = '#475569';
                             if (!isNaN(mNum)) {
@@ -1378,7 +1418,7 @@
                                 else if (mNum >= 5) bg = '#f59e0b';
                                 else bg = '#ef4444';
                             }
-                            return `<span class="mark" style="background:${bg};color:white;">${m}</span>`;
+                            return `<span class="mark-item" style="background:${bg};">${m}</span>`;
                         }).join('');
                     }
                     
@@ -1386,17 +1426,22 @@
                     const iconClass = ['blue', 'pink', 'purple', 'green', 'orange', 'blue', 'pink', 'purple', 'green', 'orange', 'blue', 'pink'][idx % 12];
                     const examBadge = isExam ? `<span class="exam-badge">📝 Экзамен</span>` : '';
                     
+                    // Создаем уникальный ID для контейнера с оценками
+                    const marksId = 'marks_' + idx + '_' + Math.random().toString(36).substr(2, 6);
+                    
                     subjectsHtml += `
-                        <div class="subject-row ${isExam ? 'exam' : ''}">
+                        <div class="subject-row ${isExam ? 'exam' : ''}" onclick="toggleMarks('${marksId}')">
                             <div class="subject-icon ${iconClass}">${icon}</div>
                             <div class="subject-info">
                                 <div class="subject-name">
                                     ${escapeHtml(sub.subject || 'Без названия')}
                                     ${examBadge}
                                 </div>
-                                <div class="subject-marks">${marksHtml}</div>
                             </div>
                             <div class="subject-score ${scoreClass}">${avgDisplay}</div>
+                        </div>
+                        <div class="subject-marks-container" id="${marksId}">
+                            ${marksListHtml || '<span style="color:var(--muted);font-size:10px;">Нет оценок</span>'}
                         </div>
                     `;
                 });
@@ -1466,6 +1511,15 @@
                     </div>
                 </div>
             `;
+        }
+        
+        // Функция для раскрытия оценок по предмету
+        function toggleMarks(id) {
+            const container = document.getElementById(id);
+            if (container) {
+                container.classList.toggle('open');
+                if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+            }
         }
         
         // ============================================================
@@ -1590,7 +1644,6 @@
                 
                 card.onclick = function(e) {
                     e.stopPropagation();
-                    
                     // Открываем карточку с этим студентом
                     openCard(s.studentName);
                 };
@@ -1633,21 +1686,45 @@
             const userId = tg ? String(tg.initDataUnsafe?.user?.id || '') : '';
             const boundStudent = userId && BINDINGS[userId] ? BINDINGS[userId] : null;
             const profileBtn = document.getElementById('profileBtn');
-            const initials = document.getElementById('profileInitials');
+            const profileContent = document.getElementById('profileContent');
+            const profileBadge = document.getElementById('profileBadge');
             
             if (boundStudent) {
                 const student = ALL_DATA.journal.find(s => s.studentName === boundStudent);
                 if (student) {
-                    initials.textContent = getInitials(student.studentName);
-                    profileBtn.classList.add('show');
+                    profileContent.textContent = getInitials(student.studentName);
+                    profileBadge.className = 'badge-online';
                 }
             } else {
-                profileBtn.classList.remove('show');
+                profileContent.textContent = '👤';
+                profileBadge.className = 'badge-offline';
             }
         }
         
         // ============================================================
-        // 10. ЗАГРУЗКА ДАННЫХ
+        // 10. ОБРАБОТЧИК ПРОФИЛЯ
+        // ============================================================
+        document.getElementById('profileBtn')?.addEventListener('click', function() {
+            const userId = tg ? String(tg.initDataUnsafe?.user?.id || '') : '';
+            const boundStudent = userId && BINDINGS[userId] ? BINDINGS[userId] : null;
+            
+            if (boundStudent) {
+                // Если привязан - открываем карточку
+                openCard(boundStudent);
+            } else {
+                // Если не привязан - отправляем запрос
+                // Показываем попап с выбором студента
+                // Для простоты - показываем список студентов в попапе
+                const popup = document.getElementById('identityPopup');
+                // Здесь нужно показать список студентов для выбора
+                // Пока просто показываем заглушку
+                if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+                tg.showAlert('👤 Нажмите на свою фамилию в журнале, чтобы отправить запрос на привязку.');
+            }
+        });
+        
+        // ============================================================
+        // 11. ЗАГРУЗКА ДАННЫХ
         // ============================================================
         async function init(force = false) {
             if (isLoading) return;
@@ -1777,17 +1854,8 @@
         }
         
         // ============================================================
-        // 11. ОБРАБОТЧИКИ СОБЫТИЙ
+        // 12. ОБРАБОТЧИКИ СОБЫТИЙ
         // ============================================================
-        // Профиль - открывает карточку привязанного студента
-        document.getElementById('profileBtn')?.addEventListener('click', function() {
-            const userId = tg ? String(tg.initDataUnsafe?.user?.id || '') : '';
-            const boundStudent = userId && BINDINGS[userId] ? BINDINGS[userId] : null;
-            if (boundStudent) {
-                openCard(boundStudent);
-            }
-        });
-        
         // Закрытие карточки по клику на оверлей
         document.getElementById('cardOverlay')?.addEventListener('click', function(e) {
             if (e.target === this) closeCard();
@@ -1846,14 +1914,16 @@
         });
         
         // ============================================================
-        // 12. ЗАПУСК
+        // 13. ЗАПУСК
         // ============================================================
         if (tg) {
             tg.onEvent('backButtonClicked', () => tg.close());
         }
         
+        // Делаем функции глобальными
         window.openCard = openCard;
         window.closeCard = closeCard;
+        window.toggleMarks = toggleMarks;
         
         init(true);
     </script>
