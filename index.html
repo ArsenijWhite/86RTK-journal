@@ -258,7 +258,7 @@
             box-shadow: 0 7px 0 rgba(255,255,255,0.6), 0 14px 0 rgba(255,255,255,0.6);
         }
         
-        /* КНОПКА ПРОФИЛЯ (только после привязки) */
+        /* КНОПКА ПРОФИЛЯ */
         .profile-btn {
             width: 40px;
             height: 40px;
@@ -327,6 +327,7 @@
             margin-bottom: 10px; 
             border: 1px solid rgba(255,255,255,0.05); 
             cursor: pointer;
+            transition: all 0.2s ease;
         }
         .card:active { 
             transform: scale(0.98); 
@@ -856,6 +857,12 @@
             margin-bottom: 4px;
             background: rgba(255, 255, 255, 0.02);
             transition: background 0.2s;
+            cursor: pointer;
+        }
+
+        .subject-row:active {
+            transform: scale(0.98);
+            background: rgba(255, 255, 255, 0.06);
         }
 
         .subject-row .subject-icon {
@@ -1041,86 +1048,6 @@
             color: var(--text);
         }
 
-        /* ===== УВЕДОМЛЕНИЕ О ПОДТВЕРЖДЕНИИ ===== */
-        .approval-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.85);
-            z-index: 3000;
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            align-items: center;
-            justify-content: center;
-            animation: fadeIn 0.5s ease;
-        }
-        
-        .approval-overlay.open {
-            display: flex;
-        }
-        
-        .approval-box {
-            background: var(--card);
-            border-radius: 24px;
-            padding: 40px 30px 30px;
-            max-width: 340px;
-            width: 100%;
-            text-align: center;
-            border: 1px solid rgba(255,255,255,0.06);
-            animation: slideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .approval-box::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, #10b981, #38bdf8, #fbbf24);
-        }
-        
-        .approval-box .icon {
-            font-size: 56px;
-            display: block;
-            margin-bottom: 16px;
-        }
-        
-        .approval-box h2 {
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--text);
-            margin-bottom: 8px;
-        }
-        
-        .approval-box p {
-            font-size: 13px;
-            color: var(--muted);
-            line-height: 1.5;
-            margin-bottom: 24px;
-        }
-        
-        .approval-box .btn-ok {
-            background: var(--success);
-            color: white;
-            border: none;
-            padding: 12px 40px;
-            border-radius: 30px;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        
-        .approval-box .btn-ok:active {
-            transform: scale(0.95);
-        }
-
         @supports (padding-bottom: env(safe-area-inset-bottom)) {
             body {
                 padding-bottom: calc(30px + env(safe-area-inset-bottom));
@@ -1149,16 +1076,6 @@
             </div>
         </div>
         <div class="copyright">by @skwared</div>
-    </div>
-
-    <!-- УВЕДОМЛЕНИЕ О ПОДТВЕРЖДЕНИИ -->
-    <div class="approval-overlay" id="approvalOverlay">
-        <div class="approval-box">
-            <span class="icon">✅</span>
-            <h2>Запрос одобрен</h2>
-            <p>Ваша личность подтверждена.<br>Теперь вам доступна карточка учащегося.</p>
-            <button class="btn-ok" id="approvalOk">Понятно</button>
-        </div>
     </div>
 
     <div id="main-content">
@@ -1237,8 +1154,7 @@
             }
         } catch(e) {}
         
-        const CACHE_KEY = 'journal_86rtk_v12';
-        const APPROVAL_KEY = 'approval_shown_v1';
+        const CACHE_KEY = 'journal_86rtk_v14';
         
         const EXAM_SUBJECTS = [
             'Цифровая и микропроцессорная техника',
@@ -1249,7 +1165,6 @@
         let ALL_DATA = { journal: [], absences: {} };
         let isLoading = false;
         let currentStudentForIdentity = null;
-        let approvalShown = localStorage.getItem(APPROVAL_KEY) === 'true';
         
         // ============================================================
         // 4. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
@@ -1345,7 +1260,7 @@
         }
         
         // ============================================================
-        // 5. ОТПРАВКА УВЕДОМЛЕНИЯ
+        // 5. ОТПРАВКА УВЕДОМЛЕНИЯ ВЛАДЕЛЬЦУ
         // ============================================================
         async function notifyOwner(userId, studentName) {
             try {
@@ -1368,7 +1283,7 @@
                 
                 const data = await response.json();
                 if (data.ok) {
-                    console.log('✅ Уведомление отправлено');
+                    console.log('✅ Уведомление отправлено владельцу');
                     return true;
                 } else {
                     console.error('❌ Ошибка отправки:', data);
@@ -1381,7 +1296,7 @@
         }
         
         // ============================================================
-        // 6. РЕНДЕРИНГ КАРТОЧКИ СТУДЕНТА (по фамилии)
+        // 6. РЕНДЕРИНГ КАРТОЧКИ СТУДЕНТА
         // ============================================================
         function renderStudentCard(studentName) {
             const container = document.getElementById('cardWrapper');
@@ -1556,12 +1471,9 @@
         // ============================================================
         // 7. УПРАВЛЕНИЕ КАРТОЧКОЙ
         // ============================================================
-        let currentCardStudent = null;
-        
         function openCard(studentName) {
-            currentCardStudent = studentName || null;
             const overlay = document.getElementById('cardOverlay');
-            renderStudentCard(currentCardStudent);
+            renderStudentCard(studentName || null);
             overlay.classList.add('open');
             if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
         }
@@ -1735,22 +1647,7 @@
         }
         
         // ============================================================
-        // 10. ПРОВЕРКА НОВОЙ ПРИВЯЗКИ (УВЕДОМЛЕНИЕ)
-        // ============================================================
-        function checkNewBinding() {
-            const userId = tg ? String(tg.initDataUnsafe?.user?.id || '') : '';
-            const boundStudent = userId && BINDINGS[userId] ? BINDINGS[userId] : null;
-            
-            if (boundStudent && !approvalShown) {
-                const overlay = document.getElementById('approvalOverlay');
-                overlay.classList.add('open');
-                approvalShown = true;
-                localStorage.setItem(APPROVAL_KEY, 'true');
-            }
-        }
-        
-        // ============================================================
-        // 11. ЗАГРУЗКА ДАННЫХ
+        // 10. ЗАГРУЗКА ДАННЫХ
         // ============================================================
         async function init(force = false) {
             if (isLoading) return;
@@ -1776,7 +1673,6 @@
                         processAllAverages();
                         renderJournal();
                         updateProfile();
-                        checkNewBinding();
                         hideLoader();
                         isLoading = false;
                         return;
@@ -1818,7 +1714,6 @@
                 
                 renderJournal();
                 updateProfile();
-                checkNewBinding();
                 hideLoader();
                 
                 if (tg && tg.HapticFeedback) {
@@ -1835,7 +1730,6 @@
                         processAllAverages();
                         renderJournal();
                         updateProfile();
-                        checkNewBinding();
                         hideLoader();
                     }, 800);
                 } else {
@@ -1883,7 +1777,7 @@
         }
         
         // ============================================================
-        // 12. ОБРАБОТЧИКИ СОБЫТИЙ
+        // 11. ОБРАБОТЧИКИ СОБЫТИЙ
         // ============================================================
         // Профиль - открывает карточку привязанного студента
         document.getElementById('profileBtn')?.addEventListener('click', function() {
@@ -1906,7 +1800,7 @@
         document.getElementById('retryButton')?.addEventListener('click', () => forceUpdate());
         document.getElementById('fabUpdate')?.addEventListener('click', () => forceUpdate());
         
-        // Попап "Это вы?" - теперь ТОЛЬКО для отправки запроса
+        // Попап "Это вы?" - отправка запроса владельцу
         document.getElementById('btnIdentityYes')?.addEventListener('click', async function() {
             const popup = document.getElementById('identityPopup');
             popup.classList.remove('open');
@@ -1922,7 +1816,7 @@
             if (tg && tg.HapticFeedback) {
                 if (sent) {
                     tg.HapticFeedback.notificationOccurred('success');
-                    tg.showAlert('✅ Запрос отправлен! Ожидайте подтверждения.');
+                    tg.showAlert('✅ Запрос отправлен владельцу!');
                 } else {
                     tg.HapticFeedback.notificationOccurred('error');
                     tg.showAlert('❌ Ошибка отправки. Попробуйте позже.');
@@ -1951,13 +1845,8 @@
             }
         });
         
-        // Кнопка "Понятно"
-        document.getElementById('approvalOk')?.addEventListener('click', function() {
-            document.getElementById('approvalOverlay').classList.remove('open');
-        });
-        
         // ============================================================
-        // 13. ЗАПУСК
+        // 12. ЗАПУСК
         // ============================================================
         if (tg) {
             tg.onEvent('backButtonClicked', () => tg.close());
