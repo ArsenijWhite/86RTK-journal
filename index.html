@@ -17,6 +17,7 @@
             --exam-color: #f472b6;
             --exam-bg: rgba(244, 114, 182, 0.12);
             --success: #10b981;
+            --admin: #8b5cf6;
         }
         * { 
             font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; 
@@ -786,10 +787,177 @@
             display: none;
         }
 
+        /* ============================================================
+           АДМИН-ПАНЕЛЬ
+           ============================================================ */
+        .admin-panel {
+            display: none;
+            position: fixed;
+            bottom: 30px;
+            left: 16px;
+            right: 16px;
+            background: var(--card);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid var(--admin);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+            z-index: 1002;
+            animation: slideUp 0.3s ease;
+            backdrop-filter: blur(20px);
+            background: rgba(30, 41, 59, 0.95);
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+        .admin-panel.open {
+            display: block;
+        }
+        .admin-panel .admin-title {
+            color: var(--admin);
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .admin-panel .admin-title .close-admin {
+            margin-left: auto;
+            color: var(--muted);
+            cursor: pointer;
+            font-size: 20px;
+        }
+        
+        .admin-panel .admin-template-btn {
+            width: 100%;
+            padding: 10px 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            background: rgba(139, 92, 246, 0.08);
+            color: var(--admin);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 10px;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .admin-panel .admin-template-btn:active {
+            transform: scale(0.97);
+            background: rgba(139, 92, 246, 0.2);
+        }
+        
+        .admin-panel .admin-input {
+            width: 100%;
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 12px 16px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.05);
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+            margin-bottom: 10px;
+            resize: vertical;
+            min-height: 80px;
+            font-family: inherit;
+        }
+        .admin-panel .admin-input:focus {
+            border-color: var(--admin);
+        }
+        .admin-panel .admin-select {
+            width: 100%;
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 12px 16px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.05);
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+            margin-bottom: 10px;
+            appearance: none;
+            -webkit-appearance: none;
+        }
+        .admin-panel .admin-select:focus {
+            border-color: var(--admin);
+        }
+        .admin-panel .admin-select option {
+            background: var(--card);
+            color: #fff;
+        }
+        
+        .admin-panel .admin-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .admin-panel .admin-actions button {
+            flex: 1;
+            padding: 12px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .admin-panel .admin-actions button:active {
+            transform: scale(0.96);
+        }
+        .admin-panel .admin-actions .btn-send {
+            background: var(--admin);
+            color: white;
+        }
+        .admin-panel .admin-actions .btn-cancel {
+            background: rgba(255,255,255,0.08);
+            color: var(--text);
+        }
+        .admin-panel .admin-status {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 8px;
+            text-align: center;
+        }
+        .admin-panel .admin-status.success {
+            color: var(--success);
+        }
+        .admin-panel .admin-status.error {
+            color: var(--error);
+        }
+
+        /* Кнопка админа */
+        .admin-fab {
+            display: none;
+            position: fixed;
+            bottom: 85px;
+            right: 16px;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            align-items: center;
+            justify-content: center;
+            z-index: 998;
+            cursor: pointer;
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+        }
+        .admin-fab:active {
+            transform: scale(0.92);
+        }
+        .admin-fab.visible {
+            display: flex;
+        }
+        .admin-fab svg {
+            width: 22px;
+            height: 22px;
+            stroke: white;
+            fill: none;
+            stroke-width: 2;
+        }
+
         @supports (padding-bottom: env(safe-area-inset-bottom)) {
             body { padding-bottom: calc(30px + env(safe-area-inset-bottom)); }
             .fab-update { bottom: calc(30px + env(safe-area-inset-bottom)); }
             .identity-popup { bottom: calc(30px + env(safe-area-inset-bottom)); }
+            .admin-panel { bottom: calc(30px + env(safe-area-inset-bottom)); }
+            .admin-fab { bottom: calc(85px + env(safe-area-inset-bottom)); }
         }
     </style>
 </head>
@@ -834,6 +1002,39 @@
         <div class="footer">by @skwared</div>
     </div>
 
+    <!-- Кнопка админа (видна только владельцу) -->
+    <div class="admin-fab" id="adminFab">
+        <svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            <path d="M8 10h.01"/>
+            <path d="M12 10h.01"/>
+            <path d="M16 10h.01"/>
+        </svg>
+    </div>
+
+    <!-- Админ-панель -->
+    <div class="admin-panel" id="adminPanel">
+        <div class="admin-title">
+            👑 Админ-панель
+            <span class="close-admin" id="closeAdmin">✕</span>
+        </div>
+        
+        <!-- Один шаблон -->
+        <button class="admin-template-btn" id="templateNewScores">
+            📊 Новые баллы
+        </button>
+        
+        <textarea class="admin-input" id="adminMessage" placeholder="Введите сообщение для рассылки..."></textarea>
+        <select class="admin-select" id="adminRecipient">
+            <option value="all">📢 Всем студентам</option>
+        </select>
+        <div class="admin-actions">
+            <button class="btn-send" id="adminSend">📨 Отправить</button>
+            <button class="btn-cancel" id="adminCancel">Отмена</button>
+        </div>
+        <div class="admin-status" id="adminStatus"></div>
+    </div>
+
     <div class="identity-popup" id="identityPopup">
         <div class="title">👤 Это вы?</div>
         <div class="sub" id="popupSubText">Выберите свою фамилию из списка:</div>
@@ -867,14 +1068,14 @@
         // 2. ПРИВЯЗКА СТУДЕНТОВ
         // ============================================================
         const BINDINGS = {
-            '5753985995': 'Беляцкий',
-            '1939232438': 'Конюк',
-            '5359580675': 'Славиковский',
-            '1224567874': 'Кошевар',
-            '1581076393': 'Азарко',
-            '5300397368': 'Таган',
-            '1360839045': 'Сазонов',
-            '6229532704': 'Маковик'
+        '5753985995': 'Беляцкий',
+        '1939232438': 'Конюк',
+        '5359580675': 'Славиковский',
+        '1224567874': 'Кошевар',
+        '1581076393': 'Азарко',
+        '5300397368': 'Таган',
+        '1360839045': 'Сазонов',
+        '6229532704': 'Маковик'
         };
         
         // ============================================================
@@ -887,8 +1088,9 @@
         let isLoading = false;
         let selectedStudentForIdentity = null;
         let isDataLoaded = false;
+        let isAdmin = false;
         
-        const CACHE_KEY = 'journal_86rtk_v27';
+        const CACHE_KEY = 'journal_86rtk_v30';
         const EXAM_SUBJECTS = [
             'Цифровая и микропроцессорная техника',
             'Промышленная электроника и микроэлектроника',
@@ -908,6 +1110,11 @@
                 if (user) {
                     userId = String(user.id);
                     console.log('👤 Пользователь ID:', userId);
+                    isAdmin = (userId === OWNER_CHAT_ID);
+                    if (isAdmin) {
+                        console.log('👑 Админ режим активирован');
+                        document.getElementById('adminFab').classList.add('visible');
+                    }
                 }
             }
         } catch(e) {
@@ -1022,7 +1229,7 @@
         }
         
         // ============================================================
-        // 6. ОТПРАВКА УВЕДОМЛЕНИЯ
+        // 6. ОТПРАВКА УВЕДОМЛЕНИЙ
         // ============================================================
         function notifyOwner(userId, studentName) {
             const message = '🔔 <b>Новая привязка!</b>\n\n' +
@@ -1050,7 +1257,108 @@
         }
         
         // ============================================================
-        // 7. КАРТОЧКА СТУДЕНТА
+        // 7. АДМИН-ФУНКЦИИ
+        // ============================================================
+        function updateAdminRecipients() {
+            const select = document.getElementById('adminRecipient');
+            const currentValue = select.value;
+            select.innerHTML = '<option value="all">📢 Всем студентам</option>';
+            
+            const boundStudents = Object.keys(BINDINGS).map(id => ({
+                id: id,
+                name: BINDINGS[id]
+            }));
+            
+            boundStudents.sort((a, b) => a.name.localeCompare(b.name));
+            
+            boundStudents.forEach(s => {
+                const option = document.createElement('option');
+                option.value = s.name;
+                option.textContent = '👤 ' + s.name;
+                select.appendChild(option);
+            });
+            
+            if (currentValue) {
+                select.value = currentValue;
+            }
+        }
+        
+        function sendMessageToStudents(text, recipient) {
+            const statusEl = document.getElementById('adminStatus');
+            statusEl.textContent = '⏳ Отправка...';
+            statusEl.className = 'admin-status';
+            
+            let students = [];
+            if (recipient === 'all') {
+                students = Object.keys(BINDINGS).map(id => ({
+                    id: id,
+                    name: BINDINGS[id]
+                }));
+            } else {
+                const boundId = Object.keys(BINDINGS).find(id => BINDINGS[id] === recipient);
+                if (boundId) {
+                    students = [{ id: boundId, name: recipient }];
+                }
+            }
+            
+            students = students.filter(s => s.id !== OWNER_CHAT_ID);
+            
+            if (students.length === 0) {
+                statusEl.textContent = '❌ Нет получателей';
+                statusEl.className = 'admin-status error';
+                return;
+            }
+            
+            const msg = '📢 <b>Объявление от преподавателя</b>\n\n' + escapeHtml(text) + '\n\n━━━━━━━━━━━━━━\n📱 Журнал 86РТК';
+            
+            let sent = 0;
+            let failed = 0;
+            const promises = students.map(s => {
+                const url = 'https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage';
+                return fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chat_id: s.id,
+                        text: msg,
+                        parse_mode: 'HTML'
+                    })
+                }).then(r => r.json()).then(data => {
+                    if (data.ok) {
+                        sent++;
+                        console.log('✅ Отправлено:', s.name);
+                    } else {
+                        failed++;
+                        console.error('❌ Ошибка отправки:', s.name, data);
+                    }
+                }).catch(() => {
+                    failed++;
+                    console.error('❌ Ошибка сети:', s.name);
+                });
+            });
+            
+            Promise.all(promises).then(() => {
+                if (failed === 0) {
+                    statusEl.textContent = '✅ Отправлено ' + sent + ' студентам!';
+                    statusEl.className = 'admin-status success';
+                    if (tg && tg.HapticFeedback) {
+                        tg.HapticFeedback.notificationOccurred('success');
+                    }
+                } else {
+                    statusEl.textContent = '⚠️ Отправлено ' + sent + ', ошибок: ' + failed;
+                    statusEl.className = 'admin-status error';
+                    if (tg && tg.HapticFeedback) {
+                        tg.HapticFeedback.notificationOccurred('error');
+                    }
+                }
+                setTimeout(() => {
+                    document.getElementById('adminMessage').value = '';
+                }, 3000);
+            });
+        }
+        
+        // ============================================================
+        // 8. КАРТОЧКА СТУДЕНТА
         // ============================================================
         function toggleMarks(id) {
             const el = document.getElementById(id);
@@ -1158,7 +1466,6 @@
                 return;
             }
             
-            // Если карточка уже открыта, не перерисовываем
             if (document.getElementById('cardOverlay').classList.contains('open')) {
                 return;
             }
@@ -1178,7 +1485,7 @@
         }
         
         // ============================================================
-        // 8. РЕНДЕРИНГ ЖУРНАЛА
+        // 9. РЕНДЕРИНГ ЖУРНАЛА
         // ============================================================
         function renderJournal() {
             const container = document.getElementById('list');
@@ -1314,7 +1621,7 @@
         }
         
         // ============================================================
-        // 9. КНОПКА ПРОФИЛЯ
+        // 10. КНОПКА ПРОФИЛЯ
         // ============================================================
         function updateProfileButton() {
             const btn = document.getElementById('profileBtn');
@@ -1335,7 +1642,7 @@
         }
         
         // ============================================================
-        // 10. ВЫБОР СТУДЕНТА
+        // 11. ВЫБОР СТУДЕНТА
         // ============================================================
         function showStudentSelect() {
             const popup = document.getElementById('identityPopup');
@@ -1377,7 +1684,7 @@
         }
         
         // ============================================================
-        // 11. ЗАГРУЗКА ДАННЫХ
+        // 12. ЗАГРУЗКА ДАННЫХ
         // ============================================================
         function loadData() {
             if (isLoading) return;
@@ -1391,7 +1698,7 @@
             hideError();
             loaderStatus.textContent = 'Загрузка журнала';
             
-            // Сначала проверяем кеш (показываем быстро)
+            // Сначала проверяем кеш
             try {
                 const cached = localStorage.getItem(CACHE_KEY);
                 if (cached) {
@@ -1402,7 +1709,9 @@
                         isDataLoaded = true;
                         renderJournal();
                         updateProfileButton();
-                        // Показываем журнал, но продолжаем обновление в фоне
+                        if (isAdmin) {
+                            updateAdminRecipients();
+                        }
                         hideLoader();
                         isLoading = false;
                         console.log('✅ Загружено из кеша');
@@ -1441,11 +1750,12 @@
                 localStorage.setItem(CACHE_KEY, JSON.stringify(ALL_DATA));
                 isDataLoaded = true;
                 
-                // Обновляем журнал
                 renderJournal();
                 updateProfileButton();
+                if (isAdmin) {
+                    updateAdminRecipients();
+                }
                 
-                // Если лоадер еще виден — скрываем
                 if (loader.style.display !== 'none') {
                     hideLoader();
                 }
@@ -1461,14 +1771,12 @@
                 clearTimeout(timeoutId);
                 console.error('Ошибка загрузки с сервера:', e);
                 
-                // Если уже есть данные из кеша — ничего не делаем
                 if (isDataLoaded && ALL_DATA.journal.length > 0) {
                     console.log('📦 Использую кеш');
                     isLoading = false;
                     return;
                 }
                 
-                // Если кеша нет — показываем ошибку
                 showError('Проверьте подключение к интернету');
                 isLoading = false;
             });
@@ -1489,11 +1797,9 @@
         
         function forceUpdate() {
             localStorage.removeItem(CACHE_KEY);
-            // Закрываем карточку если открыта
             if (document.getElementById('cardOverlay').classList.contains('open')) {
                 closeCard();
             }
-            // Показываем лоадер
             const loader = document.getElementById('loader');
             loader.style.display = 'flex';
             loader.style.opacity = '1';
@@ -1512,7 +1818,7 @@
         }
         
         // ============================================================
-        // 12. ОБРАБОТЧИКИ
+        // 13. ОБРАБОТЧИКИ
         // ============================================================
         document.getElementById('profileBtn').addEventListener('click', function(e) {
             e.stopPropagation();
@@ -1537,6 +1843,71 @@
         document.getElementById('fabUpdate').addEventListener('click', forceUpdate);
         document.getElementById('retryButton').addEventListener('click', forceUpdate);
         
+        // ============================================================
+        // АДМИН-ОБРАБОТЧИКИ
+        // ============================================================
+        document.getElementById('adminFab').addEventListener('click', function() {
+            document.getElementById('adminPanel').classList.add('open');
+            if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+        });
+        
+        document.getElementById('closeAdmin').addEventListener('click', function() {
+            document.getElementById('adminPanel').classList.remove('open');
+        });
+        
+        document.getElementById('adminCancel').addEventListener('click', function() {
+            document.getElementById('adminPanel').classList.remove('open');
+            document.getElementById('adminMessage').value = '';
+            document.getElementById('adminStatus').textContent = '';
+            document.getElementById('adminStatus').className = 'admin-status';
+        });
+        
+        document.getElementById('adminSend').addEventListener('click', function() {
+            const message = document.getElementById('adminMessage').value.trim();
+            const recipient = document.getElementById('adminRecipient').value;
+            
+            if (!message) {
+                const statusEl = document.getElementById('adminStatus');
+                statusEl.textContent = '❌ Введите сообщение';
+                statusEl.className = 'admin-status error';
+                if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
+                return;
+            }
+            
+            if (recipient === 'all') {
+                if (tg) {
+                    tg.showPopup({
+                        title: '⚠️ Подтверждение',
+                        message: 'Отправить сообщение ВСЕМ студентам?',
+                        buttons: [
+                            { id: 'cancel', type: 'cancel' },
+                            { id: 'ok', type: 'ok' }
+                        ]
+                    }, function(buttonId) {
+                        if (buttonId === 'ok') {
+                            sendMessageToStudents(message, recipient);
+                        }
+                    });
+                } else {
+                    if (confirm('Отправить сообщение ВСЕМ студентам?')) {
+                        sendMessageToStudents(message, recipient);
+                    }
+                }
+            } else {
+                sendMessageToStudents(message, recipient);
+            }
+        });
+        
+        // Шаблон "Новые баллы"
+        document.getElementById('templateNewScores').addEventListener('click', function() {
+            const text = '📊 Выставлены новые баллы, проверьте журнал!';
+            document.getElementById('adminMessage').value = text;
+            if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+        });
+        
+        // ============================================================
+        // АВТОРИЗАЦИЯ
+        // ============================================================
         document.getElementById('btnIdentityYes').addEventListener('click', function() {
             if (!selectedStudentForIdentity) {
                 if (tg) {
@@ -1602,6 +1973,8 @@
             tg.onEvent('backButtonClicked', function() {
                 if (document.getElementById('cardOverlay').classList.contains('open')) {
                     closeCard();
+                } else if (document.getElementById('adminPanel').classList.contains('open')) {
+                    document.getElementById('adminPanel').classList.remove('open');
                 } else {
                     tg.close();
                 }
@@ -1609,7 +1982,7 @@
         }
         
         // ============================================================
-        // 13. ЗАПУСК
+        // 14. ЗАПУСК
         // ============================================================
         window.openCard = openCard;
         window.closeCard = closeCard;
