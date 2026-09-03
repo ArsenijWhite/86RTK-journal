@@ -17,308 +17,69 @@
             --schedule-day-bg: rgba(56, 189, 248, 0.06);
             --schedule-border: rgba(56, 189, 248, 0.12);
         }
-        * { 
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; 
-            -webkit-font-smoothing: antialiased; 
-            -webkit-tap-highlight-color: transparent; 
-            user-select: none; 
-            box-sizing: border-box; 
-        }
-        html, body { 
-            background-color: var(--bg); 
-            margin: 0; 
-            padding: 0; 
-            color: var(--text); 
-            min-height: 100vh; 
-        }
+        * { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; user-select: none; box-sizing: border-box; }
+        html, body { background-color: var(--bg); margin: 0; padding: 0; color: var(--text); min-height: 100vh; }
         body { padding: 16px; padding-bottom: 30px; }
         
-        .header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 8px;
-            flex-wrap: wrap;
-            gap: 6px;
-        }
-        .header h1 {
-            font-size: 20px;
-            font-weight: 700;
-            margin: 0;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+        .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; flex-wrap: wrap; gap: 6px; }
+        .header h1 { font-size: 20px; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 8px; }
         .header h1 span { font-size: 24px; }
-        .header .group-label {
-            background: rgba(56, 189, 248, 0.12);
-            padding: 4px 14px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--accent);
-            border: 1px solid rgba(56, 189, 248, 0.15);
-        }
-        .header .week-label {
-            font-size: 11px;
-            color: var(--muted);
-            font-weight: 400;
-            width: 100%;
-        }
-        .header .status-badge {
-            font-size: 9px;
-            padding: 2px 10px;
-            border-radius: 12px;
-            font-weight: 600;
-            background: rgba(255,255,255,0.06);
-            color: var(--muted);
-        }
-        .header .status-badge.success {
-            background: rgba(16, 185, 129, 0.15);
-            color: var(--success);
-        }
-        .header .status-badge.error {
-            background: rgba(239, 68, 68, 0.15);
-            color: var(--error);
-        }
-        .header .status-badge.loading {
-            background: rgba(56, 189, 248, 0.12);
-            color: var(--accent);
-        }
+        .header .group-label { background: rgba(56, 189, 248, 0.12); padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; color: var(--accent); border: 1px solid rgba(56, 189, 248, 0.15); }
+        .header .week-label { font-size: 11px; color: var(--muted); font-weight: 400; width: 100%; }
+        .header .status-badge { font-size: 9px; padding: 2px 10px; border-radius: 12px; font-weight: 600; background: rgba(255,255,255,0.06); color: var(--muted); }
+        .header .status-badge.success { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+        .header .status-badge.error { background: rgba(239, 68, 68, 0.15); color: var(--error); }
+        .header .status-badge.loading { background: rgba(56, 189, 248, 0.12); color: var(--accent); }
 
-        .controls {
-            display: flex;
-            justify-content: flex-end;
-            gap: 8px;
-            margin-bottom: 12px;
-        }
-        .controls button {
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.06);
-            border-radius: 10px;
-            padding: 6px 14px;
-            color: var(--muted);
-            font-size: 11px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            transition: all 0.2s;
-        }
-        .controls button:active {
-            transform: scale(0.95);
-            background: rgba(255,255,255,0.08);
-        }
-        .controls button svg {
-            width: 14px;
-            height: 14px;
-            stroke: currentColor;
-            fill: none;
-            stroke-width: 2;
-        }
+        .controls { display: flex; justify-content: flex-end; gap: 8px; margin-bottom: 12px; }
+        .controls button { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 6px 14px; color: var(--muted); font-size: 11px; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: all 0.2s; }
+        .controls button:active { transform: scale(0.95); background: rgba(255,255,255,0.08); }
+        .controls button svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; }
 
-        .schedule-loader {
-            text-align: center;
-            padding: 40px 20px;
-            color: var(--muted);
-            font-size: 13px;
-        }
-        .schedule-loader .spinner {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            border: 3px solid rgba(255,255,255,0.06);
-            border-top-color: var(--accent);
-            animation: spin 0.8s linear infinite;
-            margin: 0 auto 12px;
-        }
+        .schedule-loader { text-align: center; padding: 40px 20px; color: var(--muted); font-size: 13px; }
+        .schedule-loader .spinner { width: 28px; height: 28px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.06); border-top-color: var(--accent); animation: spin 0.8s linear infinite; margin: 0 auto 12px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        .schedule-error {
-            text-align: center;
-            padding: 30px 20px;
-            color: var(--error);
-            font-size: 13px;
-        }
-        .schedule-error .error-icon {
-            font-size: 28px;
-            display: block;
-            margin-bottom: 8px;
-        }
-        .schedule-error .retry-btn {
-            margin-top: 12px;
-            background: rgba(255,255,255,0.06);
-            border: 1px solid rgba(255,255,255,0.1);
-            padding: 8px 24px;
-            border-radius: 20px;
-            color: var(--text);
-            font-size: 12px;
-            cursor: pointer;
-        }
+        .schedule-error { text-align: center; padding: 30px 20px; color: var(--error); font-size: 13px; }
+        .schedule-error .error-icon { font-size: 28px; display: block; margin-bottom: 8px; }
+        .schedule-error .retry-btn { margin-top: 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); padding: 8px 24px; border-radius: 20px; color: var(--text); font-size: 12px; cursor: pointer; }
         .schedule-error .retry-btn:active { transform: scale(0.95); }
 
-        .schedule-day {
-            margin-bottom: 14px;
-            background: var(--schedule-day-bg);
-            border-radius: 14px;
-            border: 1px solid var(--schedule-border);
-            overflow: hidden;
-        }
-        .schedule-day-header {
-            padding: 12px 16px 10px;
-            background: rgba(56, 189, 248, 0.04);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            border-bottom: 1px solid var(--schedule-border);
-            flex-wrap: wrap;
-        }
-        .schedule-day-header .day-name {
-            font-size: 15px;
-            font-weight: 700;
-            color: var(--text);
-        }
-        .schedule-day-header .day-date {
-            font-size: 11px;
-            color: var(--muted);
-            font-weight: 400;
-        }
-        .schedule-day-header .day-badge {
-            margin-left: auto;
-            font-size: 10px;
-            padding: 2px 10px;
-            border-radius: 12px;
-            background: rgba(56, 189, 248, 0.12);
-            color: var(--accent);
-            font-weight: 600;
-            white-space: nowrap;
-        }
-        .schedule-day-header .day-badge.today {
-            background: rgba(16, 185, 129, 0.15);
-            color: var(--success);
-        }
-        .schedule-day-header .day-badge.weekend {
-            background: rgba(239, 68, 68, 0.1);
-            color: var(--error);
-        }
+        .schedule-day { margin-bottom: 14px; background: var(--schedule-day-bg); border-radius: 14px; border: 1px solid var(--schedule-border); overflow: hidden; }
+        .schedule-day-header { padding: 12px 16px 10px; background: rgba(56, 189, 248, 0.04); display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--schedule-border); flex-wrap: wrap; }
+        .schedule-day-header .day-name { font-size: 15px; font-weight: 700; color: var(--text); }
+        .schedule-day-header .day-date { font-size: 11px; color: var(--muted); font-weight: 400; }
+        .schedule-day-header .day-badge { margin-left: auto; font-size: 10px; padding: 2px 10px; border-radius: 12px; background: rgba(56, 189, 248, 0.12); color: var(--accent); font-weight: 600; white-space: nowrap; }
+        .schedule-day-header .day-badge.today { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+        .schedule-day-header .day-badge.weekend { background: rgba(239, 68, 68, 0.1); color: var(--error); }
 
-        .schedule-lesson {
-            padding: 10px 16px;
-            border-bottom: 1px solid rgba(255,255,255,0.03);
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            transition: background 0.15s;
-        }
+        .schedule-lesson { padding: 10px 16px; border-bottom: 1px solid rgba(255,255,255,0.03); display: flex; align-items: flex-start; gap: 12px; transition: background 0.15s; }
         .schedule-lesson:last-child { border-bottom: none; }
         .schedule-lesson:active { background: rgba(255,255,255,0.03); }
 
-        .schedule-lesson .lesson-time {
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--accent);
-            min-width: 36px;
-            padding-top: 1px;
-        }
-        .schedule-lesson .lesson-info {
-            flex: 1;
-            min-width: 0;
-        }
-        .schedule-lesson .lesson-name {
-            font-size: 14px;
-            font-weight: 500;
-            color: var(--text);
-        }
-        .schedule-lesson .lesson-subgroup {
-            font-size: 10px;
-            font-weight: 600;
-            color: var(--gold);
-            background: rgba(251, 191, 36, 0.12);
-            padding: 1px 8px;
-            border-radius: 10px;
-            display: inline-block;
-            margin-left: 6px;
-        }
-        .schedule-lesson .lesson-details {
-            font-size: 12px;
-            color: var(--muted);
-            margin-top: 2px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-        .schedule-lesson .lesson-details .detail-item {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-        }
-        .schedule-lesson .lesson-details .detail-item .icon {
-            font-size: 11px;
-        }
-        .schedule-lesson .lesson-details .detail-item .type-badge {
-            font-size: 9px;
-            padding: 1px 8px;
-            border-radius: 10px;
-            background: rgba(255,255,255,0.06);
-            color: var(--muted);
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-        }
-        .schedule-lesson .lesson-details .detail-item .type-badge.lecture {
-            background: rgba(56, 189, 248, 0.12);
-            color: var(--accent);
-        }
-        .schedule-lesson .lesson-details .detail-item .type-badge.practice {
-            background: rgba(251, 191, 36, 0.12);
-            color: var(--gold);
-        }
-        .schedule-lesson .lesson-details .detail-item .type-badge.lab {
-            background: rgba(244, 114, 182, 0.12);
-            color: #f472b6;
-        }
+        .schedule-lesson .lesson-time { font-size: 12px; font-weight: 600; color: var(--accent); min-width: 36px; padding-top: 1px; }
+        .schedule-lesson .lesson-info { flex: 1; min-width: 0; }
+        .schedule-lesson .lesson-name { font-size: 14px; font-weight: 500; color: var(--text); }
+        .schedule-lesson .lesson-subgroup { font-size: 10px; font-weight: 600; color: var(--gold); background: rgba(251, 191, 36, 0.12); padding: 1px 8px; border-radius: 10px; display: inline-block; margin-left: 6px; }
+        .schedule-lesson .lesson-details { font-size: 12px; color: var(--muted); margin-top: 2px; display: flex; flex-wrap: wrap; gap: 8px; }
+        .schedule-lesson .lesson-details .detail-item { display: inline-flex; align-items: center; gap: 4px; }
+        .schedule-lesson .lesson-details .detail-item .icon { font-size: 11px; }
+        .schedule-lesson .lesson-details .detail-item .type-badge { font-size: 9px; padding: 1px 8px; border-radius: 10px; background: rgba(255,255,255,0.06); color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
+        .schedule-lesson .lesson-details .detail-item .type-badge.lecture { background: rgba(56, 189, 248, 0.12); color: var(--accent); }
+        .schedule-lesson .lesson-details .detail-item .type-badge.practice { background: rgba(251, 191, 36, 0.12); color: var(--gold); }
+        .schedule-lesson .lesson-details .detail-item .type-badge.lab { background: rgba(244, 114, 182, 0.12); color: #f472b6; }
 
-        .schedule-empty {
-            text-align: center;
-            padding: 20px;
-            color: var(--muted);
-            font-size: 13px;
-        }
-        .schedule-empty .empty-icon {
-            font-size: 24px;
-            display: block;
-            margin-bottom: 4px;
-            opacity: 0.5;
-        }
+        .schedule-empty { text-align: center; padding: 20px; color: var(--muted); font-size: 13px; }
+        .schedule-empty .empty-icon { font-size: 24px; display: block; margin-bottom: 4px; opacity: 0.5; }
 
-        .debug-log {
-            margin-top: 20px;
-            padding: 12px 16px;
-            background: rgba(0,0,0,0.3);
-            border-radius: 10px;
-            font-size: 11px;
-            color: var(--muted);
-            font-family: monospace;
-            max-height: 200px;
-            overflow-y: auto;
-            white-space: pre-wrap;
-            word-break: break-all;
-            border: 1px solid rgba(255,255,255,0.04);
-        }
-        .debug-log .log-entry {
-            padding: 2px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.03);
-        }
+        .debug-log { margin-top: 20px; padding: 12px 16px; background: rgba(0,0,0,0.3); border-radius: 10px; font-size: 11px; color: var(--muted); font-family: monospace; max-height: 200px; overflow-y: auto; white-space: pre-wrap; word-break: break-all; border: 1px solid rgba(255,255,255,0.04); }
+        .debug-log .log-entry { padding: 2px 0; border-bottom: 1px solid rgba(255,255,255,0.03); }
         .debug-log .log-entry:last-child { border-bottom: none; }
-        .debug-log .log-entry .time {
-            color: var(--muted);
-            opacity: 0.5;
-        }
+        .debug-log .log-entry .time { color: var(--muted); opacity: 0.5; }
         .debug-log .log-entry.success { color: var(--success); }
         .debug-log .log-entry.error { color: var(--error); }
         .debug-log .log-entry.info { color: var(--accent); }
         .debug-log .log-entry.warning { color: var(--gold); }
-        .debug-log .log-entry.raw { color: #94a3b8; font-size: 10px; }
     </style>
 </head>
 <body>
@@ -381,132 +142,61 @@
             console.log(`[${type}] ${message}`);
         }
 
-        function addRawLog(message) {
-            const log = document.getElementById('debugLog');
-            const time = new Date().toLocaleTimeString();
-            const entry = document.createElement('div');
-            entry.className = `log-entry raw`;
-            entry.innerHTML = `<span class="time">[${time}]</span> ${message}`;
-            log.appendChild(entry);
-            log.scrollTop = log.scrollHeight;
-            console.log(`[RAW] ${message}`);
-        }
-
         // ============================================================
-        // 3. ПАРСИНГ — ПРАВИЛЬНЫЙ ДЛЯ ТАБЛИЦЫ (2 КОЛОНКИ НА ДЕНЬ)
+        // 3. ПАРСИНГ — ПРАВИЛЬНОЕ ОПРЕДЕЛЕНИЕ КОЛОНОК
         // ============================================================
-        
-        function parseLessonCell(content, pairNum) {
-            if (!content || content.trim() === '' || content.trim() === '-') return [];
+        function parseLessonText(text, pairNum) {
+            if (!text || text.trim() === '' || text.trim() === '-') return null;
             
-            let text = content.trim();
-            const lessons = [];
+            let content = text.trim();
+            let subgroup = '';
+            let discipline = '';
+            let lessonType = '';
+            let teacher = '';
+            let room = '';
             
-            // Разделяем на отдельные занятия по переносам строк
-            let parts = text.split(/\n/);
-            
-            // Если нет переносов, пробуем разделить по "2." или "3."
-            if (parts.length === 1) {
-                // Ищем все вхождения "цифра.текст"
-                const regex = /(\d+\.\s*[^(\d]+)/g;
-                const matches = text.match(regex);
-                if (matches && matches.length > 1) {
-                    parts = matches.map(m => m.trim());
-                }
+            // 1. Подгруппа
+            const subMatch = content.match(/^(\d+)\./);
+            if (subMatch) {
+                subgroup = subMatch[1];
+                content = content.replace(/^\d+\.\s*/, '').trim();
             }
             
-            // Если всё ещё одна часть — пробуем разделить по " 2." или " 3."
-            if (parts.length === 1) {
-                const splitRegex = /\s+(\d+\.)/;
-                const match = text.match(splitRegex);
-                if (match) {
-                    const idx = text.indexOf(match[1]);
-                    const first = text.substring(0, idx).trim();
-                    const second = text.substring(idx).trim();
-                    parts = [first, second];
-                }
+            // 2. Аудитория
+            const roomMatch = content.match(/(Кн\.?\s*[\d\-()]+|[\d\-]+\(?[к\)]?)/i);
+            if (roomMatch) {
+                room = roomMatch[0].trim();
+                content = content.replace(roomMatch[0], '').trim();
             }
             
-            // Парсим каждую часть
-            for (const part of parts) {
-                if (!part || part.trim() === '') continue;
-                
-                let partText = part.trim();
-                let subgroup = '';
-                let discipline = '';
-                let lessonType = '';
-                let teacher = '';
-                let room = '';
-                
-                // 1. Ищем подгруппу (цифра с точкой в начале)
-                const subgroupMatch = partText.match(/^(\d+)\./);
-                if (subgroupMatch) {
-                    subgroup = subgroupMatch[1];
-                    partText = partText.replace(/^\d+\.\s*/, '').trim();
-                }
-                
-                // 2. Ищем тип занятия в скобках
-                const typeMatch = partText.match(/\(([^)]+)\)/);
-                if (typeMatch) {
-                    const type = typeMatch[1].trim();
-                    lessonType = TYPE_MAP[type] || type;
-                    partText = partText.replace(typeMatch[0], '').trim();
-                }
-                
-                // 3. Ищем аудиторию
-                const roomMatch = partText.match(/(Кн\.?\s*[\d\-()]+|[\d\-]+\(?[к\)]?)/i);
-                if (roomMatch) {
-                    room = roomMatch[0].trim();
-                    partText = partText.replace(roomMatch[0], '').trim();
-                }
-                
-                // 4. Ищем преподавателя (Фамилия И. О.)
-                const teacherPattern = /([А-Я][а-я]+\s+[А-Я]\.\s*[А-Я]\.)|([А-Я][а-я]+\s+[А-Я]\.\s*[А-Я]\.)|([А-Я][а-я]+\s+[А-Я][а-я]+\s+[А-Я][а-я]+)/;
-                const teacherMatch = partText.match(teacherPattern);
-                
-                if (teacherMatch) {
-                    teacher = teacherMatch[0].trim();
-                    partText = partText.replace(teacherMatch[0], '').trim();
-                }
-                
-                // 5. Остаток — дисциплина
-                discipline = partText.trim();
-                
-                // Если дисциплина пустая, пробуем взять всё содержимое
-                if (!discipline) {
-                    discipline = part.trim();
-                    // Убираем то, что уже нашли
-                    if (subgroup) discipline = discipline.replace(subgroup + '.', '').trim();
-                    if (room) discipline = discipline.replace(room, '').trim();
-                    if (teacher) discipline = discipline.replace(teacher, '').trim();
-                    if (lessonType) {
-                        const typeKeys = Object.keys(TYPE_MAP);
-                        for (const key of typeKeys) {
-                            if (discipline.includes('(' + key + ')')) {
-                                discipline = discipline.replace('(' + key + ')', '').trim();
-                            }
-                        }
-                    }
-                }
-                
-                // Очищаем
-                discipline = discipline.replace(/[,\-–\s]+$/, '').trim();
-                if (teacher) teacher = teacher.trim();
-                if (room) room = room.trim();
-                
-                if (discipline) {
-                    lessons.push({
-                        pair: pairNum,
-                        discipline: discipline || 'Без названия',
-                        type: lessonType,
-                        teacher: teacher,
-                        room: room,
-                        subgroup: subgroup
-                    });
-                }
+            // 3. Тип занятия
+            const typeMatch = content.match(/\(([^)]+)\)/);
+            if (typeMatch) {
+                const type = typeMatch[1].trim();
+                lessonType = TYPE_MAP[type] || type;
+                content = content.replace(typeMatch[0], '').trim();
             }
             
-            return lessons;
+            // 4. Преподаватель
+            const teacherPattern = /([А-Я][а-я]+\s+[А-Я]\.\s*[А-Я]\.)|([А-Я][а-я]+\s+[А-Я]\.\s*[А-Я]\.)|([А-Я][а-я]+\s+[А-Я][а-я]+\s+[А-Я][а-я]+)/;
+            const teacherMatch = content.match(teacherPattern);
+            if (teacherMatch) {
+                teacher = teacherMatch[0].trim();
+                content = content.replace(teacherMatch[0], '').trim();
+            }
+            
+            // 5. Дисциплина
+            discipline = content.trim();
+            if (!discipline) discipline = 'Без названия';
+            
+            return {
+                pair: pairNum,
+                discipline: discipline,
+                type: lessonType,
+                teacher: teacher,
+                room: room,
+                subgroup: subgroup
+            };
         }
 
         function parseSchedule(html) {
@@ -515,93 +205,88 @@
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, 'text/html');
             
-            // Ищем таблицу для группы 86
-            let targetTable = null;
-            
-            // Ищем заголовок h2 с текстом "Группа - 86"
+            // Находим таблицу группы 86
+            let table = null;
             const headings = doc.querySelectorAll('h2');
-            addLog(`Найдено заголовков h2: ${headings.length}`, 'info');
             
             for (const h2 of headings) {
-                const text = h2.textContent.trim();
-                if (text.includes('Группа - 86')) {
-                    addLog(`✅ Найден заголовок: ${text}`, 'success');
-                    let sibling = h2.nextElementSibling;
-                    while (sibling) {
-                        if (sibling.tagName === 'TABLE') {
-                            targetTable = sibling;
-                            addLog('✅ Таблица найдена после заголовка', 'success');
+                if (h2.textContent.includes('Группа - 86')) {
+                    let el = h2.nextElementSibling;
+                    while (el) {
+                        if (el.tagName === 'TABLE') {
+                            table = el;
+                            addLog('✅ Таблица найдена', 'success');
                             break;
                         }
-                        sibling = sibling.nextElementSibling;
+                        el = el.nextElementSibling;
                     }
                     break;
                 }
             }
             
-            if (!targetTable) {
-                addLog('⚠️ Заголовок не найден, ищу таблицу', 'warning');
+            if (!table) {
                 const tables = doc.querySelectorAll('table');
-                addLog(`Найдено таблиц: ${tables.length}`, 'info');
-                
-                for (const table of tables) {
-                    const tableText = table.textContent;
-                    const hasDays = DAYS_RU.some(day => tableText.includes(day));
-                    if (hasDays) {
-                        targetTable = table;
-                        addLog('✅ Найдена таблица с днями недели', 'success');
-                        break;
-                    }
-                }
-                
-                if (!targetTable && tables.length > 0) {
-                    targetTable = tables[0];
+                if (tables.length > 0) {
+                    table = tables[0];
                     addLog('⚠️ Использую первую таблицу', 'warning');
+                } else {
+                    addLog('❌ Таблица не найдена', 'error');
+                    return null;
                 }
             }
             
-            if (!targetTable) {
-                addLog('❌ Таблица не найдена', 'error');
-                return null;
-            }
+            const rows = table.querySelectorAll('tr');
+            addLog(`📊 Строк: ${rows.length}`, 'info');
             
-            // Парсим таблицу
-            const rows = targetTable.querySelectorAll('tr');
-            addLog(`📊 Найдено строк: ${rows.length}`, 'info');
-            
-            if (rows.length < 3) {
+            if (rows.length < 4) {
                 addLog('❌ Слишком мало строк', 'error');
                 return null;
             }
             
             // ============================================================
-            // ОПРЕДЕЛЯЕМ ДНИ НЕДЕЛИ И КОЛОНКИ
+            // 1. ОПРЕДЕЛЯЕМ ДНИ НЕДЕЛИ
             // ============================================================
-            // В первой строке — названия дней и даты
-            // Каждый день занимает 2 колонки: предмет и аудитория
+            // Ищем строку, где есть дни недели (с датами)
+            let headerRow = null;
+            let headerRowIndex = 0;
             
-            const headerRow = rows[0];
+            for (let i = 0; i < Math.min(3, rows.length); i++) {
+                const cells = rows[i].querySelectorAll('td, th');
+                let hasDay = false;
+                for (const cell of cells) {
+                    const text = cell.textContent.trim();
+                    for (const day of DAYS_RU) {
+                        if (text.includes(day)) {
+                            hasDay = true;
+                            break;
+                        }
+                    }
+                    if (hasDay) break;
+                }
+                if (hasDay) {
+                    headerRow = rows[i];
+                    headerRowIndex = i;
+                    addLog(`✅ Строка с днями: ${i}`, 'success');
+                    break;
+                }
+            }
+            
+            if (!headerRow) {
+                addLog('❌ Строка с днями не найдена', 'error');
+                return null;
+            }
+            
             const headerCells = headerRow.querySelectorAll('td, th');
             
-            addLog(`📊 Ячеек в заголовке: ${headerCells.length}`, 'info');
+            // Парсим дни — каждый день занимает 2 колонки (предмет + аудитория)
+            const dayMap = {};
+            let currentCol = 0;
             
-            // Показываем содержимое заголовка для отладки
-            const headerTexts = [];
             for (const cell of headerCells) {
                 const text = cell.textContent.trim();
-                if (text) headerTexts.push(text);
-            }
-            addLog(`📋 Заголовок: ${headerTexts.join(' | ')}`, 'info');
-            
-            // Ищем дни недели
-            const dayInfo = [];
-            let currentDay = null;
-            
-            for (let i = 0; i < headerCells.length; i++) {
-                const cell = headerCells[i];
-                const text = cell.textContent.trim();
+                const colspan = parseInt(cell.getAttribute('colspan')) || 1;
                 
-                // Проверяем, не является ли ячейка названием дня
+                // Проверяем, является ли ячейка названием дня
                 let foundDay = null;
                 for (const day of DAYS_RU) {
                     if (text.includes(day)) {
@@ -611,139 +296,91 @@
                 }
                 
                 if (foundDay) {
-                    // Это колонка с дисциплиной (i)
-                    // Следующая колонка (i+1) — аудитория
-                    dayInfo.push({
-                        name: foundDay,
-                        colSubject: i,
-                        colRoom: i + 1,
+                    dayMap[foundDay] = {
+                        subjectCol: currentCol,
+                        roomCol: currentCol + 1,
                         date: text
-                    });
-                    addLog(`📅 День "${foundDay}" в колонке ${i} (ауд в ${i+1})`, 'success');
-                    i++; // Пропускаем колонку с аудиторией
+                    };
+                    addLog(`📅 ${foundDay}: колонка ${currentCol} (ауд ${currentCol+1})`, 'success');
                 }
-            }
-            
-            // Если дни не найдены — пробуем вторую строку
-            if (dayInfo.length === 0) {
-                addLog('⚠️ В первой строке дни не найдены, проверяю вторую...', 'warning');
-                const headerRow2 = rows[1];
-                const headerCells2 = headerRow2.querySelectorAll('td, th');
                 
-                for (let i = 0; i < headerCells2.length; i++) {
-                    const text = headerCells2[i].textContent.trim();
-                    let foundDay = null;
-                    for (const day of DAYS_RU) {
-                        if (text.includes(day)) {
-                            foundDay = day;
-                            break;
-                        }
-                    }
-                    if (foundDay) {
-                        dayInfo.push({
-                            name: foundDay,
-                            colSubject: i,
-                            colRoom: i + 1,
-                            date: text
-                        });
-                        addLog(`📅 День "${foundDay}" во второй строке колонка ${i}`, 'success');
-                        i++;
-                    }
-                }
+                currentCol += colspan;
             }
             
-            // Если всё ещё не нашли — используем стандартные
-            if (dayInfo.length === 0) {
+            // Если дни не найдены — используем стандартные
+            if (Object.keys(dayMap).length === 0) {
                 addLog('⚠️ Дни не найдены, использую стандартные', 'warning');
+                // В таблице обычно: № + 6 дней * 2 колонки = 13 колонок
                 for (let i = 0; i < 6; i++) {
-                    dayInfo.push({
-                        name: DAYS_RU[i],
-                        colSubject: 1 + i * 2,
-                        colRoom: 2 + i * 2,
+                    dayMap[DAYS_RU[i]] = {
+                        subjectCol: 1 + i * 2,
+                        roomCol: 2 + i * 2,
                         date: ''
-                    });
+                    };
                 }
             }
             
-            // Ограничиваем 6 днями
-            while (dayInfo.length > 6) {
-                dayInfo.pop();
-            }
-            
-            const dayNames = dayInfo.map(d => d.name);
-            addLog(`📅 Итоговые дни: ${dayNames.join(', ')}`, 'info');
-            
-            // Создаем расписание
+            // ============================================================
+            // 2. ПАРСИМ ПАРЫ
+            // ============================================================
             const schedule = {};
-            dayNames.forEach(day => { schedule[day] = []; });
+            Object.keys(dayMap).forEach(day => { schedule[day] = []; });
             
-            // ============================================================
-            // ПАРСИМ СТРОКИ С ПАРАМИ (начиная с 3-й строки)
-            // ============================================================
-            let pairCount = 0;
+            let totalPairs = 0;
             
-            for (let i = 2; i < rows.length; i++) {
-                const row = rows[i];
-                const cells = row.querySelectorAll('td, th');
+            // Начинаем со строки после заголовка + 1 (там обычно подзаголовки)
+            const startRow = headerRowIndex + 2;
+            
+            for (let i = startRow; i < rows.length; i++) {
+                const cells = rows[i].querySelectorAll('td, th');
                 if (cells.length < 2) continue;
                 
                 // Номер пары — первая колонка
-                let pairNum = cells[0].textContent.trim();
+                const pairNum = cells[0].textContent.trim();
                 if (!pairNum || pairNum === '') continue;
                 
                 // Проходим по каждому дню
-                for (let d = 0; d < dayInfo.length; d++) {
-                    const info = dayInfo[d];
-                    
-                    // Проверяем, что колонки существуют
-                    if (info.colSubject >= cells.length) continue;
+                for (const [dayName, info] of Object.entries(dayMap)) {
+                    const subjCol = info.subjectCol;
+                    const roomCol = info.roomCol;
                     
                     // Получаем данные
-                    let content = cells[info.colSubject].textContent.trim();
+                    let subject = '';
                     let room = '';
                     
-                    // Если есть колонка с аудиторией и она не пустая
-                    if (info.colRoom < cells.length) {
-                        room = cells[info.colRoom].textContent.trim();
+                    if (subjCol < cells.length) {
+                        subject = cells[subjCol].textContent.trim();
+                    }
+                    if (roomCol < cells.length) {
+                        room = cells[roomCol].textContent.trim();
                     }
                     
                     // Если дисциплина пустая — пропускаем
-                    if (!content || content === '' || content === '-') continue;
+                    if (!subject || subject === '' || subject === '-') continue;
                     
-                    const dayName = info.name;
-                    
-                    // Если есть аудитория, добавляем её к содержимому
+                    // Объединяем
+                    let fullText = subject;
                     if (room && room !== '' && room !== '-') {
-                        content = content + ' ' + room;
+                        fullText += ' ' + room;
                     }
                     
-                    // Парсим ячейку (может быть несколько занятий)
-                    const lessons = parseLessonCell(content, pairNum);
-                    
-                    for (const lesson of lessons) {
-                        if (lesson) {
-                            // Если аудитория не найдена, но есть отдельная колонка
-                            if (!lesson.room && room && room !== '' && room !== '-') {
-                                lesson.room = room;
-                            }
-                            schedule[dayName].push(lesson);
-                            pairCount++;
-                            
-                            // Лог для отладки
-                            const teacherInfo = lesson.teacher ? ` (${lesson.teacher})` : '';
-                            const roomInfo = lesson.room ? ` [${lesson.room}]` : '';
-                            const typeInfo = lesson.type ? ` ${lesson.type}` : '';
-                            const subgroupInfo = lesson.subgroup ? ` ${lesson.subgroup}подгр` : '';
-                            addLog(`✅ Пара ${pairNum}: ${lesson.discipline}${teacherInfo}${roomInfo}${typeInfo}${subgroupInfo} (${dayName})`, 'success');
+                    // Парсим
+                    const lesson = parseLessonText(fullText, pairNum);
+                    if (lesson) {
+                        // Если аудитория не найдена в тексте, но есть в колонке
+                        if (!lesson.room && room && room !== '' && room !== '-') {
+                            lesson.room = room;
                         }
+                        schedule[dayName].push(lesson);
+                        totalPairs++;
                     }
                 }
             }
             
-            addLog(`📊 Всего пар найдено: ${pairCount}`, 'info');
+            addLog(`📊 Всего пар: ${totalPairs}`, 'info');
             
-            if (pairCount === 0) {
-                addLog('⚠️ Пар не найдено', 'warning');
+            if (totalPairs === 0) {
+                addLog('⚠️ Пары не найдены', 'error');
                 return null;
             }
             
@@ -758,13 +395,8 @@
             const statusBadge = document.getElementById('statusBadge');
             const weekLabel = document.getElementById('weekLabel');
             
-            if (!schedule || !Object.values(schedule).some(arr => arr.length > 0)) {
-                container.innerHTML = `
-                    <div class="schedule-empty">
-                        <span class="empty-icon">📭</span>
-                        <span>Расписание не найдено</span>
-                    </div>
-                `;
+            if (!schedule) {
+                container.innerHTML = `<div class="schedule-empty"><span class="empty-icon">📭</span><span>Расписание не найдено</span></div>`;
                 statusBadge.textContent = '❌ Ошибка';
                 statusBadge.className = 'status-badge error';
                 return;
@@ -773,11 +405,9 @@
             if (sourceType === 'live') {
                 statusBadge.textContent = '✅ С сервера';
                 statusBadge.className = 'status-badge success';
-                addLog('✅ Отображение: данные с сервера через прокси', 'success');
             } else {
-                statusBadge.textContent = '📋 Запасное';
-                statusBadge.className = 'status-badge fallback';
-                addLog('📋 Отображение: запасные данные', 'warning');
+                statusBadge.textContent = '❌ Ошибка парсинга';
+                statusBadge.className = 'status-badge error';
             }
             
             // Даты недели
@@ -793,47 +423,32 @@
                 weekDates.push(d);
             }
             
-            const start = weekDates[0].toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
-            const end = weekDates[6].toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
-            weekLabel.textContent = `${start} — ${end}`;
+            weekLabel.textContent = `${weekDates[0].toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' })} — ${weekDates[6].toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' })}`;
             
-            const todayIndex = today.getDay();
-            const todayName = todayIndex === 0 ? 'Воскресенье' : DAYS_RU[todayIndex - 1];
+            const todayName = today.getDay() === 0 ? 'Воскресенье' : DAYS_RU[today.getDay() - 1];
             
             let html = '';
-            let hasLessons = false;
             
-            // Показываем все 6 дней
             for (let i = 0; i < 6; i++) {
                 const dayName = DAYS_RU[i];
                 const lessons = schedule[dayName] || [];
-                
                 const isToday = dayName === todayName;
-                const isWeekend = (i === 5);
-                const dateStr = weekDates[i] ? weekDates[i].toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' }) : '';
+                const isWeekend = i === 5;
+                const dateStr = weekDates[i].toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
                 
-                // Всегда показываем день
                 html += `
                     <div class="schedule-day">
                         <div class="schedule-day-header">
                             <span class="day-name">${dayName}</span>
-                            ${dateStr ? `<span class="day-date">${dateStr}</span>` : ''}
+                            <span class="day-date">${dateStr}</span>
                             <span class="day-badge ${isToday ? 'today' : ''} ${isWeekend ? 'weekend' : ''}">${isToday ? 'СЕГОДНЯ' : isWeekend ? 'СУББОТА' : lessons.length > 0 ? `${lessons.length} пар` : 'ВЫХОДНОЙ'}</span>
                         </div>
                 `;
                 
                 if (lessons.length === 0) {
-                    html += `
-                        <div class="schedule-empty">
-                            <span class="empty-icon">📭</span>
-                            <span>Нет занятий</span>
-                        </div>
-                    `;
+                    html += `<div class="schedule-empty"><span class="empty-icon">📭</span><span>Нет занятий</span></div>`;
                 } else {
-                    hasLessons = true;
-                    // Сортируем пары по номеру
                     lessons.sort((a, b) => parseInt(a.pair) - parseInt(b.pair));
-                    
                     lessons.forEach(lesson => {
                         const typeClass = lesson.type === 'лекция' ? 'lecture' : 
                                         lesson.type === 'лабораторная' ? 'lab' : 
@@ -868,12 +483,7 @@
 
         function escapeHtml(str) {
             if (!str) return '';
-            return str.replace(/[&<>]/g, function(m) {
-                if (m === '&') return '&amp;';
-                if (m === '<') return '&lt;';
-                if (m === '>') return '&gt;';
-                return m;
-            });
+            return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[m] || m);
         }
 
         // ============================================================
@@ -882,95 +492,53 @@
         async function loadSchedule() {
             const container = document.getElementById('scheduleContent');
             const statusBadge = document.getElementById('statusBadge');
-            const weekLabel = document.getElementById('weekLabel');
             
             document.getElementById('debugLog').innerHTML = '';
-            addLog('🚀 Начинаем загрузку расписания...', 'info');
+            addLog('🚀 Загрузка расписания...', 'info');
             
-            container.innerHTML = `
-                <div class="schedule-loader">
-                    <div class="spinner"></div>
-                    <span>Загрузка расписания...</span>
-                </div>
-            `;
-            weekLabel.textContent = 'Загрузка...';
+            container.innerHTML = `<div class="schedule-loader"><div class="spinner"></div><span>Загрузка расписания...</span></div>`;
             statusBadge.textContent = '⏳ Загрузка...';
             statusBadge.className = 'status-badge loading';
             
             try {
-                const response = await fetch(PROXY_URL, {
-                    signal: AbortSignal.timeout(15000)
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
+                const response = await fetch(PROXY_URL, { signal: AbortSignal.timeout(15000) });
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 
                 const html = await response.text();
-                addLog(`✅ Получен ответ (${html.length} символов)`, 'success');
-                
-                // Сохраняем для отладки
-                addRawLog(`📄 Первые 500 символов: ${html.substring(0, 500)}`);
+                addLog(`✅ Получен HTML (${html.length} символов)`, 'success');
                 
                 const schedule = parseSchedule(html);
                 
                 if (schedule && Object.values(schedule).some(arr => arr.length > 0)) {
                     renderSchedule(schedule, 'live');
-                    addLog(`✅ Готово! Расписание загружено с сервера`, 'success');
+                    addLog(`✅ Готово!`, 'success');
                     return;
                 } else {
-                    addLog(`⚠️ Парсинг не дал результатов, использую запасное`, 'error');
+                    addLog('❌ Парсинг не дал результатов', 'error');
                 }
-                
             } catch(e) {
-                addLog(`❌ Ошибка загрузки: ${e.message}`, 'error');
+                addLog(`❌ Ошибка: ${e.message}`, 'error');
             }
             
-            // Если парсинг не сработал — показываем запасное
-            const fallbackSchedule = {
-                'Понедельник': [],
-                'Вторник': [
-                    { pair: '4', discipline: 'ФЗКиЗ', type: 'лекция', teacher: 'Анципов Е. Ю.', room: '', subgroup: '1' },
-                    { pair: '4', discipline: 'ФЗКиЗ', type: 'лекция', teacher: 'Усикова Л. Н.', room: '', subgroup: '2' },
-                    { pair: '5', discipline: 'АвтомПр', type: 'лекция', teacher: 'Мурашко А. В.', room: '3-209', subgroup: '' },
-                    { pair: '6', discipline: 'АвтомПр', type: 'лекция', teacher: 'Мурашко А. В.', room: '3-209', subgroup: '' },
-                    { pair: '7', discipline: 'Элпр и автом', type: 'лекция', teacher: 'Любко А. А.', room: '2-211', subgroup: '' }
-                ],
-                'Среда': [
-                    { pair: '4', discipline: 'Цифр и микр тех', type: 'лекция', teacher: 'Плаксин Е. Б.', room: '3-111 (к)', subgroup: '' },
-                    { pair: '5', discipline: 'Механ пром робо', type: 'лекция', teacher: 'Любко А. А.', room: '2-211', subgroup: '' },
-                    { pair: '6', discipline: 'Элпр и автом', type: 'лекция', teacher: 'Любко А. А.', room: '2-211', subgroup: '' },
-                    { pair: '7', discipline: 'Элпр и автом', type: 'лекция', teacher: 'Любко А. А.', room: '2-211', subgroup: '' }
-                ],
-                'Четверг': [
-                    { pair: '4', discipline: 'Инф техн', type: 'лабораторная', teacher: 'Гаврилович Д. И.', room: '2-206 (к)', subgroup: '1' },
-                    { pair: '5', discipline: 'Нал и эк промро', type: 'лекция', teacher: 'Камлюк В. С.', room: '3-114', subgroup: '' },
-                    { pair: '6', discipline: 'Механ пром робо', type: 'лекция', teacher: 'Любко А. А.', room: '2-211', subgroup: '' },
-                    { pair: '7', discipline: 'Инф техн', type: 'лабораторная', teacher: 'Гаврилович Д. И.', room: '2-206 (к)', subgroup: '2' }
-                ],
-                'Пятница': [
-                    { pair: '4', discipline: 'Пром электр', type: 'лекция', teacher: 'Плаксин Е. Б.', room: '3-111 (к)', subgroup: '' },
-                    { pair: '5', discipline: 'Цифр и микр тех', type: 'лекция', teacher: 'Плаксин Е. Б.', room: '3-111 (к)', subgroup: '' },
-                    { pair: '6', discipline: 'Цифр и микр тех', type: 'лекция', teacher: 'Плаксин Е. Б.', room: '3-111 (к)', subgroup: '' }
-                ],
-                'Суббота': [
-                    { pair: '4', discipline: 'АвтомПр', type: 'лекция', teacher: 'Мурашко А. В.', room: '2-212', subgroup: '' },
-                    { pair: '5', discipline: 'АвтомПр', type: 'лекция', teacher: 'Мурашко А. В.', room: '2-212', subgroup: '' },
-                    { pair: '6', discipline: 'ФЗКиЗ', type: 'лекция', teacher: 'Анципов Е. Ю.', room: '', subgroup: '1' },
-                    { pair: '7', discipline: 'ФЗКиЗ', type: 'лекция', teacher: 'Усикова Л. Н.', room: '', subgroup: '2' }
-                ]
-            };
-            renderSchedule(fallbackSchedule, 'fallback');
-            addLog(`✅ Готово! Расписание загружено (запасное)`, 'success');
+            // Если парсинг не сработал — показываем ошибку
+            container.innerHTML = `
+                <div class="schedule-error">
+                    <span class="error-icon">⚠️</span>
+                    <span>Не удалось загрузить расписание</span>
+                    <br>
+                    <span style="font-size:11px;color:var(--muted);">Проверьте прокси-сервер</span>
+                    <br>
+                    <button class="retry-btn" onclick="loadSchedule()">🔄 Попробовать снова</button>
+                </div>
+            `;
+            statusBadge.textContent = '❌ Ошибка';
+            statusBadge.className = 'status-badge error';
         }
 
         // ============================================================
         // 6. ЗАПУСК
         // ============================================================
-        document.getElementById('refreshBtn').addEventListener('click', function() {
-            loadSchedule();
-        });
-
+        document.getElementById('refreshBtn').addEventListener('click', loadSchedule);
         loadSchedule();
     </script>
 </body>
