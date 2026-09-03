@@ -165,14 +165,22 @@
                 content = content.replace(/^\d+\.\s*/, '').trim();
             }
             
-            // 2. Аудитория
+            // 2. Аудитория (с буквами к, кн)
             const roomMatch = content.match(/(Кн\.?\s*[\d\-()]+|[\d\-]+\(?[к\)]?)/i);
             if (roomMatch) {
                 room = roomMatch[0].trim();
                 content = content.replace(roomMatch[0], '').trim();
             }
             
-            // 3. Тип занятия
+            // 3. Проверяем, остались ли в конце буквы (к) или (кн) в названии
+            // Если в конце осталось (к) или (кн) — переносим в аудиторию
+            const leftoverMatch = content.match(/\([кКнН]\)$/);
+            if (leftoverMatch && !room) {
+                room = leftoverMatch[0].trim();
+                content = content.replace(leftoverMatch[0], '').trim();
+            }
+            
+            // 4. Тип занятия
             const typeMatch = content.match(/\(([^)]+)\)/);
             if (typeMatch) {
                 const type = typeMatch[1].trim();
@@ -180,7 +188,7 @@
                 content = content.replace(typeMatch[0], '').trim();
             }
             
-            // 4. Преподаватель
+            // 5. Преподаватель
             const teacherPattern = /([А-Я][а-я]+\s+[А-Я]\.\s*[А-Я]\.)|([А-Я][а-я]+\s+[А-Я]\.\s*[А-Я]\.)|([А-Я][а-я]+\s+[А-Я][а-я]+\s+[А-Я][а-я]+)/;
             const teacherMatch = content.match(teacherPattern);
             if (teacherMatch) {
@@ -188,7 +196,7 @@
                 content = content.replace(teacherMatch[0], '').trim();
             }
             
-            // 5. Дисциплина
+            // 6. Дисциплина
             discipline = content.trim();
             if (!discipline) discipline = 'Без названия';
             
@@ -202,7 +210,6 @@
             };
         }
 
-        // Объединяем ТОЛЬКО в пределах одной пары (одинаковый номер)
         function mergeLessonsInPair(lessons) {
             if (!lessons || lessons.length === 0) return [];
             
@@ -401,7 +408,6 @@
                 return null;
             }
             
-            // Объединяем только в пределах ОДНОЙ пары (одинаковый номер)
             for (const day of Object.keys(schedule)) {
                 schedule[day] = mergeLessonsInPair(schedule[day]);
             }
