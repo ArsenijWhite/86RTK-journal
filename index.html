@@ -385,45 +385,35 @@
         }
 
         // ============================================================
-        // 3. ПАРСИНГ — ИСПРАВЛЕННАЯ ВЕРСИЯ (ПРАВИЛЬНОЕ РАЗДЕЛЕНИЕ)
+        // 3. ПАРСИНГ — РУЧНОЙ РАЗБОР ДЛЯ ФОРМАТА САЙТА
         // ============================================================
         
-        // Функция для извлечения информации из ячейки с дисциплиной
-        function extractLessonInfo(content, pairNum) {
+        function parseLessonManual(content, pairNum) {
             if (!content || content.trim() === '') return null;
             
-            let discipline = content.trim();
-            let lessonType = '';
+            let text = content.trim();
+            let discipline = '';
             let teacher = '';
+            let lessonType = '';
             let room = '';
             let subgroup = '';
             
-            // Ищем подгруппу (1. или 2. в начале)
-            const subgroupMatch = discipline.match(/^(\d+)\./);
+            // 1. Ищем подгруппу (1. или 2. в начале)
+            const subgroupMatch = text.match(/^(\d+)\./);
             if (subgroupMatch) {
                 subgroup = subgroupMatch[1];
-                discipline = discipline.replace(/^\d+\.\s*/, '').trim();
+                text = text.replace(/^\d+\.\s*/, '').trim();
             }
             
-            // Ищем аудиторию в скобках или формате "2-205"
-            const roomMatch = discipline.match(/(Кн\.?\s*[\d\-()]+|[\d\-]+\(?[к\)]?)/i);
+            // 2. Ищем аудиторию (в скобках или формате "2-205")
+            const roomMatch = text.match(/(Кн\.?\s*[\d\-()]+|[\d\-]+\(?[к\)]?)/i);
             if (roomMatch) {
                 room = roomMatch[0].trim();
-                discipline = discipline.replace(roomMatch[0], '').trim();
+                text = text.replace(roomMatch[0], '').trim();
             }
             
-            // Ищем преподавателя в скобках
-            const teacherMatch = discipline.match(/\(([^)]+)\)/);
-            if (teacherMatch) {
-                const parts = teacherMatch[1].split(/\s+/);
-                if (parts.length >= 2) {
-                    teacher = teacherMatch[1].trim();
-                    discipline = discipline.replace(teacherMatch[0], '').trim();
-                }
-            }
-            
-            // Ищем тип занятия
-            const typeMatch = discipline.match(/\(([^)]+)\)/);
+            // 3. Ищем тип занятия (Лек, ЛР, ПР)
+            const typeMatch = text.match(/\(([^)]+)\)/);
             if (typeMatch) {
                 const type = typeMatch[1].trim();
                 const typeMap = {
@@ -435,15 +425,37 @@
                     'Практика': 'практика'
                 };
                 lessonType = typeMap[type] || type;
-                discipline = discipline.replace(typeMatch[0], '').trim();
+                text = text.replace(typeMatch[0], '').trim();
+            }
+            
+            // 4. Теперь пытаемся разделить дисциплину и преподавателя
+            // Ищем ФИО преподавателя (обычно: Фамилия И. О. или Имя Отчество)
+            // Паттерн: слово с большой буквы, потом буква с точкой, потом буква с точкой
+            const teacherPattern = /([А-Я][а-я]+\s+[А-Я]\.\s*[А-Я]\.)|([А-Я][а-я]+\s+[А-Я]\.\s*[А-Я]\.)|([А-Я][а-я]+\s+[А-Я][а-я]+\s+[А-Я][а-я]+)/;
+            const teacherMatch = text.match(teacherPattern);
+            
+            if (teacherMatch) {
+                teacher = teacherMatch[0].trim();
+                // Убираем преподавателя из текста
+                text = text.replace(teacherMatch[0], '').trim();
+            }
+            
+            // 5. Остаток — это дисциплина
+            discipline = text.trim();
+            
+            // Если дисциплина пустая, пробуем взять всё содержимое
+            if (!discipline) {
+                discipline = content.trim();
             }
             
             // Очищаем от лишних символов
             discipline = discipline.replace(/[,\-–\s]+$/, '').trim();
+            if (teacher) teacher = teacher.trim();
+            if (room) room = room.trim();
             
             return {
                 pair: pairNum,
-                discipline: discipline || content.trim(),
+                discipline: discipline || 'Без названия',
                 type: lessonType,
                 teacher: teacher,
                 room: room,
@@ -603,17 +615,17 @@
                     
                     const dayName = info.name;
                     
-                    // Объединяем дисциплину и аудиторию для парсинга
+                    // Объединяем дисциплину и аудиторию
                     let fullContent = subjectContent;
                     if (roomContent && roomContent !== '-' && roomContent !== '') {
                         fullContent += ' ' + roomContent;
                     }
                     
-                    // Извлекаем информацию
-                    const lesson = extractLessonInfo(fullContent, pairNum);
+                    // Парсим вручную
+                    const lesson = parseLessonManual(fullContent, pairNum);
                     
                     if (lesson) {
-                        // Если аудитория не найдена в основном контенте, используем из отдельной ячейки
+                        // Если аудитория не найдена, используем из отдельной ячейки
                         if (!lesson.room && roomContent && roomContent !== '-' && roomContent !== '') {
                             lesson.room = roomContent;
                         }
@@ -630,7 +642,8 @@
                         // Лог для отладки
                         const teacherInfo = lesson.teacher ? ` (${lesson.teacher})` : '';
                         const roomInfo = lesson.room ? ` [${lesson.room}]` : '';
-                        addLog(`✅ Пара ${pairNum}: ${lesson.discipline}${teacherInfo}${roomInfo} (${dayName})`, 'success');
+                        const typeInfo = lesson.type ? ` ${lesson.type}` : '';
+                        addLog(`✅ Пара ${pairNum}: ${lesson.discipline}${teacherInfo}${roomInfo}${typeInfo} (${dayName})`, 'success');
                     }
                 }
             }
