@@ -85,10 +85,6 @@
             background: rgba(56, 189, 248, 0.12);
             color: var(--accent);
         }
-        .header .status-badge.fallback {
-            background: rgba(139, 92, 246, 0.15);
-            color: #8b5cf6;
-        }
 
         .controls {
             display: flex;
@@ -119,6 +115,16 @@
             stroke: currentColor;
             fill: none;
             stroke-width: 2;
+        }
+
+        /* Скрытый iframe для парсинга */
+        #hiddenIframe {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            opacity: 0;
+            pointer-events: none;
+            border: none;
         }
 
         .schedule-loader {
@@ -355,6 +361,9 @@
         </div>
     </div>
 
+    <!-- Скрытый iframe для парсинга -->
+    <iframe id="hiddenIframe" src="about:blank"></iframe>
+
     <div class="debug-log" id="debugLog">
         <div class="log-entry info"><span class="time">[⏳]</span> Ожидание загрузки...</div>
     </div>
@@ -365,7 +374,6 @@
         // ============================================================
         const SCHEDULE_URL = 'https://mgkct.minskedu.gov.by/personnel/for-students/weekly-timetable?group=86';
         const DAYS_RU = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье'];
-        const SCHEDULE_CACHE_KEY = 'schedule_test_v1';
 
         // ============================================================
         // 2. ЛОГГЕР
@@ -485,7 +493,10 @@
         }
 
         function parseScheduleHTML(html) {
-            addLog('🔍 Начинаем парсинг HTML...', 'info');
+            addLog(`🔍 Начинаем парсинг HTML (${html.length} символов)...`, 'info');
+            
+            // Показываем первые 500 символов для отладки
+            addLog(`📄 Первые 500 символов: ${html.substring(0, 500)}`, 'info');
             
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, 'text/html');
@@ -493,11 +504,14 @@
             // Ищем заголовок группы 86
             let targetSection = null;
             const headings = doc.querySelectorAll('h2');
+            addLog(`Найдено заголовков h2: ${headings.length}`, 'info');
+            
             for (const h2 of headings) {
                 const text = h2.textContent.trim();
+                addLog(`  Заголовок: "${text}"`, 'info');
                 if (text.includes('Группа - 86')) {
                     targetSection = h2;
-                    addLog(`✅ Найден заголовок: "${text}"`, 'success');
+                    addLog(`✅ Найден заголовок группы 86: "${text}"`, 'success');
                     break;
                 }
             }
@@ -508,13 +522,19 @@
                 const bodyText = doc.body.textContent;
                 if (bodyText.includes('Группа - 86')) {
                     addLog('⚠️ Заголовок найден в тексте, пробуем извлечь...', 'info');
-                    // Ищем таблицу после "Группа - 86" в тексте
                     const regex = /Группа - 86([\s\S]*?)(?:Группа -|$)/i;
                     const match = bodyText.match(regex);
                     if (match) {
                         addLog('📄 Извлекаем расписание из текста', 'info');
                         return parseTextSchedule(match[1]);
                     }
+                }
+                // Пробуем найти любую таблицу
+                const tables = doc.querySelectorAll('table');
+                addLog(`Найдено таблиц: ${tables.length}`, 'info');
+                if (tables.length > 0) {
+                    addLog('🔍 Пробуем парсить первую таблицу', 'info');
+                    return parseScheduleTable(tables[0]);
                 }
                 throw new Error('Расписание для группы 86 не найдено');
             }
@@ -527,6 +547,12 @@
             
             if (!table) {
                 addLog('❌ Таблица не найдена', 'error');
+                // Пробуем найти любую таблицу
+                const tables = doc.querySelectorAll('table');
+                if (tables.length > 0) {
+                    addLog('🔍 Используем первую таблицу как запасной вариант', 'info');
+                    return parseScheduleTable(tables[0]);
+                }
                 throw new Error('Таблица расписания не найдена');
             }
             
@@ -546,15 +572,12 @@
             
             const lines = text.split('\n').filter(line => line.trim() !== '');
             let currentDay = null;
-            let pairCounter = 0;
             
             for (const line of lines) {
                 const trimmed = line.trim();
                 const dayMatch = trimmed.match(/^(Понедельник|Вторник|Среда|Четверг|Пятница|Суббота)/i);
                 if (dayMatch) {
                     currentDay = dayMatch[1];
-                    pairCounter = 0;
-                    addLog(`📅 День: ${currentDay}`, 'info');
                     continue;
                 }
                 
@@ -565,13 +588,10 @@
                     const lesson = parseLessonContent(rest, pairNum);
                     if (lesson) {
                         schedule[currentDay].push(lesson);
-                        pairCounter++;
-                        addLog(`  Пара ${pairNum}: ${lesson.discipline}`, 'success');
                     }
                 }
             }
             
-            addLog(`📊 Всего пар найдено: ${Object.values(schedule).reduce((a, b) => a + b.length, 0)}`, 'info');
             return schedule;
         }
 
@@ -595,15 +615,10 @@
                 return;
             }
             
-            // Статус
-            if (sourceType === 'live') {
-                statusBadge.textContent = '✅ С сервера';
+            if (sourceType === 'iframe') {
+                statusBadge.textContent = '✅ С сайта (iframe)';
                 statusBadge.className = 'status-badge success';
-                addLog('✅ Отображение: данные с сервера', 'success');
-            } else if (sourceType === 'cache') {
-                statusBadge.textContent = '💾 Из кеша';
-                statusBadge.className = 'status-badge success';
-                addLog('💾 Отображение: данные из кеша', 'info');
+                addLog('✅ Отображение: данные с сайта через iframe', 'success');
             } else {
                 statusBadge.textContent = '📋 Запасное';
                 statusBadge.className = 'status-badge fallback';
@@ -692,7 +707,6 @@
             }
             
             container.innerHTML = html;
-            addLog(`📊 Отображено ${Object.values(schedule).reduce((a, b) => a + b.length, 0)} пар`, 'info');
         }
 
         function escapeHtml(str) {
@@ -706,14 +720,103 @@
         }
 
         // ============================================================
-        // 5. ЗАГРУЗКА
+        // 5. ЗАГРУЗКА ЧЕРЕЗ IFRAME
+        // ============================================================
+        function loadScheduleViaIframe() {
+            return new Promise((resolve, reject) => {
+                addLog('🔄 Загружаем страницу через iframe...', 'info');
+                
+                const iframe = document.getElementById('hiddenIframe');
+                let isResolved = false;
+                
+                // Таймаут на случай, если iframe зависнет
+                const timeoutId = setTimeout(() => {
+                    if (!isResolved) {
+                        isResolved = true;
+                        addLog('⏰ Таймаут загрузки iframe', 'error');
+                        reject(new Error('Таймаут загрузки iframe'));
+                    }
+                }, 15000);
+                
+                // Обработчик загрузки iframe
+                iframe.onload = function() {
+                    if (isResolved) return;
+                    
+                    try {
+                        addLog('✅ Iframe загружен', 'success');
+                        
+                        // Пробуем получить доступ к содержимому iframe
+                        let html = '';
+                        try {
+                            const doc = iframe.contentDocument || iframe.contentWindow.document;
+                            html = doc.documentElement.outerHTML;
+                            addLog(`📄 Получен HTML из iframe (${html.length} символов)`, 'info');
+                        } catch(e) {
+                            addLog(`❌ Не удалось получить доступ к iframe: ${e.message}`, 'error');
+                            clearTimeout(timeoutId);
+                            isResolved = true;
+                            reject(new Error('Доступ к iframe запрещён (CORS или блокировка)'));
+                            return;
+                        }
+                        
+                        // Проверяем, что HTML содержит расписание
+                        if (!html.includes('Группа - 86') && !html.includes('weekly-timetable')) {
+                            // Пробуем найти хотя бы таблицу
+                            const parser = new DOMParser();
+                            const doc = parser.parseFromString(html, 'text/html');
+                            const tables = doc.querySelectorAll('table');
+                            if (tables.length === 0) {
+                                addLog('❌ В HTML нет таблиц с расписанием', 'error');
+                                clearTimeout(timeoutId);
+                                isResolved = true;
+                                reject(new Error('Расписание не найдено в загруженной странице'));
+                                return;
+                            }
+                            addLog(`⚠️ Заголовок "Группа - 86" не найден, но есть ${tables.length} таблиц`, 'error');
+                        }
+                        
+                        clearTimeout(timeoutId);
+                        isResolved = true;
+                        resolve(html);
+                        
+                    } catch(e) {
+                        clearTimeout(timeoutId);
+                        isResolved = true;
+                        addLog(`❌ Ошибка при обработке iframe: ${e.message}`, 'error');
+                        reject(e);
+                    }
+                };
+                
+                // Обработчик ошибки iframe
+                iframe.onerror = function(e) {
+                    if (isResolved) return;
+                    clearTimeout(timeoutId);
+                    isResolved = true;
+                    addLog(`❌ Ошибка загрузки iframe: ${e}`, 'error');
+                    reject(new Error('Ошибка загрузки iframe'));
+                };
+                
+                // Загружаем страницу
+                try {
+                    iframe.src = SCHEDULE_URL;
+                    addLog(`📡 Загрузка: ${SCHEDULE_URL}`, 'info');
+                } catch(e) {
+                    clearTimeout(timeoutId);
+                    isResolved = true;
+                    addLog(`❌ Ошибка установки src: ${e.message}`, 'error');
+                    reject(e);
+                }
+            });
+        }
+
+        // ============================================================
+        // 6. ОСНОВНАЯ ФУНКЦИЯ ЗАГРУЗКИ
         // ============================================================
         async function loadSchedule() {
             const container = document.getElementById('scheduleContent');
             const statusBadge = document.getElementById('statusBadge');
             const weekLabel = document.getElementById('weekLabel');
             
-            // Очищаем лог
             document.getElementById('debugLog').innerHTML = '';
             addLog('🚀 Начинаем загрузку расписания...', 'info');
             
@@ -727,129 +830,25 @@
             statusBadge.textContent = '⏳ Загрузка...';
             statusBadge.className = 'status-badge loading';
             
-            // Сначала пробуем кеш
             try {
-                const cached = localStorage.getItem(SCHEDULE_CACHE_KEY);
-                if (cached) {
-                    const data = JSON.parse(cached);
-                    if (data && data.schedule && Object.values(data.schedule).some(arr => arr.length > 0)) {
-                        const cacheAge = Date.now() - (data.timestamp || 0);
-                        const hours = Math.round(cacheAge / 3600000);
-                        addLog(`💾 Найден кеш (возраст: ${hours} ч)`, 'info');
-                        renderSchedule(data.schedule, 'cache');
-                        // Продолжаем загрузку свежих данных в фоне
-                    }
+                // Пробуем загрузить через iframe
+                const html = await loadScheduleViaIframe();
+                addLog(`🔍 Парсинг HTML...`, 'info');
+                const schedule = parseScheduleHTML(html);
+                
+                if (schedule && Object.values(schedule).some(arr => arr.length > 0)) {
+                    renderSchedule(schedule, 'iframe');
+                    addLog(`✅ Готово! Расписание загружено через iframe`, 'success');
+                    return;
+                } else {
+                    addLog(`⚠️ Парсинг не дал результатов`, 'error');
                 }
+                
             } catch(e) {
-                addLog(`⚠️ Ошибка чтения кеша: ${e.message}`, 'error');
+                addLog(`❌ Ошибка загрузки через iframe: ${e.message}`, 'error');
             }
             
-            // Пробуем загрузить свежие данные
-            const proxies = [
-                { url: 'https://api.allorigins.win/raw?url=', name: 'AllOrigins' },
-                { url: 'https://corsproxy.io/?', name: 'CorsProxy' },
-                { url: 'https://api.codetabs.com/v1/proxy?quest=', name: 'CodeTabs' }
-            ];
-            
-            let html = null;
-            let usedProxy = '';
-            
-            for (const proxy of proxies) {
-                try {
-                    addLog(`🔄 Пробуем ${proxy.name}...`, 'info');
-                    const url = proxy.url + encodeURIComponent(SCHEDULE_URL);
-                    const response = await fetch(url, {
-                        signal: AbortSignal.timeout(8000),
-                        headers: {
-                            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-                        }
-                    });
-                    if (response.ok) {
-                        const text = await response.text();
-                        if (text.includes('Группа - 86')) {
-                            html = text;
-                            usedProxy = proxy.name;
-                            addLog(`✅ ${proxy.name} сработал!`, 'success');
-                            break;
-                        } else {
-                            addLog(`⚠️ ${proxy.name} вернул HTML без "Группа - 86"`, 'error');
-                        }
-                    } else {
-                        addLog(`❌ ${proxy.name} вернул ${response.status}`, 'error');
-                    }
-                } catch(e) {
-                    addLog(`❌ ${proxy.name} ошибка: ${e.message}`, 'error');
-                }
-            }
-            
-            // Если прокси не сработали — пробуем прямой запрос
-            if (!html) {
-                try {
-                    addLog(`🔄 Пробуем прямой запрос...`, 'info');
-                    const response = await fetch(SCHEDULE_URL, {
-                        signal: AbortSignal.timeout(5000),
-                        headers: {
-                            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-                            'Accept': 'text/html,application/xhtml+xml',
-                            'Accept-Language': 'ru-RU,ru;q=0.9'
-                        }
-                    });
-                    if (response.ok) {
-                        const text = await response.text();
-                        if (text.includes('Группа - 86')) {
-                            html = text;
-                            usedProxy = 'Прямой запрос';
-                            addLog(`✅ Прямой запрос сработал!`, 'success');
-                        }
-                    }
-                } catch(e) {
-                    addLog(`❌ Прямой запрос ошибка: ${e.message}`, 'error');
-                }
-            }
-            
-            // Если получили HTML — парсим
-            if (html) {
-                try {
-                    addLog(`🔍 Парсинг HTML (${html.length} символов)...`, 'info');
-                    const schedule = parseScheduleHTML(html);
-                    if (schedule && Object.values(schedule).some(arr => arr.length > 0)) {
-                        // Сохраняем в кеш
-                        try {
-                            localStorage.setItem(SCHEDULE_CACHE_KEY, JSON.stringify({
-                                schedule: schedule,
-                                timestamp: Date.now()
-                            }));
-                            addLog(`💾 Кеш сохранен`, 'success');
-                        } catch(e) {
-                            addLog(`⚠️ Не удалось сохранить кеш: ${e.message}`, 'error');
-                        }
-                        renderSchedule(schedule, 'live');
-                        addLog(`✅ Готово! Загружено с ${usedProxy}`, 'success');
-                        return;
-                    } else {
-                        addLog(`⚠️ Парсинг не дал результатов`, 'error');
-                    }
-                } catch(e) {
-                    addLog(`❌ Ошибка парсинга: ${e.message}`, 'error');
-                }
-            }
-            
-            // Если ничего не сработало — проверяем, есть ли кеш
-            try {
-                const cached = localStorage.getItem(SCHEDULE_CACHE_KEY);
-                if (cached) {
-                    const data = JSON.parse(cached);
-                    if (data && data.schedule && Object.values(data.schedule).some(arr => arr.length > 0)) {
-                        addLog(`📦 Использую кеш (финальный)`, 'info');
-                        renderSchedule(data.schedule, 'cache');
-                        return;
-                    }
-                }
-            } catch(e) {
-                addLog(`⚠️ Ошибка чтения кеша: ${e.message}`, 'error');
-            }
-            
-            // Всё плохо — показываем ошибку
+            // Всё плохо
             container.innerHTML = `
                 <div class="schedule-error">
                     <span class="error-icon">⚠️</span>
@@ -863,11 +862,11 @@
             statusBadge.textContent = '❌ Ошибка';
             statusBadge.className = 'status-badge error';
             weekLabel.textContent = 'Ошибка загрузки';
-            addLog(`❌ Все способы загрузки не сработали`, 'error');
+            addLog(`❌ Не удалось загрузить расписание`, 'error');
         }
 
         // ============================================================
-        // 6. ЗАПУСК
+        // 7. ЗАПУСК
         // ============================================================
         document.getElementById('refreshBtn').addEventListener('click', function() {
             loadSchedule();
