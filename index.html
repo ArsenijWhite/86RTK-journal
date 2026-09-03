@@ -14,11 +14,17 @@
             --muted: #94a3b8;
             --error: #ef4444;
             --gold: #fbbf24;
+            --exam-color: #f472b6;
+            --exam-bg: rgba(244, 114, 182, 0.12);
             --success: #10b981;
             --admin: #8b5cf6;
             --tab-inactive: #334155;
             --schedule-day-bg: rgba(56, 189, 248, 0.06);
             --schedule-border: rgba(56, 189, 248, 0.12);
+            --status-success: #10b981;
+            --status-warning: #f59e0b;
+            --status-error: #ef4444;
+            --status-fallback: #8b5cf6;
         }
         * { 
             font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; 
@@ -234,6 +240,7 @@
         .schedule-header .schedule-week-label { font-size: 11px; color: var(--muted); font-weight: 400; }
         .schedule-header .schedule-status-badge { font-size: 9px; padding: 2px 10px; border-radius: 12px; font-weight: 600; background: rgba(255,255,255,0.06); color: var(--muted); }
         .schedule-header .schedule-status-badge.success { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+        .schedule-header .schedule-status-badge.fallback { background: rgba(139, 92, 246, 0.15); color: var(--status-fallback); }
         .schedule-header .schedule-status-badge.error { background: rgba(239, 68, 68, 0.15); color: var(--error); }
 
         .schedule-loader { text-align: center; padding: 40px 20px; color: var(--muted); font-size: 13px; }
@@ -437,7 +444,7 @@
         let isDataLoaded = false;
         let isAdmin = false;
 
-        const CACHE_KEY = 'journal_86rtk_v40';
+        const CACHE_KEY = 'journal_86rtk_v41';
         const EXAM_SUBJECTS = [
             'Цифровая и микропроцессорная техника',
             'Промышленная электроника и микроэлектроника',
@@ -470,7 +477,7 @@
         }
 
         // ============================================================
-        // 5. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+        // 5. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ (БЕЗ ИЗМЕНЕНИЙ)
         // ============================================================
         function getBoundStudent() {
             if (!userId) return null;
@@ -557,7 +564,7 @@
         }
 
         // ============================================================
-        // 6. АДМИН-ФУНКЦИИ
+        // 6. АДМИН-ФУНКЦИИ (БЕЗ ИЗМЕНЕНИЙ)
         // ============================================================
         function notifyOwner(userId, studentName) {
             const message = '🔔 <b>Новая привязка!</b>\n\n' +
@@ -745,7 +752,7 @@
         }
 
         // ============================================================
-        // 8. РЕНДЕРИНГ ЖУРНАЛА
+        // 8. РЕНДЕРИНГ ЖУРНАЛА (БЕЗ ИЗМЕНЕНИЙ)
         // ============================================================
         function renderJournal() {
             const container = document.getElementById('list');
@@ -1019,9 +1026,47 @@
         }
 
         // ============================================================
-        // 12. РАСПИСАНИЕ — ПРОСТОЙ ПАРСИНГ С ИСПОЛЬЗОВАНИЕМ ПРОКСИ
+        // 12. РАСПИСАНИЕ — С ПОДДЕРЖКОЙ ЗАПАСНОГО ВАРИАНТА
         // ============================================================
         
+        // ЗАПАСНОЕ РАСПИСАНИЕ (если парсинг не сработает)
+        function getFallbackSchedule() {
+            return {
+                'Понедельник': [
+                    { pair: '4', discipline: 'ФЗКиЗ', type: 'лекция', teacher: 'Анципов Е. Ю. / Усикова Л. Н.', room: '', subgroup: '' },
+                    { pair: '5', discipline: 'АвтомПр', type: 'лекция', teacher: 'Мурашко А. В.', room: '3-209', subgroup: '' },
+                    { pair: '6', discipline: 'АвтомПр', type: 'лекция', teacher: 'Мурашко А. В.', room: '3-209', subgroup: '' }
+                ],
+                'Вторник': [
+                    { pair: '4', discipline: 'Цифр и микр тех', type: 'лекция', teacher: 'Плаксин Е. Б.', room: '3-111 (к)', subgroup: '' },
+                    { pair: '5', discipline: 'Механ пром робо', type: 'лекция', teacher: 'Любко А. А.', room: '2-211', subgroup: '' },
+                    { pair: '6', discipline: 'Элпр и автом', type: 'лекция', teacher: 'Любко А. А.', room: '2-211', subgroup: '' },
+                    { pair: '7', discipline: 'Элпр и автом', type: 'лекция', teacher: 'Любко А. А.', room: '2-211', subgroup: '' }
+                ],
+                'Среда': [
+                    { pair: '4', discipline: 'Инф техн', type: 'лабораторная', teacher: 'Гаврилович Д. И.', room: '2-206 (к)', subgroup: '1' },
+                    { pair: '5', discipline: 'Нал и эк промро', type: 'лекция', teacher: 'Камлюк В. С.', room: '3-114', subgroup: '' },
+                    { pair: '6', discipline: 'Механ пром робо', type: 'лекция', teacher: 'Любко А. А.', room: '2-211', subgroup: '' },
+                    { pair: '7', discipline: 'Инф техн', type: 'лабораторная', teacher: 'Гаврилович Д. И.', room: '2-206 (к)', subgroup: '2' }
+                ],
+                'Четверг': [
+                    { pair: '4', discipline: 'Пром электр', type: 'лекция', teacher: 'Плаксин Е. Б.', room: '3-111 (к)', subgroup: '' },
+                    { pair: '5', discipline: 'Цифр и микр тех', type: 'лекция', teacher: 'Плаксин Е. Б.', room: '3-111 (к)', subgroup: '' },
+                    { pair: '6', discipline: 'Цифр и микр тех', type: 'лекция', teacher: 'Плаксин Е. Б.', room: '3-111 (к)', subgroup: '' }
+                ],
+                'Пятница': [
+                    { pair: '4', discipline: 'АвтомПр', type: 'лекция', teacher: 'Мурашко А. В.', room: '2-212', subgroup: '' },
+                    { pair: '5', discipline: 'АвтомПр', type: 'лекция', teacher: 'Мурашко А. В.', room: '2-212', subgroup: '' },
+                    { pair: '6', discipline: 'ФЗКиЗ', type: 'лекция', teacher: 'Анципов Е. Ю. / Усикова Л. Н.', room: '', subgroup: '' }
+                ],
+                'Суббота': [
+                    { pair: '4', discipline: 'ФЗКиЗ', type: 'лекция', teacher: 'Анципов Е. Ю. / Усикова Л. Н.', room: '', subgroup: '' },
+                    { pair: '5', discipline: 'Цифр и микр тех', type: 'лекция', teacher: 'Плаксин Е. Б.', room: '3-111 (к)', subgroup: '' },
+                    { pair: '6', discipline: 'Элпр и автом', type: 'лекция', teacher: 'Любко А. А.', room: '2-211', subgroup: '' }
+                ]
+            };
+        }
+
         function parseLessonContent(content, pairNum) {
             if (!content || content.trim() === '') return null;
             
@@ -1031,21 +1076,18 @@
             let room = '';
             let subgroup = '';
             
-            // Ищем подгруппу (1. или 2. в начале)
             const subgroupMatch = content.match(/^(\d+)\./);
             if (subgroupMatch) {
                 subgroup = subgroupMatch[1];
                 discipline = discipline.replace(/^\d+\.\s*/, '').trim();
             }
             
-            // Ищем аудиторию
             const roomMatch = content.match(/(Кн\.?\s*[\d\-()]+|[\d\-]+\(?[к\)]?)/i);
             if (roomMatch) {
                 room = roomMatch[0];
                 discipline = discipline.replace(roomMatch[0], '').trim();
             }
             
-            // Ищем преподавателя в скобках
             const teacherMatch = discipline.match(/\(([^)]+)\)/);
             if (teacherMatch) {
                 const parts = teacherMatch[1].split(/\s+/);
@@ -1055,7 +1097,6 @@
                 }
             }
             
-            // Ищем тип занятия
             const typeMatch = discipline.match(/\(([^)]+)\)/);
             if (typeMatch) {
                 const type = typeMatch[1].trim();
@@ -1087,14 +1128,12 @@
             const rows = table.querySelectorAll('tr');
             if (rows.length < 3) return null;
             
-            // Заголовки дней
             const headerRow = rows[1];
             const dayCells = headerRow.querySelectorAll('td, th');
             const days = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
             const schedule = {};
             days.forEach(day => { schedule[day] = []; });
             
-            // Проходим по строкам с парами
             for (let i = 2; i < rows.length; i++) {
                 const row = rows[i];
                 const cells = row.querySelectorAll('td');
@@ -1124,7 +1163,6 @@
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, 'text/html');
             
-            // Ищем заголовок "Группа - 86"
             let targetSection = null;
             const headings = doc.querySelectorAll('h2');
             for (const h2 of headings) {
@@ -1138,7 +1176,6 @@
                 throw new Error('Расписание для группы 86 не найдено');
             }
             
-            // Ищем таблицу после заголовка
             let table = targetSection.nextElementSibling;
             while (table && table.tagName !== 'TABLE') {
                 table = table.nextElementSibling;
@@ -1151,9 +1188,10 @@
             return parseScheduleTable(table);
         }
 
-        function renderSchedule(schedule) {
+        function renderSchedule(schedule, isFallback) {
             const container = document.getElementById('scheduleContent');
             const statusBadge = document.getElementById('scheduleStatusBadge');
+            const weekLabel = document.getElementById('scheduleWeekLabel');
             
             if (!schedule || !Object.values(schedule).some(arr => arr.length > 0)) {
                 container.innerHTML = `
@@ -1167,14 +1205,36 @@
                 return;
             }
             
-            statusBadge.textContent = '✅ С сервера';
-            statusBadge.className = 'schedule-status-badge success';
+            if (isFallback) {
+                statusBadge.textContent = '📋 Запасное';
+                statusBadge.className = 'schedule-status-badge fallback';
+                weekLabel.textContent = '📋 Актуальное расписание на сайте';
+            } else {
+                statusBadge.textContent = '✅ С сервера';
+                statusBadge.className = 'schedule-status-badge success';
+                
+                const today = new Date();
+                const weekDates = [];
+                const day = today.getDay();
+                const diff = today.getDate() - day + (day === 0 ? -6 : 1);
+                const monday = new Date(today);
+                monday.setDate(diff);
+                for (let i = 0; i < 7; i++) {
+                    const d = new Date(monday);
+                    d.setDate(monday.getDate() + i);
+                    weekDates.push(d);
+                }
+                if (weekDates.length >= 2) {
+                    const start = weekDates[0].toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
+                    const end = weekDates[6].toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
+                    weekLabel.textContent = `${start} — ${end}`;
+                }
+            }
             
             const today = new Date();
             const todayIndex = today.getDay();
             const todayName = todayIndex === 0 ? 'Воскресенье' : DAYS_RU[todayIndex - 1];
             
-            // Даты текущей недели
             const weekDates = [];
             const day = today.getDay();
             const diff = today.getDate() - day + (day === 0 ? -6 : 1);
@@ -1189,7 +1249,6 @@
             let html = '';
             let hasLessons = false;
             
-            // Показываем ПН-СБ
             for (let i = 0; i < 6; i++) {
                 const dayName = DAYS_RU[i];
                 const lessons = schedule[dayName] || [];
@@ -1265,60 +1324,82 @@
             statusBadge.textContent = '⏳ Загрузка...';
             statusBadge.className = 'schedule-status-badge';
             
-            try {
-                // Пробуем через прокси
-                const proxy = 'https://api.allorigins.win/raw?url=';
-                const url = proxy + encodeURIComponent(SCHEDULE_URL);
-                
-                const response = await fetch(url, {
-                    signal: AbortSignal.timeout(10000),
-                    headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
-                });
-                
-                if (!response.ok) throw new Error('Ошибка загрузки: ' + response.status);
-                
-                const html = await response.text();
-                
-                if (!html.includes('Группа - 86')) {
-                    throw new Error('Расписание для группы 86 не найдено');
+            // Список прокси для попыток
+            const proxies = [
+                'https://api.allorigins.win/raw?url=',
+                'https://corsproxy.io/?',
+                'https://api.codetabs.com/v1/proxy?quest='
+            ];
+            
+            let html = null;
+            let usedProxy = '';
+            
+            // Пробуем каждый прокси
+            for (const proxy of proxies) {
+                try {
+                    const url = proxy + encodeURIComponent(SCHEDULE_URL);
+                    console.log('🔄 Пробуем прокси:', proxy);
+                    const response = await fetch(url, {
+                        signal: AbortSignal.timeout(8000),
+                        headers: {
+                            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                        }
+                    });
+                    if (response.ok) {
+                        const text = await response.text();
+                        if (text.includes('Группа - 86')) {
+                            html = text;
+                            usedProxy = proxy;
+                            break;
+                        }
+                    }
+                } catch(e) {
+                    console.warn('❌ Прокси не сработал:', e.message);
                 }
-                
-                const schedule = parseScheduleHTML(html);
-                renderSchedule(schedule);
-                
-                // Даты недели
-                const today = new Date();
-                const weekDates = [];
-                const day = today.getDay();
-                const diff = today.getDate() - day + (day === 0 ? -6 : 1);
-                const monday = new Date(today);
-                monday.setDate(diff);
-                for (let i = 0; i < 7; i++) {
-                    const d = new Date(monday);
-                    d.setDate(monday.getDate() + i);
-                    weekDates.push(d);
-                }
-                if (weekDates.length >= 2) {
-                    const start = weekDates[0].toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
-                    const end = weekDates[6].toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
-                    weekLabel.textContent = `${start} — ${end}`;
-                }
-                
-                console.log('✅ Расписание успешно загружено');
-                
-            } catch(e) {
-                console.error('❌ Ошибка загрузки расписания:', e);
-                container.innerHTML = `
-                    <div class="schedule-error">
-                        <span class="error-icon">⚠️</span>
-                        <span>Не удалось загрузить расписание</span>
-                        <button class="retry-btn" onclick="loadSchedule()">🔄 Попробовать снова</button>
-                    </div>
-                `;
-                statusBadge.textContent = '❌ Ошибка';
-                statusBadge.className = 'schedule-status-badge error';
-                weekLabel.textContent = 'Ошибка загрузки';
             }
+            
+            // Если через прокси не получилось — пробуем прямой запрос
+            if (!html) {
+                try {
+                    console.log('🔄 Пробуем прямой запрос...');
+                    const response = await fetch(SCHEDULE_URL, {
+                        signal: AbortSignal.timeout(5000),
+                        headers: {
+                            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                            'Accept': 'text/html,application/xhtml+xml',
+                            'Accept-Language': 'ru-RU,ru;q=0.9'
+                        }
+                    });
+                    if (response.ok) {
+                        const text = await response.text();
+                        if (text.includes('Группа - 86')) {
+                            html = text;
+                            usedProxy = 'direct';
+                        }
+                    }
+                } catch(e) {
+                    console.warn('❌ Прямой запрос не сработал:', e.message);
+                }
+            }
+            
+            // Если получили HTML — парсим
+            if (html) {
+                try {
+                    const schedule = parseScheduleHTML(html);
+                    if (schedule && Object.values(schedule).some(arr => arr.length > 0)) {
+                        renderSchedule(schedule, false);
+                        console.log('✅ Расписание загружено с сервера');
+                        return;
+                    }
+                } catch(e) {
+                    console.warn('❌ Ошибка парсинга:', e.message);
+                }
+            }
+            
+            // Если ничего не сработало — используем запасное расписание
+            console.log('📦 Использую запасное расписание');
+            const fallback = getFallbackSchedule();
+            renderSchedule(fallback, true);
         }
 
         // ============================================================
