@@ -165,19 +165,25 @@
                 content = content.replace(/^\d+\.\s*/, '').trim();
             }
             
-            // 2. Аудитория (с буквами к, кн)
+            // 2. Ищем аудиторию
             const roomMatch = content.match(/(Кн\.?\s*[\d\-()]+|[\d\-]+\(?[к\)]?)/i);
             if (roomMatch) {
                 room = roomMatch[0].trim();
                 content = content.replace(roomMatch[0], '').trim();
             }
             
-            // 3. Проверяем, остались ли в конце буквы (к) или (кн) в названии
-            // Если в конце осталось (к) или (кн) — переносим в аудиторию
-            const leftoverMatch = content.match(/\([кКнН]\)$/);
-            if (leftoverMatch && !room) {
-                room = leftoverMatch[0].trim();
-                content = content.replace(leftoverMatch[0], '').trim();
+            // 3. ВЫРЕЗАЕМ (к) И (кн) ИЗ НАЗВАНИЯ И ПРИКЛЕИВАЕМ К АУДИТОРИИ
+            const kMatch = content.match(/\([кКнН]\)/);
+            if (kMatch) {
+                const kText = kMatch[0];
+                // Если аудитории нет — создаем
+                if (!room) {
+                    room = kText;
+                } else {
+                    // Если аудитория есть — добавляем в конец
+                    room = room + ' ' + kText;
+                }
+                content = content.replace(kMatch[0], '').trim();
             }
             
             // 4. Тип занятия
