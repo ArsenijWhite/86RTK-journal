@@ -385,7 +385,7 @@
         }
 
         // ============================================================
-        // 3. ПАРСИНГ
+        // 3. ПАРСИНГ — ПРАВИЛЬНАЯ ВЕРСИЯ ДЛЯ ТАБЛИЦЫ С 2 КОЛОНКАМИ НА ДЕНЬ
         // ============================================================
         function parseLessonContent(content, pairNum) {
             if (!content || content.trim() === '') return null;
@@ -451,19 +451,8 @@
         function parseSchedule(html) {
             addLog('🔍 Начинаем парсинг...', 'info');
             
-            // Проверяем, что это HTML
-            if (!html.includes('<!DOCTYPE html') && !html.includes('<html')) {
-                addLog('⚠️ Получен не HTML, а:', 'warning');
-                addRawLog(html.substring(0, 200));
-                return null;
-            }
-            
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, 'text/html');
-            
-            // Проверяем, что документ содержит расписание
-            const bodyText = doc.body?.textContent || '';
-            addRawLog(`📄 Текст страницы: ${bodyText.substring(0, 200)}...`);
             
             // Ищем таблицу для группы 86
             let targetTable = null;
@@ -474,10 +463,8 @@
             
             for (const h2 of headings) {
                 const text = h2.textContent.trim();
-                addLog(`  Заголовок: "${text}"`, 'info');
                 if (text.includes('Группа - 86')) {
                     addLog(`✅ Найден заголовок: ${text}`, 'success');
-                    // Ищем следующую таблицу
                     let sibling = h2.nextElementSibling;
                     while (sibling) {
                         if (sibling.tagName === 'TABLE') {
@@ -491,14 +478,13 @@
                 }
             }
             
-            // Способ 2: Если не нашли — ищем любую таблицу с расписанием
+            // Способ 2: Если не нашли — ищем любую таблицу
             if (!targetTable) {
                 addLog('⚠️ Заголовок не найден, ищу таблицу', 'warning');
                 const tables = doc.querySelectorAll('table');
                 addLog(`Найдено таблиц: ${tables.length}`, 'info');
                 
                 for (const table of tables) {
-                    // Проверяем, есть ли в таблице дни недели
                     const tableText = table.textContent;
                     const hasDays = DAYS_RU.some(day => tableText.includes(day));
                     if (hasDays) {
@@ -508,7 +494,6 @@
                     }
                 }
                 
-                // Если не нашли — берем первую таблицу
                 if (!targetTable && tables.length > 0) {
                     targetTable = tables[0];
                     addLog('⚠️ Использую первую таблицу', 'warning');
@@ -529,70 +514,161 @@
                 return null;
             }
             
-            // Определяем дни недели из заголовка
-            const headerRow = rows[1];
-            const headerCells = headerRow.querySelectorAll('td, th');
-            addLog(`📊 Ячеек в заголовке: ${headerCells.length}`, 'info');
+            // ============================================================
+            // ОПРЕДЕЛЯЕМ ДНИ НЕДЕЛИ И КОЛОНКИ
+            // ============================================================
+            // В первой строке (rows[0]) — номера пар и названия дней
+            // Каждый день занимает 2 колонки: предмет и аудитория
             
-            // Показываем содержимое заголовка
+            const headerRow1 = rows[0];
+            const dayCells = headerRow1.querySelectorAll('td, th');
+            
+            addLog(`📊 Ячеек в первой строке заголовка: ${dayCells.length}`, 'info');
+            
+            // Показываем содержимое для отладки
             const headerTexts = [];
-            for (const cell of headerCells) {
+            for (const cell of dayCells) {
                 const text = cell.textContent.trim();
                 if (text) headerTexts.push(text);
             }
             addLog(`📋 Заголовок: ${headerTexts.join(' | ')}`, 'info');
             
-            // Ищем дни недели
-            const dayNames = [];
-            for (const cell of headerCells) {
+            // Находим дни недели и их колонки
+            const dayInfo = [];
+            let currentDay = null;
+            
+            for (let i = 0; i < dayCells.length; i++) {
+                const cell = dayCells[i];
                 const text = cell.textContent.trim();
+                
+                // Проверяем, не является ли ячейка названием дня
+                let foundDay = null;
                 for (const day of DAYS_RU) {
                     if (text.includes(day)) {
-                        dayNames.push(day);
+                        foundDay = day;
                         break;
+                    }
+                }
+                
+                if (foundDay) {
+                    // Начинаем новый день
+                    currentDay = foundDay;
+                    // Первая колонка дня — для дисциплины (i)
+                    // Вторая колонка дня — для аудитории (i+1)
+                    dayInfo.push({
+                        name: foundDay,
+                        colSubject: i,
+                        colRoom: i + 1,
+                        date: text
+                    });
+                    addLog(`📅 День "${foundDay}" найден в колонке ${i} (аудитория в ${i+1})`, 'success');
+                }
+            }
+            
+            // Если дни не найдены — пробуем вторую строку
+            if (dayInfo.length === 0) {
+                addLog('⚠️ В первой строке дни не найдены, проверяю вторую...', 'warning');
+                const headerRow2 = rows[1];
+                const dayCells2 = headerRow2.querySelectorAll('td, th');
+                
+                for (let i = 0; i < dayCells2.length; i++) {
+                    const text = dayCells2[i].textContent.trim();
+                    let foundDay = null;
+                    for (const day of DAYS_RU) {
+                        if (text.includes(day)) {
+                            foundDay = day;
+                            break;
+                        }
+                    }
+                    if (foundDay) {
+                        dayInfo.push({
+                            name: foundDay,
+                            colSubject: i,
+                            colRoom: i + 1,
+                            date: text
+                        });
+                        addLog(`📅 День "${foundDay}" найден во второй строке в колонке ${i}`, 'success');
                     }
                 }
             }
             
-            addLog(`📅 Найдено дней: ${dayNames.length}`, 'info');
-            
-            // Если дней не найдено, используем стандартные
-            if (dayNames.length === 0) {
+            // Если всё ещё не нашли — используем стандартные
+            if (dayInfo.length === 0) {
                 addLog('⚠️ Дни не найдены, использую стандартные', 'warning');
-                const colCount = headerCells.length;
-                // Если колонок 7 (№ + 6 дней) или 13 (№ + день + дата + ...)
-                for (let i = 0; i < Math.min(colCount - 1, 6); i++) {
-                    dayNames.push(DAYS_RU[i] || 'День ' + (i + 1));
+                // Каждый день занимает 2 колонки, начиная с 1-й
+                for (let i = 0; i < 6; i++) {
+                    dayInfo.push({
+                        name: DAYS_RU[i] || 'День ' + (i + 1),
+                        colSubject: 1 + i * 2,
+                        colRoom: 2 + i * 2,
+                        date: ''
+                    });
                 }
             }
             
+            // Ограничиваем 6 днями
+            while (dayInfo.length > 6) {
+                dayInfo.pop();
+            }
+            
+            const dayNames = dayInfo.map(d => d.name);
+            addLog(`📅 Итоговые дни: ${dayNames.join(', ')}`, 'info');
+            
+            // Создаем расписание
             const schedule = {};
             dayNames.forEach(day => { schedule[day] = []; });
             
-            // Парсим строки с парами
+            // ============================================================
+            // ПАРСИМ СТРОКИ С ПАРАМИ (начиная с 3-й строки, где есть rowspan)
+            // ============================================================
             let pairCount = 0;
+            
             for (let i = 2; i < rows.length; i++) {
                 const row = rows[i];
-                const cells = row.querySelectorAll('td');
+                const cells = row.querySelectorAll('td, th');
                 if (cells.length < 2) continue;
                 
-                const pairNum = cells[0].textContent.trim();
-                if (!pairNum || pairNum === '') continue;
+                // Определяем номер пары (обычно в первой колонке)
+                let pairNum = cells[0].textContent.trim();
+                if (!pairNum || pairNum === '') {
+                    // Если ячейка пустая, используем предыдущий номер
+                    continue;
+                }
                 
-                const daysCount = Math.min(dayNames.length, cells.length - 1);
-                
-                for (let d = 0; d < daysCount; d++) {
-                    const cellIndex = d + 1;
-                    if (cellIndex >= cells.length) break;
+                // Проходим по каждому дню
+                for (let d = 0; d < dayInfo.length; d++) {
+                    const info = dayInfo[d];
                     
-                    const cell = cells[cellIndex];
-                    const content = cell.textContent.trim();
+                    // Колонка с дисциплиной
+                    const colSubject = info.colSubject;
+                    // Колонка с аудиторией
+                    const colRoom = info.colRoom;
                     
-                    if (!content || content === '-' || content === '') continue;
+                    // Получаем содержимое
+                    let discipline = '';
+                    let room = '';
                     
-                    const dayName = dayNames[d] || DAYS_RU[d] || 'День ' + (d + 1);
+                    if (colSubject < cells.length) {
+                        discipline = cells[colSubject].textContent.trim();
+                    }
+                    if (colRoom < cells.length) {
+                        room = cells[colRoom].textContent.trim();
+                    }
                     
-                    const lesson = parseLessonContent(content, pairNum);
+                    // Если дисциплина пустая — пропускаем
+                    if (!discipline || discipline === '' || discipline === '-') continue;
+                    
+                    const dayName = info.name;
+                    
+                    // Собираем полную информацию
+                    const fullContent = discipline + (room ? ' ' + room : '');
+                    const lesson = parseLessonContent(fullContent, pairNum);
+                    
+                    // Если парсер не вытащил аудиторию, добавляем из отдельной колонки
+                    if (lesson && room && !lesson.room) {
+                        lesson.room = room;
+                    }
+                    
                     if (lesson) {
                         schedule[dayName].push(lesson);
                         pairCount++;
@@ -603,9 +679,7 @@
             
             addLog(`📊 Всего пар найдено: ${pairCount}`, 'info');
             
-            // Проверяем результат
-            const totalLessons = Object.values(schedule).reduce((acc, arr) => acc + arr.length, 0);
-            if (totalLessons === 0) {
+            if (pairCount === 0) {
                 addLog('⚠️ Пар не найдено', 'warning');
                 // Показываем пример HTML таблицы для отладки
                 addRawLog(`📄 Пример таблицы: ${targetTable.outerHTML.substring(0, 500)}...`);
@@ -754,12 +828,9 @@
             statusBadge.className = 'status-badge loading';
             
             try {
-                addLog(`📡 Запрос к прокси: ${PROXY_URL}`, 'info');
                 const response = await fetch(PROXY_URL, {
                     signal: AbortSignal.timeout(15000)
                 });
-                
-                addLog(`📡 Статус ответа: ${response.status} ${response.statusText}`, 'info');
                 
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -770,13 +841,6 @@
                 
                 // Показываем первые 500 символов для отладки
                 addRawLog(`📄 Первые 500 символов: ${html.substring(0, 500)}`);
-                
-                // Проверяем, что это HTML
-                if (!html.includes('<!DOCTYPE') && !html.includes('<html')) {
-                    addLog('⚠️ Ответ не похож на HTML', 'warning');
-                    addRawLog(`📄 Содержимое: ${html.substring(0, 300)}`);
-                    throw new Error('Прокси вернул не HTML');
-                }
                 
                 const schedule = parseSchedule(html);
                 
