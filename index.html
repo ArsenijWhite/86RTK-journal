@@ -280,14 +280,14 @@
 
         .schedule-empty {
             text-align: center;
-            padding: 30px 20px;
+            padding: 20px;
             color: var(--muted);
             font-size: 13px;
         }
         .schedule-empty .empty-icon {
-            font-size: 28px;
+            font-size: 24px;
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 4px;
             opacity: 0.5;
         }
 
@@ -381,8 +381,19 @@
             console.log(`[${type}] ${message}`);
         }
 
+        function addRawLog(message) {
+            const log = document.getElementById('debugLog');
+            const time = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.className = `log-entry raw`;
+            entry.innerHTML = `<span class="time">[${time}]</span> ${message}`;
+            log.appendChild(entry);
+            log.scrollTop = log.scrollHeight;
+            console.log(`[RAW] ${message}`);
+        }
+
         // ============================================================
-        // 3. ПАРСИНГ — ПРАВИЛЬНЫЙ ДЛЯ ТАБЛИЦЫ САЙТА
+        // 3. ПАРСИНГ — ПРАВИЛЬНЫЙ ДЛЯ ТАБЛИЦЫ (2 КОЛОНКИ НА ДЕНЬ)
         // ============================================================
         
         function parseLessonCell(content, pairNum) {
@@ -391,27 +402,20 @@
             let text = content.trim();
             const lessons = [];
             
-            // Разделяем на отдельные занятия (по переносам строк или по наличию цифры с точкой)
-            // Сначала разбиваем по переносу строки
+            // Разделяем на отдельные занятия по переносам строк
             let parts = text.split(/\n/);
             
-            // Если нет переносов, пробуем разделить по цифре с точкой
+            // Если нет переносов, пробуем разделить по "2." или "3."
             if (parts.length === 1) {
                 // Ищем все вхождения "цифра.текст"
                 const regex = /(\d+\.\s*[^(\d]+)/g;
                 const matches = text.match(regex);
                 if (matches && matches.length > 1) {
                     parts = matches.map(m => m.trim());
-                    // Остаток текста после последнего совпадения
-                    const lastMatch = matches[matches.length - 1];
-                    const rest = text.substring(text.indexOf(lastMatch) + lastMatch.length).trim();
-                    if (rest) {
-                        parts[parts.length - 1] = parts[parts.length - 1] + ' ' + rest;
-                    }
                 }
             }
             
-            // Если всё ещё одна часть — пробуем разделить по " 2." или " 3." и т.д.
+            // Если всё ещё одна часть — пробуем разделить по " 2." или " 3."
             if (parts.length === 1) {
                 const splitRegex = /\s+(\d+\.)/;
                 const match = text.match(splitRegex);
@@ -434,7 +438,7 @@
                 let teacher = '';
                 let room = '';
                 
-                // 1. Ищем подгруппу (цифра с точкой)
+                // 1. Ищем подгруппу (цифра с точкой в начале)
                 const subgroupMatch = partText.match(/^(\d+)\./);
                 if (subgroupMatch) {
                     subgroup = subgroupMatch[1];
@@ -571,16 +575,30 @@
             }
             
             // ============================================================
-            // ОПРЕДЕЛЯЕМ ДНИ НЕДЕЛИ
+            // ОПРЕДЕЛЯЕМ ДНИ НЕДЕЛИ И КОЛОНКИ
             // ============================================================
-            const headerRow1 = rows[0];
-            const dayCells = headerRow1.querySelectorAll('td, th');
+            // В первой строке — названия дней и даты
+            // Каждый день занимает 2 колонки: предмет и аудитория
             
+            const headerRow = rows[0];
+            const headerCells = headerRow.querySelectorAll('td, th');
+            
+            addLog(`📊 Ячеек в заголовке: ${headerCells.length}`, 'info');
+            
+            // Показываем содержимое заголовка для отладки
+            const headerTexts = [];
+            for (const cell of headerCells) {
+                const text = cell.textContent.trim();
+                if (text) headerTexts.push(text);
+            }
+            addLog(`📋 Заголовок: ${headerTexts.join(' | ')}`, 'info');
+            
+            // Ищем дни недели
             const dayInfo = [];
             let currentDay = null;
             
-            for (let i = 1; i < dayCells.length; i++) {
-                const cell = dayCells[i];
+            for (let i = 0; i < headerCells.length; i++) {
+                const cell = headerCells[i];
                 const text = cell.textContent.trim();
                 
                 // Проверяем, не является ли ячейка названием дня
@@ -594,22 +612,54 @@
                 
                 if (foundDay) {
                     // Это колонка с дисциплиной (i)
+                    // Следующая колонка (i+1) — аудитория
                     dayInfo.push({
                         name: foundDay,
                         colSubject: i,
+                        colRoom: i + 1,
                         date: text
                     });
-                    addLog(`📅 День "${foundDay}" в колонке ${i}`, 'success');
+                    addLog(`📅 День "${foundDay}" в колонке ${i} (ауд в ${i+1})`, 'success');
+                    i++; // Пропускаем колонку с аудиторией
                 }
             }
             
-            // Если дни не найдены — используем стандартные
+            // Если дни не найдены — пробуем вторую строку
+            if (dayInfo.length === 0) {
+                addLog('⚠️ В первой строке дни не найдены, проверяю вторую...', 'warning');
+                const headerRow2 = rows[1];
+                const headerCells2 = headerRow2.querySelectorAll('td, th');
+                
+                for (let i = 0; i < headerCells2.length; i++) {
+                    const text = headerCells2[i].textContent.trim();
+                    let foundDay = null;
+                    for (const day of DAYS_RU) {
+                        if (text.includes(day)) {
+                            foundDay = day;
+                            break;
+                        }
+                    }
+                    if (foundDay) {
+                        dayInfo.push({
+                            name: foundDay,
+                            colSubject: i,
+                            colRoom: i + 1,
+                            date: text
+                        });
+                        addLog(`📅 День "${foundDay}" во второй строке колонка ${i}`, 'success');
+                        i++;
+                    }
+                }
+            }
+            
+            // Если всё ещё не нашли — используем стандартные
             if (dayInfo.length === 0) {
                 addLog('⚠️ Дни не найдены, использую стандартные', 'warning');
                 for (let i = 0; i < 6; i++) {
                     dayInfo.push({
                         name: DAYS_RU[i],
-                        colSubject: 1 + i,
+                        colSubject: 1 + i * 2,
+                        colRoom: 2 + i * 2,
                         date: ''
                     });
                 }
@@ -623,11 +673,12 @@
             const dayNames = dayInfo.map(d => d.name);
             addLog(`📅 Итоговые дни: ${dayNames.join(', ')}`, 'info');
             
+            // Создаем расписание
             const schedule = {};
             dayNames.forEach(day => { schedule[day] = []; });
             
             // ============================================================
-            // ПАРСИМ СТРОКИ С ПАРАМИ
+            // ПАРСИМ СТРОКИ С ПАРАМИ (начиная с 3-й строки)
             // ============================================================
             let pairCount = 0;
             
@@ -644,22 +695,37 @@
                 for (let d = 0; d < dayInfo.length; d++) {
                     const info = dayInfo[d];
                     
-                    // Проверяем, что колонка существует
+                    // Проверяем, что колонки существуют
                     if (info.colSubject >= cells.length) continue;
                     
-                    // Получаем данные из ячейки
-                    const content = cells[info.colSubject].textContent.trim();
+                    // Получаем данные
+                    let content = cells[info.colSubject].textContent.trim();
+                    let room = '';
+                    
+                    // Если есть колонка с аудиторией и она не пустая
+                    if (info.colRoom < cells.length) {
+                        room = cells[info.colRoom].textContent.trim();
+                    }
                     
                     // Если дисциплина пустая — пропускаем
                     if (!content || content === '' || content === '-') continue;
                     
                     const dayName = info.name;
                     
+                    // Если есть аудитория, добавляем её к содержимому
+                    if (room && room !== '' && room !== '-') {
+                        content = content + ' ' + room;
+                    }
+                    
                     // Парсим ячейку (может быть несколько занятий)
                     const lessons = parseLessonCell(content, pairNum);
                     
                     for (const lesson of lessons) {
                         if (lesson) {
+                            // Если аудитория не найдена, но есть отдельная колонка
+                            if (!lesson.room && room && room !== '' && room !== '-') {
+                                lesson.room = room;
+                            }
                             schedule[dayName].push(lesson);
                             pairCount++;
                             
@@ -687,7 +753,7 @@
         // ============================================================
         // 4. ОТОБРАЖЕНИЕ
         // ============================================================
-        function renderSchedule(schedule) {
+        function renderSchedule(schedule, sourceType) {
             const container = document.getElementById('scheduleContent');
             const statusBadge = document.getElementById('statusBadge');
             const weekLabel = document.getElementById('weekLabel');
@@ -704,9 +770,15 @@
                 return;
             }
             
-            statusBadge.textContent = '✅ С сервера';
-            statusBadge.className = 'status-badge success';
-            addLog('✅ Отображение: данные с сервера через прокси', 'success');
+            if (sourceType === 'live') {
+                statusBadge.textContent = '✅ С сервера';
+                statusBadge.className = 'status-badge success';
+                addLog('✅ Отображение: данные с сервера через прокси', 'success');
+            } else {
+                statusBadge.textContent = '📋 Запасное';
+                statusBadge.className = 'status-badge fallback';
+                addLog('📋 Отображение: запасные данные', 'warning');
+            }
             
             // Даты недели
             const today = new Date();
@@ -731,64 +803,64 @@
             let html = '';
             let hasLessons = false;
             
+            // Показываем все 6 дней
             for (let i = 0; i < 6; i++) {
                 const dayName = DAYS_RU[i];
                 const lessons = schedule[dayName] || [];
-                if (lessons.length === 0) continue;
-                hasLessons = true;
                 
                 const isToday = dayName === todayName;
                 const isWeekend = (i === 5);
                 const dateStr = weekDates[i] ? weekDates[i].toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' }) : '';
                 
+                // Всегда показываем день
                 html += `
                     <div class="schedule-day">
                         <div class="schedule-day-header">
                             <span class="day-name">${dayName}</span>
                             ${dateStr ? `<span class="day-date">${dateStr}</span>` : ''}
-                            <span class="day-badge ${isToday ? 'today' : ''} ${isWeekend ? 'weekend' : ''}">${isToday ? 'СЕГОДНЯ' : isWeekend ? 'СУББОТА' : `${lessons.length} пар`}</span>
+                            <span class="day-badge ${isToday ? 'today' : ''} ${isWeekend ? 'weekend' : ''}">${isToday ? 'СЕГОДНЯ' : isWeekend ? 'СУББОТА' : lessons.length > 0 ? `${lessons.length} пар` : 'ВЫХОДНОЙ'}</span>
                         </div>
                 `;
                 
-                // Сортируем пары по номеру
-                lessons.sort((a, b) => parseInt(a.pair) - parseInt(b.pair));
-                
-                lessons.forEach(lesson => {
-                    const typeClass = lesson.type === 'лекция' ? 'lecture' : 
-                                    lesson.type === 'лабораторная' ? 'lab' : 
-                                    lesson.type === 'практика' ? 'practice' : '';
-                    const typeLabel = lesson.type ? lesson.type.charAt(0).toUpperCase() + lesson.type.slice(1) : '';
-                    const subgroupLabel = lesson.subgroup ? `${lesson.subgroup} подгруппа` : '';
-                    
+                if (lessons.length === 0) {
                     html += `
-                        <div class="schedule-lesson">
-                            <span class="lesson-time">${lesson.pair}</span>
-                            <div class="lesson-info">
-                                <div class="lesson-name">
-                                    ${escapeHtml(lesson.discipline)}
-                                    ${subgroupLabel ? `<span class="lesson-subgroup">${subgroupLabel}</span>` : ''}
-                                </div>
-                                <div class="lesson-details">
-                                    ${lesson.teacher ? `<span class="detail-item"><span class="icon">👨‍🏫</span> ${escapeHtml(lesson.teacher)}</span>` : ''}
-                                    ${lesson.room ? `<span class="detail-item"><span class="icon">🏛️</span> ${escapeHtml(lesson.room)}</span>` : ''}
-                                    ${typeLabel ? `<span class="detail-item"><span class="type-badge ${typeClass}">${typeLabel}</span></span>` : ''}
-                                </div>
-                            </div>
+                        <div class="schedule-empty">
+                            <span class="empty-icon">📭</span>
+                            <span>Нет занятий</span>
                         </div>
                     `;
-                });
+                } else {
+                    hasLessons = true;
+                    // Сортируем пары по номеру
+                    lessons.sort((a, b) => parseInt(a.pair) - parseInt(b.pair));
+                    
+                    lessons.forEach(lesson => {
+                        const typeClass = lesson.type === 'лекция' ? 'lecture' : 
+                                        lesson.type === 'лабораторная' ? 'lab' : 
+                                        lesson.type === 'практика' ? 'practice' : '';
+                        const typeLabel = lesson.type ? lesson.type.charAt(0).toUpperCase() + lesson.type.slice(1) : '';
+                        const subgroupLabel = lesson.subgroup ? `${lesson.subgroup} подгруппа` : '';
+                        
+                        html += `
+                            <div class="schedule-lesson">
+                                <span class="lesson-time">${lesson.pair}</span>
+                                <div class="lesson-info">
+                                    <div class="lesson-name">
+                                        ${escapeHtml(lesson.discipline)}
+                                        ${subgroupLabel ? `<span class="lesson-subgroup">${subgroupLabel}</span>` : ''}
+                                    </div>
+                                    <div class="lesson-details">
+                                        ${lesson.teacher ? `<span class="detail-item"><span class="icon">👨‍🏫</span> ${escapeHtml(lesson.teacher)}</span>` : ''}
+                                        ${lesson.room ? `<span class="detail-item"><span class="icon">🏛️</span> ${escapeHtml(lesson.room)}</span>` : ''}
+                                        ${typeLabel ? `<span class="detail-item"><span class="type-badge ${typeClass}">${typeLabel}</span></span>` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
                 
                 html += `</div>`;
-            }
-            
-            if (!hasLessons) {
-                container.innerHTML = `
-                    <div class="schedule-empty">
-                        <span class="empty-icon">📭</span>
-                        <span>На этой неделе занятий нет</span>
-                    </div>
-                `;
-                return;
             }
             
             container.innerHTML = html;
@@ -837,34 +909,59 @@
                 const html = await response.text();
                 addLog(`✅ Получен ответ (${html.length} символов)`, 'success');
                 
+                // Сохраняем для отладки
+                addRawLog(`📄 Первые 500 символов: ${html.substring(0, 500)}`);
+                
                 const schedule = parseSchedule(html);
                 
                 if (schedule && Object.values(schedule).some(arr => arr.length > 0)) {
-                    renderSchedule(schedule);
-                    addLog(`✅ Готово! Расписание загружено`, 'success');
+                    renderSchedule(schedule, 'live');
+                    addLog(`✅ Готово! Расписание загружено с сервера`, 'success');
                     return;
                 } else {
-                    addLog(`⚠️ Парсинг не дал результатов`, 'error');
+                    addLog(`⚠️ Парсинг не дал результатов, использую запасное`, 'error');
                 }
                 
             } catch(e) {
                 addLog(`❌ Ошибка загрузки: ${e.message}`, 'error');
             }
             
-            container.innerHTML = `
-                <div class="schedule-error">
-                    <span class="error-icon">⚠️</span>
-                    <span>Не удалось загрузить расписание</span>
-                    <br>
-                    <span style="font-size:11px;color:var(--muted);">Проверьте прокси-сервер</span>
-                    <br>
-                    <button class="retry-btn" onclick="loadSchedule()">🔄 Попробовать снова</button>
-                </div>
-            `;
-            statusBadge.textContent = '❌ Ошибка';
-            statusBadge.className = 'status-badge error';
-            weekLabel.textContent = 'Ошибка загрузки';
-            addLog(`❌ Не удалось загрузить расписание`, 'error');
+            // Если парсинг не сработал — показываем запасное
+            const fallbackSchedule = {
+                'Понедельник': [],
+                'Вторник': [
+                    { pair: '4', discipline: 'ФЗКиЗ', type: 'лекция', teacher: 'Анципов Е. Ю.', room: '', subgroup: '1' },
+                    { pair: '4', discipline: 'ФЗКиЗ', type: 'лекция', teacher: 'Усикова Л. Н.', room: '', subgroup: '2' },
+                    { pair: '5', discipline: 'АвтомПр', type: 'лекция', teacher: 'Мурашко А. В.', room: '3-209', subgroup: '' },
+                    { pair: '6', discipline: 'АвтомПр', type: 'лекция', teacher: 'Мурашко А. В.', room: '3-209', subgroup: '' },
+                    { pair: '7', discipline: 'Элпр и автом', type: 'лекция', teacher: 'Любко А. А.', room: '2-211', subgroup: '' }
+                ],
+                'Среда': [
+                    { pair: '4', discipline: 'Цифр и микр тех', type: 'лекция', teacher: 'Плаксин Е. Б.', room: '3-111 (к)', subgroup: '' },
+                    { pair: '5', discipline: 'Механ пром робо', type: 'лекция', teacher: 'Любко А. А.', room: '2-211', subgroup: '' },
+                    { pair: '6', discipline: 'Элпр и автом', type: 'лекция', teacher: 'Любко А. А.', room: '2-211', subgroup: '' },
+                    { pair: '7', discipline: 'Элпр и автом', type: 'лекция', teacher: 'Любко А. А.', room: '2-211', subgroup: '' }
+                ],
+                'Четверг': [
+                    { pair: '4', discipline: 'Инф техн', type: 'лабораторная', teacher: 'Гаврилович Д. И.', room: '2-206 (к)', subgroup: '1' },
+                    { pair: '5', discipline: 'Нал и эк промро', type: 'лекция', teacher: 'Камлюк В. С.', room: '3-114', subgroup: '' },
+                    { pair: '6', discipline: 'Механ пром робо', type: 'лекция', teacher: 'Любко А. А.', room: '2-211', subgroup: '' },
+                    { pair: '7', discipline: 'Инф техн', type: 'лабораторная', teacher: 'Гаврилович Д. И.', room: '2-206 (к)', subgroup: '2' }
+                ],
+                'Пятница': [
+                    { pair: '4', discipline: 'Пром электр', type: 'лекция', teacher: 'Плаксин Е. Б.', room: '3-111 (к)', subgroup: '' },
+                    { pair: '5', discipline: 'Цифр и микр тех', type: 'лекция', teacher: 'Плаксин Е. Б.', room: '3-111 (к)', subgroup: '' },
+                    { pair: '6', discipline: 'Цифр и микр тех', type: 'лекция', teacher: 'Плаксин Е. Б.', room: '3-111 (к)', subgroup: '' }
+                ],
+                'Суббота': [
+                    { pair: '4', discipline: 'АвтомПр', type: 'лекция', teacher: 'Мурашко А. В.', room: '2-212', subgroup: '' },
+                    { pair: '5', discipline: 'АвтомПр', type: 'лекция', teacher: 'Мурашко А. В.', room: '2-212', subgroup: '' },
+                    { pair: '6', discipline: 'ФЗКиЗ', type: 'лекция', teacher: 'Анципов Е. Ю.', room: '', subgroup: '1' },
+                    { pair: '7', discipline: 'ФЗКиЗ', type: 'лекция', teacher: 'Усикова Л. Н.', room: '', subgroup: '2' }
+                ]
+            };
+            renderSchedule(fallbackSchedule, 'fallback');
+            addLog(`✅ Готово! Расписание загружено (запасное)`, 'success');
         }
 
         // ============================================================
