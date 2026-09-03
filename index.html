@@ -355,7 +355,7 @@
         // 1. НАСТРОЙКИ
         // ============================================================
         const PROXY_URL = 'https://schedule-proxy.arsenijbro5.workers.dev/';
-        const DAYS_RU = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье'];
+        const DAYS_RU = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
 
         // ============================================================
         // 2. ЛОГГЕР
@@ -372,7 +372,7 @@
         }
 
         // ============================================================
-        // 3. ПАРСИНГ
+        // 3. ПАРСИНГ — НОВАЯ ВЕРСИЯ
         // ============================================================
         function parseLessonContent(content, pairNum) {
             if (!content || content.trim() === '') return null;
@@ -383,18 +383,21 @@
             let room = '';
             let subgroup = '';
             
+            // Ищем подгруппу
             const subgroupMatch = content.match(/^(\d+)\./);
             if (subgroupMatch) {
                 subgroup = subgroupMatch[1];
                 discipline = discipline.replace(/^\d+\.\s*/, '').trim();
             }
             
-            const roomMatch = content.match(/(Кн\.?\s*[\d\-()]+|[\d\-]+\(?[к\)]?)/i);
+            // Ищем аудиторию
+            const roomMatch = discipline.match(/(Кн\.?\s*[\d\-()]+|[\d\-]+\(?[к\)]?)/i);
             if (roomMatch) {
                 room = roomMatch[0];
                 discipline = discipline.replace(roomMatch[0], '').trim();
             }
             
+            // Ищем преподавателя в скобках
             const teacherMatch = discipline.match(/\(([^)]+)\)/);
             if (teacherMatch) {
                 const parts = teacherMatch[1].split(/\s+/);
@@ -404,6 +407,7 @@
                 }
             }
             
+            // Ищем тип занятия
             const typeMatch = discipline.match(/\(([^)]+)\)/);
             if (typeMatch) {
                 const type = typeMatch[1].trim();
@@ -431,23 +435,109 @@
             };
         }
 
-        function parseScheduleTable(table) {
-            const rows = table.querySelectorAll('tr');
-            addLog(`Найдено строк в таблице: ${rows.length}`, 'info');
+        function parseSchedule(html) {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
             
-            if (rows.length < 3) {
-                addLog('❌ Таблица слишком маленькая', 'error');
+            // Находим таблицу для группы 86
+            let targetTable = null;
+            let currentGroup = '';
+            
+            // Идем по всем элементам в поисках заголовка группы 86
+            const elements = doc.body.querySelectorAll('*');
+            let foundGroup = false;
+            
+            for (const el of elements) {
+                if (el.tagName === 'H2' && el.textContent.includes('Группа - 86')) {
+                    foundGroup = true;
+                    addLog(`✅ Найден заголовок: ${el.textContent}`, 'success');
+                    // Ищем следующую таблицу
+                    let sibling = el.nextElementSibling;
+                    while (sibling) {
+                        if (sibling.tagName === 'TABLE') {
+                            targetTable = sibling;
+                            addLog('✅ Таблица найдена', 'success');
+                            break;
+                        }
+                        sibling = sibling.nextElementSibling;
+                    }
+                    break;
+                }
+            }
+            
+            // Если не нашли через h2, пробуем найти любую таблицу
+            if (!targetTable) {
+                addLog('⚠️ Заголовок не найден, ищу таблицу', 'warning');
+                const tables = doc.querySelectorAll('table');
+                if (tables.length > 0) {
+                    // Проверяем каждую таблицу — может в ней есть "Группа - 86"
+                    for (const table of tables) {
+                        const tableHTML = table.outerHTML;
+                        if (tableHTML.includes('Группа - 86')) {
+                            targetTable = table;
+                            addLog('✅ Найдена таблица с группой 86', 'success');
+                            break;
+                        }
+                    }
+                    // Если не нашли, берем первую таблицу
+                    if (!targetTable && tables.length > 0) {
+                        targetTable = tables[0];
+                        addLog('⚠️ Использую первую таблицу', 'warning');
+                    }
+                }
+            }
+            
+            if (!targetTable) {
+                addLog('❌ Таблица не найдена', 'error');
                 return null;
             }
             
+            // Парсим таблицу
+            const rows = targetTable.querySelectorAll('tr');
+            addLog(`📊 Найдено строк: ${rows.length}`, 'info');
+            
+            if (rows.length < 3) {
+                addLog('❌ Слишком мало строк', 'error');
+                return null;
+            }
+            
+            // Определяем дни недели из заголовка (вторая строка)
             const headerRow = rows[1];
-            const dayCells = headerRow.querySelectorAll('td, th');
+            const headerCells = headerRow.querySelectorAll('td, th');
+            
+            // Ищем ячейки с днями недели
+            const dayNames = [];
             const days = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
+            
+            // Проверяем все ячейки заголовка на наличие дней недели
+            for (const cell of headerCells) {
+                const text = cell.textContent.trim();
+                // Проверяем, содержит ли ячейка название дня
+                for (const day of days) {
+                    if (text.includes(day)) {
+                        dayNames.push(day);
+                        break;
+                    }
+                }
+            }
+            
+            addLog(`📅 Найдено дней: ${dayNames.length}`, 'info');
+            
+            // Если дней не найдено, используем стандартные 6 дней
+            if (dayNames.length === 0) {
+                addLog('⚠️ Дни не найдены, использую стандартные', 'warning');
+                // Определяем количество колонок
+                const colCount = headerCells.length;
+                // Если колонок 7 (№ + 6 дней) или 13 (№ + день + дата + ...)
+                for (let i = 0; i < Math.min(colCount - 1, 6); i++) {
+                    dayNames.push(days[i] || 'День ' + (i + 1));
+                }
+            }
+            
             const schedule = {};
-            days.forEach(day => { schedule[day] = []; });
+            dayNames.forEach(day => { schedule[day] = []; });
             
-            addLog(`Найдено дней: ${dayCells.length - 1}`, 'info');
-            
+            // Парсим строки с парами (начиная с 3-й)
             for (let i = 2; i < rows.length; i++) {
                 const row = rows[i];
                 const cells = row.querySelectorAll('td');
@@ -456,111 +546,30 @@
                 const pairNum = cells[0].textContent.trim();
                 if (!pairNum || pairNum === '') continue;
                 
-                for (let d = 0; d < Math.min(dayCells.length - 1, cells.length - 1); d++) {
-                    const cell = cells[d + 1];
+                // Объединяем ячейки с одинаковым номером пары
+                // В таблице может быть несколько ячеек с одним номером пары (объединены по вертикали)
+                // Проверяем, есть ли уже такая пара в расписании
+                
+                // Определяем количество дней
+                const daysCount = Math.min(dayNames.length, cells.length - 1);
+                
+                for (let d = 0; d < daysCount; d++) {
+                    const cellIndex = d + 1;
+                    if (cellIndex >= cells.length) break;
+                    
+                    const cell = cells[cellIndex];
                     const content = cell.textContent.trim();
                     
-                    if (content && content !== '' && content !== '-') {
-                        const lesson = parseLessonContent(content, pairNum);
-                        if (lesson) {
-                            const dayName = days[d] || 'Неизвестно';
-                            schedule[dayName].push(lesson);
-                            addLog(`✅ Пара ${pairNum}: ${lesson.discipline} (${dayName})`, 'success');
-                        }
-                    }
-                }
-            }
-            
-            return schedule;
-        }
-
-        function parseScheduleHTML(html) {
-            addLog(`🔍 Начинаем парсинг HTML (${html.length} символов)...`, 'info');
-            
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(html, 'text/html');
-            
-            let targetSection = null;
-            const headings = doc.querySelectorAll('h2');
-            addLog(`Найдено заголовков h2: ${headings.length}`, 'info');
-            
-            for (const h2 of headings) {
-                const text = h2.textContent.trim();
-                if (text.includes('Группа - 86')) {
-                    targetSection = h2;
-                    addLog(`✅ Найден заголовок группы 86: "${text}"`, 'success');
-                    break;
-                }
-            }
-            
-            if (!targetSection) {
-                addLog('❌ Заголовок "Группа - 86" не найден', 'error');
-                const bodyText = doc.body.textContent;
-                if (bodyText.includes('Группа - 86')) {
-                    addLog('⚠️ Заголовок найден в тексте, пробуем извлечь...', 'info');
-                    const regex = /Группа - 86([\s\S]*?)(?:Группа -|$)/i;
-                    const match = bodyText.match(regex);
-                    if (match) {
-                        addLog('📄 Извлекаем расписание из текста', 'info');
-                        return parseTextSchedule(match[1]);
-                    }
-                }
-                const tables = doc.querySelectorAll('table');
-                addLog(`Найдено таблиц: ${tables.length}`, 'info');
-                if (tables.length > 0) {
-                    addLog('🔍 Пробуем парсить первую таблицу', 'info');
-                    return parseScheduleTable(tables[0]);
-                }
-                throw new Error('Расписание для группы 86 не найдено');
-            }
-            
-            let table = targetSection.nextElementSibling;
-            while (table && table.tagName !== 'TABLE') {
-                table = table.nextElementSibling;
-            }
-            
-            if (!table) {
-                addLog('❌ Таблица не найдена', 'error');
-                const tables = doc.querySelectorAll('table');
-                if (tables.length > 0) {
-                    addLog('🔍 Используем первую таблицу как запасной вариант', 'info');
-                    return parseScheduleTable(tables[0]);
-                }
-                throw new Error('Таблица расписания не найдена');
-            }
-            
-            addLog('✅ Таблица найдена, парсим...', 'success');
-            return parseScheduleTable(table);
-        }
-
-        function parseTextSchedule(text) {
-            const schedule = {
-                'Понедельник': [],
-                'Вторник': [],
-                'Среда': [],
-                'Четверг': [],
-                'Пятница': [],
-                'Суббота': []
-            };
-            
-            const lines = text.split('\n').filter(line => line.trim() !== '');
-            let currentDay = null;
-            
-            for (const line of lines) {
-                const trimmed = line.trim();
-                const dayMatch = trimmed.match(/^(Понедельник|Вторник|Среда|Четверг|Пятница|Суббота)/i);
-                if (dayMatch) {
-                    currentDay = dayMatch[1];
-                    continue;
-                }
-                
-                if (currentDay && /^\d/.test(trimmed)) {
-                    const parts = trimmed.split(/\s+/);
-                    const pairNum = parts[0];
-                    const rest = parts.slice(1).join(' ');
-                    const lesson = parseLessonContent(rest, pairNum);
+                    // Если ячейка пустая или содержит тире — пропускаем
+                    if (!content || content === '-' || content === '') continue;
+                    
+                    // Проверяем, есть ли уже такая пара в этом дне
+                    const dayName = dayNames[d] || days[d] || 'День ' + (d + 1);
+                    
+                    const lesson = parseLessonContent(content, pairNum);
                     if (lesson) {
-                        schedule[currentDay].push(lesson);
+                        schedule[dayName].push(lesson);
+                        addLog(`✅ Пара ${pairNum}: ${lesson.discipline} (${dayName})`, 'success');
                     }
                 }
             }
@@ -571,7 +580,7 @@
         // ============================================================
         // 4. ОТОБРАЖЕНИЕ
         // ============================================================
-        function renderSchedule(schedule, sourceType) {
+        function renderSchedule(schedule) {
             const container = document.getElementById('scheduleContent');
             const statusBadge = document.getElementById('statusBadge');
             const weekLabel = document.getElementById('weekLabel');
@@ -588,16 +597,11 @@
                 return;
             }
             
-            if (sourceType === 'proxy') {
-                statusBadge.textContent = '✅ С сервера';
-                statusBadge.className = 'status-badge success';
-                addLog('✅ Отображение: данные с сервера через прокси', 'success');
-            } else {
-                statusBadge.textContent = '📋 Запасное';
-                statusBadge.className = 'status-badge fallback';
-                addLog('📋 Отображение: запасные данные', 'info');
-            }
+            statusBadge.textContent = '✅ С сервера';
+            statusBadge.className = 'status-badge success';
+            addLog('✅ Отображение: данные с сервера через прокси', 'success');
             
+            // Даты недели
             const today = new Date();
             const weekDates = [];
             const day = today.getDay();
@@ -609,11 +613,10 @@
                 d.setDate(monday.getDate() + i);
                 weekDates.push(d);
             }
-            if (weekDates.length >= 2) {
-                const start = weekDates[0].toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
-                const end = weekDates[6].toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
-                weekLabel.textContent = `${start} — ${end}`;
-            }
+            
+            const start = weekDates[0].toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
+            const end = weekDates[6].toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
+            weekLabel.textContent = `${start} — ${end}`;
             
             const todayIndex = today.getDay();
             const todayName = todayIndex === 0 ? 'Воскресенье' : DAYS_RU[todayIndex - 1];
@@ -692,7 +695,7 @@
         }
 
         // ============================================================
-        // 5. ОСНОВНАЯ ЗАГРУЗКА (ЧЕРЕЗ ПРОКСИ)
+        // 5. ЗАГРУЗКА
         // ============================================================
         async function loadSchedule() {
             const container = document.getElementById('scheduleContent');
@@ -713,7 +716,6 @@
             statusBadge.className = 'status-badge loading';
             
             try {
-                addLog(`📡 Запрос к прокси: ${PROXY_URL}`, 'info');
                 const response = await fetch(PROXY_URL, {
                     signal: AbortSignal.timeout(10000)
                 });
@@ -725,27 +727,25 @@
                 const html = await response.text();
                 addLog(`✅ Получен HTML (${html.length} символов)`, 'success');
                 
-                // Проверяем, что это действительно HTML с расписанием
-                if (!html.includes('Группа - 86') && !html.includes('Расписание')) {
-                    addLog(`⚠️ Получен не HTML: ${html.substring(0, 100)}`, 'error');
-                    throw new Error('Прокси вернул не HTML');
-                }
+                // Сохраняем для отладки
+                console.log('HTML preview:', html.substring(0, 500));
                 
-                const schedule = parseScheduleHTML(html);
+                const schedule = parseSchedule(html);
                 
                 if (schedule && Object.values(schedule).some(arr => arr.length > 0)) {
-                    renderSchedule(schedule, 'proxy');
-                    addLog(`✅ Готово! Расписание загружено через прокси`, 'success');
+                    renderSchedule(schedule);
+                    addLog(`✅ Готово! Расписание загружено`, 'success');
                     return;
                 } else {
                     addLog(`⚠️ Парсинг не дал результатов`, 'error');
+                    // Показываем пример HTML для отладки
+                    addLog(`📄 Пример HTML: ${html.substring(0, 300)}...`, 'info');
                 }
                 
             } catch(e) {
                 addLog(`❌ Ошибка загрузки: ${e.message}`, 'error');
             }
             
-            // Если ничего не сработало
             container.innerHTML = `
                 <div class="schedule-error">
                     <span class="error-icon">⚠️</span>
