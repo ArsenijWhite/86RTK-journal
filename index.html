@@ -60,7 +60,6 @@
         .schedule-lesson .lesson-time { font-size: 12px; font-weight: 600; color: var(--accent); min-width: 36px; padding-top: 1px; }
         .schedule-lesson .lesson-info { flex: 1; min-width: 0; }
         .schedule-lesson .lesson-name { font-size: 14px; font-weight: 500; color: var(--text); }
-        .schedule-lesson .lesson-subgroup { font-size: 10px; font-weight: 600; color: var(--gold); background: rgba(251, 191, 36, 0.12); padding: 1px 8px; border-radius: 10px; display: inline-block; margin-left: 6px; }
         .schedule-lesson .lesson-details { font-size: 12px; color: var(--muted); margin-top: 2px; display: flex; flex-wrap: wrap; gap: 8px; }
         .schedule-lesson .lesson-details .detail-item { display: inline-flex; align-items: center; gap: 4px; }
         .schedule-lesson .lesson-details .detail-item .icon { font-size: 11px; }
@@ -68,6 +67,8 @@
         .schedule-lesson .lesson-details .detail-item .type-badge.lecture { background: rgba(56, 189, 248, 0.12); color: var(--accent); }
         .schedule-lesson .lesson-details .detail-item .type-badge.practice { background: rgba(251, 191, 36, 0.12); color: var(--gold); }
         .schedule-lesson .lesson-details .detail-item .type-badge.lab { background: rgba(244, 114, 182, 0.12); color: #f472b6; }
+        .schedule-lesson .lesson-teachers { font-size: 12px; color: var(--muted); margin-top: 2px; }
+        .schedule-lesson .lesson-teachers .teacher-item { display: inline-block; background: rgba(255,255,255,0.04); padding: 1px 8px; border-radius: 8px; margin: 1px 2px; }
 
         .schedule-empty { text-align: center; padding: 20px; color: var(--muted); font-size: 13px; }
         .schedule-empty .empty-icon { font-size: 24px; display: block; margin-bottom: 4px; opacity: 0.5; }
@@ -143,7 +144,7 @@
         }
 
         // ============================================================
-        // 3. ПАРСИНГ — ПРАВИЛЬНОЕ ОПРЕДЕЛЕНИЕ КОЛОНОК
+        // 3. ПАРСИНГ
         // ============================================================
         function parseLessonText(text, pairNum) {
             if (!text || text.trim() === '' || text.trim() === '-') return null;
@@ -162,7 +163,7 @@
                 content = content.replace(/^\d+\.\s*/, '').trim();
             }
             
-            // 2. Аудитория
+            // 2. Аудитория (оставляем буквы к и кн)
             const roomMatch = content.match(/(Кн\.?\s*[\d\-()]+|[\d\-]+\(?[к\)]?)/i);
             if (roomMatch) {
                 room = roomMatch[0].trim();
@@ -199,13 +200,41 @@
             };
         }
 
+        // Объединяем пары с одинаковым названием предмета
+        function mergeLessons(lessons) {
+            if (!lessons || lessons.length === 0) return [];
+            
+            const merged = {};
+            
+            for (const lesson of lessons) {
+                const key = lesson.discipline + '|' + lesson.type + '|' + lesson.room;
+                if (!merged[key]) {
+                    merged[key] = {
+                        discipline: lesson.discipline,
+                        type: lesson.type,
+                        room: lesson.room,
+                        pair: lesson.pair,
+                        teachers: [],
+                        subgroups: []
+                    };
+                }
+                if (lesson.teacher && !merged[key].teachers.includes(lesson.teacher)) {
+                    merged[key].teachers.push(lesson.teacher);
+                }
+                if (lesson.subgroup && !merged[key].subgroups.includes(lesson.subgroup)) {
+                    merged[key].subgroups.push(lesson.subgroup);
+                }
+            }
+            
+            return Object.values(merged);
+        }
+
         function parseSchedule(html) {
             addLog('🔍 Начинаем парсинг...', 'info');
             
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, 'text/html');
             
-            // Находим таблицу группы 86
             let table = null;
             const headings = doc.querySelectorAll('h2');
             
@@ -246,7 +275,6 @@
             // ============================================================
             // 1. ОПРЕДЕЛЯЕМ ДНИ НЕДЕЛИ
             // ============================================================
-            // Ищем строку, где есть дни недели (с датами)
             let headerRow = null;
             let headerRowIndex = 0;
             
@@ -278,7 +306,6 @@
             
             const headerCells = headerRow.querySelectorAll('td, th');
             
-            // Парсим дни — каждый день занимает 2 колонки (предмет + аудитория)
             const dayMap = {};
             let currentCol = 0;
             
@@ -286,7 +313,6 @@
                 const text = cell.textContent.trim();
                 const colspan = parseInt(cell.getAttribute('colspan')) || 1;
                 
-                // Проверяем, является ли ячейка названием дня
                 let foundDay = null;
                 for (const day of DAYS_RU) {
                     if (text.includes(day)) {
@@ -307,10 +333,8 @@
                 currentCol += colspan;
             }
             
-            // Если дни не найдены — используем стандартные
             if (Object.keys(dayMap).length === 0) {
                 addLog('⚠️ Дни не найдены, использую стандартные', 'warning');
-                // В таблице обычно: № + 6 дней * 2 колонки = 13 колонок
                 for (let i = 0; i < 6; i++) {
                     dayMap[DAYS_RU[i]] = {
                         subjectCol: 1 + i * 2,
@@ -327,24 +351,19 @@
             Object.keys(dayMap).forEach(day => { schedule[day] = []; });
             
             let totalPairs = 0;
-            
-            // Начинаем со строки после заголовка + 1 (там обычно подзаголовки)
             const startRow = headerRowIndex + 2;
             
             for (let i = startRow; i < rows.length; i++) {
                 const cells = rows[i].querySelectorAll('td, th');
                 if (cells.length < 2) continue;
                 
-                // Номер пары — первая колонка
                 const pairNum = cells[0].textContent.trim();
                 if (!pairNum || pairNum === '') continue;
                 
-                // Проходим по каждому дню
                 for (const [dayName, info] of Object.entries(dayMap)) {
                     const subjCol = info.subjectCol;
                     const roomCol = info.roomCol;
                     
-                    // Получаем данные
                     let subject = '';
                     let room = '';
                     
@@ -355,19 +374,15 @@
                         room = cells[roomCol].textContent.trim();
                     }
                     
-                    // Если дисциплина пустая — пропускаем
                     if (!subject || subject === '' || subject === '-') continue;
                     
-                    // Объединяем
                     let fullText = subject;
                     if (room && room !== '' && room !== '-') {
                         fullText += ' ' + room;
                     }
                     
-                    // Парсим
                     const lesson = parseLessonText(fullText, pairNum);
                     if (lesson) {
-                        // Если аудитория не найдена в тексте, но есть в колонке
                         if (!lesson.room && room && room !== '' && room !== '-') {
                             lesson.room = room;
                         }
@@ -382,6 +397,11 @@
             if (totalPairs === 0) {
                 addLog('⚠️ Пары не найдены', 'error');
                 return null;
+            }
+            
+            // Объединяем пары с одинаковыми предметами
+            for (const day of Object.keys(schedule)) {
+                schedule[day] = mergeLessons(schedule[day]);
             }
             
             return schedule;
@@ -410,7 +430,6 @@
                 statusBadge.className = 'status-badge error';
             }
             
-            // Даты недели
             const today = new Date();
             const weekDates = [];
             const day = today.getDay();
@@ -454,21 +473,34 @@
                                         lesson.type === 'лабораторная' ? 'lab' : 
                                         lesson.type === 'практика' ? 'practice' : '';
                         const typeLabel = lesson.type ? lesson.type.charAt(0).toUpperCase() + lesson.type.slice(1) : '';
-                        const subgroupLabel = lesson.subgroup ? `${lesson.subgroup} подгруппа` : '';
+                        
+                        // Формируем строку с преподавателями
+                        let teachersHtml = '';
+                        if (lesson.teachers && lesson.teachers.length > 0) {
+                            teachersHtml = lesson.teachers.map(t => 
+                                `<span class="teacher-item">${escapeHtml(t)}</span>`
+                            ).join(' ');
+                        }
+                        
+                        // Формируем строку с подгруппами
+                        let subgroupsHtml = '';
+                        if (lesson.subgroups && lesson.subgroups.length > 0) {
+                            subgroupsHtml = lesson.subgroups.map(s => 
+                                `${s} подгруппа`
+                            ).join(' / ');
+                        }
                         
                         html += `
                             <div class="schedule-lesson">
                                 <span class="lesson-time">${lesson.pair}</span>
                                 <div class="lesson-info">
-                                    <div class="lesson-name">
-                                        ${escapeHtml(lesson.discipline)}
-                                        ${subgroupLabel ? `<span class="lesson-subgroup">${subgroupLabel}</span>` : ''}
-                                    </div>
+                                    <div class="lesson-name">${escapeHtml(lesson.discipline)}</div>
+                                    ${subgroupsHtml ? `<div class="lesson-subgroup">${subgroupsHtml}</div>` : ''}
                                     <div class="lesson-details">
-                                        ${lesson.teacher ? `<span class="detail-item"><span class="icon">👨‍🏫</span> ${escapeHtml(lesson.teacher)}</span>` : ''}
                                         ${lesson.room ? `<span class="detail-item"><span class="icon">🏛️</span> ${escapeHtml(lesson.room)}</span>` : ''}
                                         ${typeLabel ? `<span class="detail-item"><span class="type-badge ${typeClass}">${typeLabel}</span></span>` : ''}
                                     </div>
+                                    ${teachersHtml ? `<div class="lesson-teachers">${teachersHtml}</div>` : ''}
                                 </div>
                             </div>
                         `;
@@ -520,7 +552,6 @@
                 addLog(`❌ Ошибка: ${e.message}`, 'error');
             }
             
-            // Если парсинг не сработал — показываем ошибку
             container.innerHTML = `
                 <div class="schedule-error">
                     <span class="error-icon">⚠️</span>
