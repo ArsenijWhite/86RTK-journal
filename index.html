@@ -60,6 +60,7 @@
         .schedule-lesson .lesson-time { font-size: 12px; font-weight: 600; color: var(--accent); min-width: 36px; padding-top: 1px; }
         .schedule-lesson .lesson-info { flex: 1; min-width: 0; }
         .schedule-lesson .lesson-name { font-size: 14px; font-weight: 500; color: var(--text); }
+        .schedule-lesson .lesson-subgroup { font-size: 10px; font-weight: 600; color: var(--gold); background: rgba(251, 191, 36, 0.12); padding: 1px 8px; border-radius: 10px; display: inline-block; margin-left: 6px; }
         .schedule-lesson .lesson-details { font-size: 12px; color: var(--muted); margin-top: 2px; display: flex; flex-wrap: wrap; gap: 8px; }
         .schedule-lesson .lesson-details .detail-item { display: inline-flex; align-items: center; gap: 4px; }
         .schedule-lesson .lesson-details .detail-item .icon { font-size: 11px; }
@@ -67,6 +68,7 @@
         .schedule-lesson .lesson-details .detail-item .type-badge.lecture { background: rgba(56, 189, 248, 0.12); color: var(--accent); }
         .schedule-lesson .lesson-details .detail-item .type-badge.practice { background: rgba(251, 191, 36, 0.12); color: var(--gold); }
         .schedule-lesson .lesson-details .detail-item .type-badge.lab { background: rgba(244, 114, 182, 0.12); color: #f472b6; }
+
         .schedule-lesson .lesson-teachers { font-size: 12px; color: var(--muted); margin-top: 2px; }
         .schedule-lesson .lesson-teachers .teacher-item { display: inline-block; background: rgba(255,255,255,0.04); padding: 1px 8px; border-radius: 8px; margin: 1px 2px; }
 
@@ -163,7 +165,7 @@
                 content = content.replace(/^\d+\.\s*/, '').trim();
             }
             
-            // 2. Аудитория (оставляем буквы к и кн)
+            // 2. Аудитория
             const roomMatch = content.match(/(Кн\.?\s*[\d\-()]+|[\d\-]+\(?[к\)]?)/i);
             if (roomMatch) {
                 room = roomMatch[0].trim();
@@ -200,33 +202,33 @@
             };
         }
 
-        // Объединяем пары с одинаковым названием предмета
-        function mergeLessons(lessons) {
+        // Объединяем ТОЛЬКО в пределах одной пары (одинаковый номер)
+        function mergeLessonsInPair(lessons) {
             if (!lessons || lessons.length === 0) return [];
             
-            const merged = {};
+            const grouped = {};
             
             for (const lesson of lessons) {
-                const key = lesson.discipline + '|' + lesson.type + '|' + lesson.room;
-                if (!merged[key]) {
-                    merged[key] = {
+                const key = lesson.pair + '|' + lesson.discipline + '|' + lesson.type + '|' + lesson.room;
+                if (!grouped[key]) {
+                    grouped[key] = {
+                        pair: lesson.pair,
                         discipline: lesson.discipline,
                         type: lesson.type,
                         room: lesson.room,
-                        pair: lesson.pair,
                         teachers: [],
                         subgroups: []
                     };
                 }
-                if (lesson.teacher && !merged[key].teachers.includes(lesson.teacher)) {
-                    merged[key].teachers.push(lesson.teacher);
+                if (lesson.teacher && !grouped[key].teachers.includes(lesson.teacher)) {
+                    grouped[key].teachers.push(lesson.teacher);
                 }
-                if (lesson.subgroup && !merged[key].subgroups.includes(lesson.subgroup)) {
-                    merged[key].subgroups.push(lesson.subgroup);
+                if (lesson.subgroup && !grouped[key].subgroups.includes(lesson.subgroup)) {
+                    grouped[key].subgroups.push(lesson.subgroup);
                 }
             }
             
-            return Object.values(merged);
+            return Object.values(grouped);
         }
 
         function parseSchedule(html) {
@@ -399,9 +401,9 @@
                 return null;
             }
             
-            // Объединяем пары с одинаковыми предметами
+            // Объединяем только в пределах ОДНОЙ пары (одинаковый номер)
             for (const day of Object.keys(schedule)) {
-                schedule[day] = mergeLessons(schedule[day]);
+                schedule[day] = mergeLessonsInPair(schedule[day]);
             }
             
             return schedule;
@@ -474,7 +476,6 @@
                                         lesson.type === 'практика' ? 'practice' : '';
                         const typeLabel = lesson.type ? lesson.type.charAt(0).toUpperCase() + lesson.type.slice(1) : '';
                         
-                        // Формируем строку с преподавателями
                         let teachersHtml = '';
                         if (lesson.teachers && lesson.teachers.length > 0) {
                             teachersHtml = lesson.teachers.map(t => 
@@ -482,7 +483,6 @@
                             ).join(' ');
                         }
                         
-                        // Формируем строку с подгруппами
                         let subgroupsHtml = '';
                         if (lesson.subgroups && lesson.subgroups.length > 0) {
                             subgroupsHtml = lesson.subgroups.map(s => 
