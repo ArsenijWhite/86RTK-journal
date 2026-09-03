@@ -358,6 +358,14 @@
         // ============================================================
         const PROXY_URL = 'https://schedule-proxy.arsenijbro5.workers.dev/';
         const DAYS_RU = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
+        const TYPE_MAP = {
+            'Лек': 'лекция',
+            'ЛР': 'лабораторная',
+            'ПР': 'практика',
+            'Лекция': 'лекция',
+            'Лабораторная': 'лабораторная',
+            'Практика': 'практика'
+        };
 
         // ============================================================
         // 2. ЛОГГЕР
@@ -373,94 +381,128 @@
             console.log(`[${type}] ${message}`);
         }
 
-        function addRawLog(message) {
-            const log = document.getElementById('debugLog');
-            const time = new Date().toLocaleTimeString();
-            const entry = document.createElement('div');
-            entry.className = `log-entry raw`;
-            entry.innerHTML = `<span class="time">[${time}]</span> ${message}`;
-            log.appendChild(entry);
-            log.scrollTop = log.scrollHeight;
-            console.log(`[RAW] ${message}`);
-        }
-
         // ============================================================
-        // 3. ПАРСИНГ — РУЧНОЙ РАЗБОР ДЛЯ ФОРМАТА САЙТА
+        // 3. ПАРСИНГ — ПРАВИЛЬНЫЙ ДЛЯ ТАБЛИЦЫ САЙТА
         // ============================================================
         
-        function parseLessonManual(content, pairNum) {
-            if (!content || content.trim() === '') return null;
+        function parseLessonCell(content, pairNum) {
+            if (!content || content.trim() === '' || content.trim() === '-') return [];
             
             let text = content.trim();
-            let discipline = '';
-            let teacher = '';
-            let lessonType = '';
-            let room = '';
-            let subgroup = '';
+            const lessons = [];
             
-            // 1. Ищем подгруппу (1. или 2. в начале)
-            const subgroupMatch = text.match(/^(\d+)\./);
-            if (subgroupMatch) {
-                subgroup = subgroupMatch[1];
-                text = text.replace(/^\d+\.\s*/, '').trim();
+            // Разделяем на отдельные занятия (по переносам строк или по наличию цифры с точкой)
+            // Сначала разбиваем по переносу строки
+            let parts = text.split(/\n/);
+            
+            // Если нет переносов, пробуем разделить по цифре с точкой
+            if (parts.length === 1) {
+                // Ищем все вхождения "цифра.текст"
+                const regex = /(\d+\.\s*[^(\d]+)/g;
+                const matches = text.match(regex);
+                if (matches && matches.length > 1) {
+                    parts = matches.map(m => m.trim());
+                    // Остаток текста после последнего совпадения
+                    const lastMatch = matches[matches.length - 1];
+                    const rest = text.substring(text.indexOf(lastMatch) + lastMatch.length).trim();
+                    if (rest) {
+                        parts[parts.length - 1] = parts[parts.length - 1] + ' ' + rest;
+                    }
+                }
             }
             
-            // 2. Ищем аудиторию (в скобках или формате "2-205")
-            const roomMatch = text.match(/(Кн\.?\s*[\d\-()]+|[\d\-]+\(?[к\)]?)/i);
-            if (roomMatch) {
-                room = roomMatch[0].trim();
-                text = text.replace(roomMatch[0], '').trim();
+            // Если всё ещё одна часть — пробуем разделить по " 2." или " 3." и т.д.
+            if (parts.length === 1) {
+                const splitRegex = /\s+(\d+\.)/;
+                const match = text.match(splitRegex);
+                if (match) {
+                    const idx = text.indexOf(match[1]);
+                    const first = text.substring(0, idx).trim();
+                    const second = text.substring(idx).trim();
+                    parts = [first, second];
+                }
             }
             
-            // 3. Ищем тип занятия (Лек, ЛР, ПР)
-            const typeMatch = text.match(/\(([^)]+)\)/);
-            if (typeMatch) {
-                const type = typeMatch[1].trim();
-                const typeMap = {
-                    'Лек': 'лекция',
-                    'ЛР': 'лабораторная',
-                    'ПР': 'практика',
-                    'Лекция': 'лекция',
-                    'Лабораторная': 'лабораторная',
-                    'Практика': 'практика'
-                };
-                lessonType = typeMap[type] || type;
-                text = text.replace(typeMatch[0], '').trim();
+            // Парсим каждую часть
+            for (const part of parts) {
+                if (!part || part.trim() === '') continue;
+                
+                let partText = part.trim();
+                let subgroup = '';
+                let discipline = '';
+                let lessonType = '';
+                let teacher = '';
+                let room = '';
+                
+                // 1. Ищем подгруппу (цифра с точкой)
+                const subgroupMatch = partText.match(/^(\d+)\./);
+                if (subgroupMatch) {
+                    subgroup = subgroupMatch[1];
+                    partText = partText.replace(/^\d+\.\s*/, '').trim();
+                }
+                
+                // 2. Ищем тип занятия в скобках
+                const typeMatch = partText.match(/\(([^)]+)\)/);
+                if (typeMatch) {
+                    const type = typeMatch[1].trim();
+                    lessonType = TYPE_MAP[type] || type;
+                    partText = partText.replace(typeMatch[0], '').trim();
+                }
+                
+                // 3. Ищем аудиторию
+                const roomMatch = partText.match(/(Кн\.?\s*[\d\-()]+|[\d\-]+\(?[к\)]?)/i);
+                if (roomMatch) {
+                    room = roomMatch[0].trim();
+                    partText = partText.replace(roomMatch[0], '').trim();
+                }
+                
+                // 4. Ищем преподавателя (Фамилия И. О.)
+                const teacherPattern = /([А-Я][а-я]+\s+[А-Я]\.\s*[А-Я]\.)|([А-Я][а-я]+\s+[А-Я]\.\s*[А-Я]\.)|([А-Я][а-я]+\s+[А-Я][а-я]+\s+[А-Я][а-я]+)/;
+                const teacherMatch = partText.match(teacherPattern);
+                
+                if (teacherMatch) {
+                    teacher = teacherMatch[0].trim();
+                    partText = partText.replace(teacherMatch[0], '').trim();
+                }
+                
+                // 5. Остаток — дисциплина
+                discipline = partText.trim();
+                
+                // Если дисциплина пустая, пробуем взять всё содержимое
+                if (!discipline) {
+                    discipline = part.trim();
+                    // Убираем то, что уже нашли
+                    if (subgroup) discipline = discipline.replace(subgroup + '.', '').trim();
+                    if (room) discipline = discipline.replace(room, '').trim();
+                    if (teacher) discipline = discipline.replace(teacher, '').trim();
+                    if (lessonType) {
+                        const typeKeys = Object.keys(TYPE_MAP);
+                        for (const key of typeKeys) {
+                            if (discipline.includes('(' + key + ')')) {
+                                discipline = discipline.replace('(' + key + ')', '').trim();
+                            }
+                        }
+                    }
+                }
+                
+                // Очищаем
+                discipline = discipline.replace(/[,\-–\s]+$/, '').trim();
+                if (teacher) teacher = teacher.trim();
+                if (room) room = room.trim();
+                
+                if (discipline) {
+                    lessons.push({
+                        pair: pairNum,
+                        discipline: discipline || 'Без названия',
+                        type: lessonType,
+                        teacher: teacher,
+                        room: room,
+                        subgroup: subgroup
+                    });
+                }
             }
             
-            // 4. Теперь пытаемся разделить дисциплину и преподавателя
-            // Ищем ФИО преподавателя (обычно: Фамилия И. О. или Имя Отчество)
-            // Паттерн: слово с большой буквы, потом буква с точкой, потом буква с точкой
-            const teacherPattern = /([А-Я][а-я]+\s+[А-Я]\.\s*[А-Я]\.)|([А-Я][а-я]+\s+[А-Я]\.\s*[А-Я]\.)|([А-Я][а-я]+\s+[А-Я][а-я]+\s+[А-Я][а-я]+)/;
-            const teacherMatch = text.match(teacherPattern);
-            
-            if (teacherMatch) {
-                teacher = teacherMatch[0].trim();
-                // Убираем преподавателя из текста
-                text = text.replace(teacherMatch[0], '').trim();
-            }
-            
-            // 5. Остаток — это дисциплина
-            discipline = text.trim();
-            
-            // Если дисциплина пустая, пробуем взять всё содержимое
-            if (!discipline) {
-                discipline = content.trim();
-            }
-            
-            // Очищаем от лишних символов
-            discipline = discipline.replace(/[,\-–\s]+$/, '').trim();
-            if (teacher) teacher = teacher.trim();
-            if (room) room = room.trim();
-            
-            return {
-                pair: pairNum,
-                discipline: discipline || 'Без названия',
-                type: lessonType,
-                teacher: teacher,
-                room: room,
-                subgroup: subgroup
-            };
+            return lessons;
         }
 
         function parseSchedule(html) {
@@ -535,11 +577,13 @@
             const dayCells = headerRow1.querySelectorAll('td, th');
             
             const dayInfo = [];
+            let currentDay = null;
             
-            for (let i = 0; i < dayCells.length; i++) {
+            for (let i = 1; i < dayCells.length; i++) {
                 const cell = dayCells[i];
                 const text = cell.textContent.trim();
                 
+                // Проверяем, не является ли ячейка названием дня
                 let foundDay = null;
                 for (const day of DAYS_RU) {
                     if (text.includes(day)) {
@@ -549,28 +593,29 @@
                 }
                 
                 if (foundDay) {
+                    // Это колонка с дисциплиной (i)
                     dayInfo.push({
                         name: foundDay,
                         colSubject: i,
-                        colRoom: i + 1,
                         date: text
                     });
-                    addLog(`📅 День "${foundDay}" в колонке ${i} (ауд ${i+1})`, 'success');
+                    addLog(`📅 День "${foundDay}" в колонке ${i}`, 'success');
                 }
             }
             
+            // Если дни не найдены — используем стандартные
             if (dayInfo.length === 0) {
                 addLog('⚠️ Дни не найдены, использую стандартные', 'warning');
                 for (let i = 0; i < 6; i++) {
                     dayInfo.push({
                         name: DAYS_RU[i],
-                        colSubject: 1 + i * 2,
-                        colRoom: 2 + i * 2,
+                        colSubject: 1 + i,
                         date: ''
                     });
                 }
             }
             
+            // Ограничиваем 6 днями
             while (dayInfo.length > 6) {
                 dayInfo.pop();
             }
@@ -591,7 +636,7 @@
                 const cells = row.querySelectorAll('td, th');
                 if (cells.length < 2) continue;
                 
-                // Номер пары
+                // Номер пары — первая колонка
                 let pairNum = cells[0].textContent.trim();
                 if (!pairNum || pairNum === '') continue;
                 
@@ -599,51 +644,32 @@
                 for (let d = 0; d < dayInfo.length; d++) {
                     const info = dayInfo[d];
                     
-                    // Получаем данные из ячеек
-                    let subjectContent = '';
-                    let roomContent = '';
+                    // Проверяем, что колонка существует
+                    if (info.colSubject >= cells.length) continue;
                     
-                    if (info.colSubject < cells.length) {
-                        subjectContent = cells[info.colSubject].textContent.trim();
-                    }
-                    if (info.colRoom < cells.length) {
-                        roomContent = cells[info.colRoom].textContent.trim();
-                    }
+                    // Получаем данные из ячейки
+                    const content = cells[info.colSubject].textContent.trim();
                     
                     // Если дисциплина пустая — пропускаем
-                    if (!subjectContent || subjectContent === '' || subjectContent === '-') continue;
+                    if (!content || content === '' || content === '-') continue;
                     
                     const dayName = info.name;
                     
-                    // Объединяем дисциплину и аудиторию
-                    let fullContent = subjectContent;
-                    if (roomContent && roomContent !== '-' && roomContent !== '') {
-                        fullContent += ' ' + roomContent;
-                    }
+                    // Парсим ячейку (может быть несколько занятий)
+                    const lessons = parseLessonCell(content, pairNum);
                     
-                    // Парсим вручную
-                    const lesson = parseLessonManual(fullContent, pairNum);
-                    
-                    if (lesson) {
-                        // Если аудитория не найдена, используем из отдельной ячейки
-                        if (!lesson.room && roomContent && roomContent !== '-' && roomContent !== '') {
-                            lesson.room = roomContent;
+                    for (const lesson of lessons) {
+                        if (lesson) {
+                            schedule[dayName].push(lesson);
+                            pairCount++;
+                            
+                            // Лог для отладки
+                            const teacherInfo = lesson.teacher ? ` (${lesson.teacher})` : '';
+                            const roomInfo = lesson.room ? ` [${lesson.room}]` : '';
+                            const typeInfo = lesson.type ? ` ${lesson.type}` : '';
+                            const subgroupInfo = lesson.subgroup ? ` ${lesson.subgroup}подгр` : '';
+                            addLog(`✅ Пара ${pairNum}: ${lesson.discipline}${teacherInfo}${roomInfo}${typeInfo}${subgroupInfo} (${dayName})`, 'success');
                         }
-                        
-                        // Очищаем
-                        lesson.discipline = lesson.discipline.trim();
-                        if (lesson.teacher) lesson.teacher = lesson.teacher.trim();
-                        if (lesson.room) lesson.room = lesson.room.trim();
-                        
-                        // Добавляем в расписание
-                        schedule[dayName].push(lesson);
-                        pairCount++;
-                        
-                        // Лог для отладки
-                        const teacherInfo = lesson.teacher ? ` (${lesson.teacher})` : '';
-                        const roomInfo = lesson.room ? ` [${lesson.room}]` : '';
-                        const typeInfo = lesson.type ? ` ${lesson.type}` : '';
-                        addLog(`✅ Пара ${pairNum}: ${lesson.discipline}${teacherInfo}${roomInfo}${typeInfo} (${dayName})`, 'success');
                     }
                 }
             }
@@ -732,7 +758,7 @@
                                     lesson.type === 'лабораторная' ? 'lab' : 
                                     lesson.type === 'практика' ? 'practice' : '';
                     const typeLabel = lesson.type ? lesson.type.charAt(0).toUpperCase() + lesson.type.slice(1) : '';
-                    const subgroupLabel = lesson.subgroup ? `1-${lesson.subgroup} подгруппа` : '';
+                    const subgroupLabel = lesson.subgroup ? `${lesson.subgroup} подгруппа` : '';
                     
                     html += `
                         <div class="schedule-lesson">
