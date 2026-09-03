@@ -385,28 +385,30 @@
         }
 
         // ============================================================
-        // 3. ПАРСИНГ — ИСПРАВЛЕННАЯ ВЕРСИЯ
+        // 3. ПАРСИНГ — ИСПРАВЛЕННАЯ ВЕРСИЯ (ПРАВИЛЬНОЕ РАЗДЕЛЕНИЕ)
         // ============================================================
-        function parseLessonContent(content, pairNum) {
+        
+        // Функция для извлечения информации из ячейки с дисциплиной
+        function extractLessonInfo(content, pairNum) {
             if (!content || content.trim() === '') return null;
             
-            let discipline = content;
+            let discipline = content.trim();
             let lessonType = '';
             let teacher = '';
             let room = '';
             let subgroup = '';
             
-            // Ищем подгруппу
-            const subgroupMatch = content.match(/^(\d+)\./);
+            // Ищем подгруппу (1. или 2. в начале)
+            const subgroupMatch = discipline.match(/^(\d+)\./);
             if (subgroupMatch) {
                 subgroup = subgroupMatch[1];
                 discipline = discipline.replace(/^\d+\.\s*/, '').trim();
             }
             
-            // Ищем аудиторию
+            // Ищем аудиторию в скобках или формате "2-205"
             const roomMatch = discipline.match(/(Кн\.?\s*[\d\-()]+|[\d\-]+\(?[к\)]?)/i);
             if (roomMatch) {
-                room = roomMatch[0];
+                room = roomMatch[0].trim();
                 discipline = discipline.replace(roomMatch[0], '').trim();
             }
             
@@ -415,7 +417,7 @@
             if (teacherMatch) {
                 const parts = teacherMatch[1].split(/\s+/);
                 if (parts.length >= 2) {
-                    teacher = teacherMatch[1];
+                    teacher = teacherMatch[1].trim();
                     discipline = discipline.replace(teacherMatch[0], '').trim();
                 }
             }
@@ -436,11 +438,12 @@
                 discipline = discipline.replace(typeMatch[0], '').trim();
             }
             
+            // Очищаем от лишних символов
             discipline = discipline.replace(/[,\-–\s]+$/, '').trim();
             
             return {
                 pair: pairNum,
-                discipline: discipline || content,
+                discipline: discipline || content.trim(),
                 type: lessonType,
                 teacher: teacher,
                 room: room,
@@ -457,7 +460,7 @@
             // Ищем таблицу для группы 86
             let targetTable = null;
             
-            // Способ 1: Ищем заголовок h2 с текстом "Группа - 86"
+            // Ищем заголовок h2 с текстом "Группа - 86"
             const headings = doc.querySelectorAll('h2');
             addLog(`Найдено заголовков h2: ${headings.length}`, 'info');
             
@@ -478,7 +481,6 @@
                 }
             }
             
-            // Способ 2: Если не нашли — ищем любую таблицу
             if (!targetTable) {
                 addLog('⚠️ Заголовок не найден, ищу таблицу', 'warning');
                 const tables = doc.querySelectorAll('table');
@@ -517,11 +519,9 @@
             // ============================================================
             // ОПРЕДЕЛЯЕМ ДНИ НЕДЕЛИ
             // ============================================================
-            // В первой строке (rows[0]) — номера пар и названия дней
             const headerRow1 = rows[0];
             const dayCells = headerRow1.querySelectorAll('td, th');
             
-            // Находим ячейки с днями недели
             const dayInfo = [];
             
             for (let i = 0; i < dayCells.length; i++) {
@@ -537,8 +537,6 @@
                 }
                 
                 if (foundDay) {
-                    // Запоминаем: день начинается с колонки i
-                    // Следующая колонка (i+1) — аудитория для этого дня
                     dayInfo.push({
                         name: foundDay,
                         colSubject: i,
@@ -549,7 +547,6 @@
                 }
             }
             
-            // Если дни не найдены — используем стандартные
             if (dayInfo.length === 0) {
                 addLog('⚠️ Дни не найдены, использую стандартные', 'warning');
                 for (let i = 0; i < 6; i++) {
@@ -562,7 +559,6 @@
                 }
             }
             
-            // Ограничиваем 6 днями
             while (dayInfo.length > 6) {
                 dayInfo.pop();
             }
@@ -570,12 +566,11 @@
             const dayNames = dayInfo.map(d => d.name);
             addLog(`📅 Итоговые дни: ${dayNames.join(', ')}`, 'info');
             
-            // Создаем расписание
             const schedule = {};
             dayNames.forEach(day => { schedule[day] = []; });
             
             // ============================================================
-            // ПАРСИМ СТРОКИ С ПАРАМИ (начиная с 3-й строки)
+            // ПАРСИМ СТРОКИ С ПАРАМИ
             // ============================================================
             let pairCount = 0;
             
@@ -584,7 +579,7 @@
                 const cells = row.querySelectorAll('td, th');
                 if (cells.length < 2) continue;
                 
-                // Номер пары — первая колонка
+                // Номер пары
                 let pairNum = cells[0].textContent.trim();
                 if (!pairNum || pairNum === '') continue;
                 
@@ -592,40 +587,50 @@
                 for (let d = 0; d < dayInfo.length; d++) {
                     const info = dayInfo[d];
                     
-                    // Получаем дисциплину и аудиторию
-                    let discipline = '';
-                    let room = '';
+                    // Получаем данные из ячеек
+                    let subjectContent = '';
+                    let roomContent = '';
                     
                     if (info.colSubject < cells.length) {
-                        discipline = cells[info.colSubject].textContent.trim();
+                        subjectContent = cells[info.colSubject].textContent.trim();
                     }
                     if (info.colRoom < cells.length) {
-                        room = cells[info.colRoom].textContent.trim();
+                        roomContent = cells[info.colRoom].textContent.trim();
                     }
                     
                     // Если дисциплина пустая — пропускаем
-                    if (!discipline || discipline === '' || discipline === '-') continue;
+                    if (!subjectContent || subjectContent === '' || subjectContent === '-') continue;
                     
                     const dayName = info.name;
                     
-                    // Собираем полную информацию
-                    const fullContent = discipline + (room && room !== '-' ? ' ' + room : '');
-                    const lesson = parseLessonContent(fullContent, pairNum);
-                    
-                    // Если парсер не вытащил аудиторию, добавляем из отдельной колонки
-                    if (lesson && room && room !== '-' && !lesson.room) {
-                        lesson.room = room;
+                    // Объединяем дисциплину и аудиторию для парсинга
+                    let fullContent = subjectContent;
+                    if (roomContent && roomContent !== '-' && roomContent !== '') {
+                        fullContent += ' ' + roomContent;
                     }
                     
+                    // Извлекаем информацию
+                    const lesson = extractLessonInfo(fullContent, pairNum);
+                    
                     if (lesson) {
-                        // Очищаем лишние пробелы
+                        // Если аудитория не найдена в основном контенте, используем из отдельной ячейки
+                        if (!lesson.room && roomContent && roomContent !== '-' && roomContent !== '') {
+                            lesson.room = roomContent;
+                        }
+                        
+                        // Очищаем
                         lesson.discipline = lesson.discipline.trim();
                         if (lesson.teacher) lesson.teacher = lesson.teacher.trim();
                         if (lesson.room) lesson.room = lesson.room.trim();
                         
+                        // Добавляем в расписание
                         schedule[dayName].push(lesson);
                         pairCount++;
-                        addLog(`✅ Пара ${pairNum}: ${lesson.discipline} (${dayName})`, 'success');
+                        
+                        // Лог для отладки
+                        const teacherInfo = lesson.teacher ? ` (${lesson.teacher})` : '';
+                        const roomInfo = lesson.room ? ` [${lesson.room}]` : '';
+                        addLog(`✅ Пара ${pairNum}: ${lesson.discipline}${teacherInfo}${roomInfo} (${dayName})`, 'success');
                     }
                 }
             }
@@ -641,7 +646,7 @@
         }
 
         // ============================================================
-        // 4. ОТОБРАЖЕНИЕ — ИСПРАВЛЕННОЕ
+        // 4. ОТОБРАЖЕНИЕ
         // ============================================================
         function renderSchedule(schedule) {
             const container = document.getElementById('scheduleContent');
@@ -705,6 +710,9 @@
                             <span class="day-badge ${isToday ? 'today' : ''} ${isWeekend ? 'weekend' : ''}">${isToday ? 'СЕГОДНЯ' : isWeekend ? 'СУББОТА' : `${lessons.length} пар`}</span>
                         </div>
                 `;
+                
+                // Сортируем пары по номеру
+                lessons.sort((a, b) => parseInt(a.pair) - parseInt(b.pair));
                 
                 lessons.forEach(lesson => {
                     const typeClass = lesson.type === 'лекция' ? 'lecture' : 
