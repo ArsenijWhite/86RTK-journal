@@ -41,7 +41,6 @@
             padding-bottom: 80px; 
         }
 
-        /* ЛОАДЕР */
         #loader { 
             position: fixed; 
             top: 0; 
@@ -188,7 +187,6 @@
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px) scale(0.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* ОСНОВНОЙ КОНТЕНТ */
         #main-content { 
             opacity: 0; 
             transition: 0.5s; 
@@ -733,9 +731,6 @@
         .search-hidden #search,
         .search-hidden .header-sub { display: none; }
 
-        /* ============================================================
-           АДМИН-ПАНЕЛЬ
-           ============================================================ */
         .admin-panel {
             display: none;
             position: fixed;
@@ -865,9 +860,6 @@
         .admin-fab.visible { display: flex; }
         .admin-fab svg { width: 22px; height: 22px; stroke: white; fill: none; stroke-width: 2; }
 
-        /* ============================================================
-           НИЖНЯЯ НАВИГАЦИЯ (ДОКБАР)
-           ============================================================ */
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -917,9 +909,6 @@
             text-transform: uppercase;
         }
 
-        /* ============================================================
-           ВКЛАДКА РАСПИСАНИЯ (СТИЛЬНЫЙ СПИСОК)
-           ============================================================ */
         .tab-content {
             display: none;
             animation: fadeIn 0.3s ease;
@@ -996,7 +985,29 @@
         }
         .schedule-error .retry-btn:active { transform: scale(0.95); }
 
-        /* День недели */
+        .schedule-iframe-fallback {
+            display: none;
+            margin-top: 10px;
+        }
+        .schedule-iframe-fallback.active {
+            display: block;
+        }
+        .schedule-iframe-fallback .iframe-wrapper {
+            background: var(--card);
+            border-radius: 18px;
+            border: 1px solid rgba(255,255,255,0.06);
+            overflow: hidden;
+            height: calc(100vh - 260px);
+            min-height: 350px;
+            position: relative;
+        }
+        .schedule-iframe-fallback .iframe-wrapper iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: white;
+        }
+
         .schedule-day {
             margin-bottom: 14px;
             background: var(--schedule-day-bg);
@@ -1036,7 +1047,6 @@
             color: var(--success);
         }
 
-        /* Пара */
         .schedule-lesson {
             padding: 10px 16px;
             border-bottom: 1px solid rgba(255,255,255,0.03);
@@ -1116,6 +1126,25 @@
             opacity: 0.5;
         }
 
+        .schedule-fallback-btn {
+            display: block;
+            width: 100%;
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.04);
+            color: var(--muted);
+            font-size: 12px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+        }
+        .schedule-fallback-btn:active {
+            transform: scale(0.97);
+            background: rgba(255,255,255,0.08);
+        }
+
         @supports (padding-bottom: env(safe-area-inset-bottom)) {
             body { padding-bottom: calc(80px + env(safe-area-inset-bottom)); }
             .bottom-nav { padding-bottom: env(safe-area-inset-bottom); }
@@ -1126,7 +1155,6 @@
 </head>
 <body>
 
-    <!-- ЛОАДЕР -->
     <div id="loader">
         <div class="loader-inner">
             <div class="logo-container">
@@ -1142,10 +1170,8 @@
         <div class="copyright">by @skwared</div>
     </div>
 
-    <!-- ОСНОВНОЙ КОНТЕНТ -->
     <div id="main-content">
 
-        <!-- ВКЛАДКА: ЖУРНАЛ -->
         <div class="tab-content active" id="tabJournal">
             <div class="header">
                 <div class="header-title">
@@ -1169,7 +1195,6 @@
             <div class="footer">by @skwared</div>
         </div>
 
-        <!-- ВКЛАДКА: РАСПИСАНИЕ (СТИЛЬНЫЙ СПИСОК) -->
         <div class="tab-content" id="tabSchedule">
             <div class="schedule-header">
                 <div>
@@ -1178,7 +1203,7 @@
                 </div>
                 <span class="schedule-group-label">Группа 86</span>
             </div>
-            <div style="display: flex; justify-content: flex-end; margin-bottom: 10px; gap: 8px;">
+            <div style="display: flex; justify-content: flex-end; gap: 8px; margin-bottom: 10px;">
                 <button class="schedule-update-btn" id="scheduleRefreshBtn">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
@@ -1192,16 +1217,20 @@
                     <span>Загрузка расписания...</span>
                 </div>
             </div>
+            <button class="schedule-fallback-btn" id="scheduleFallbackBtn">📄 Открыть на сайте</button>
+            <div class="schedule-iframe-fallback" id="scheduleIframeFallback">
+                <div class="iframe-wrapper">
+                    <iframe id="scheduleFallbackIframe" src="about:blank"></iframe>
+                </div>
+            </div>
         </div>
 
-        <!-- Кнопка обновления (для журнала) -->
         <div class="fab-update" id="fabUpdate">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
             </svg>
         </div>
 
-        <!-- Админ-панель -->
         <div class="admin-fab" id="adminFab">
             <svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
@@ -1222,7 +1251,6 @@
             <div class="admin-status" id="adminStatus"></div>
         </div>
 
-        <!-- Попап выбора студента -->
         <div class="identity-popup" id="identityPopup">
             <div class="title">👤 Это вы?</div>
             <div class="sub" id="popupSubText">Выберите свою фамилию из списка:</div>
@@ -1233,14 +1261,12 @@
             </div>
         </div>
 
-        <!-- Карточка студента -->
         <div class="card-overlay" id="cardOverlay">
             <div class="card-wrapper" id="cardWrapper"></div>
         </div>
 
     </div>
 
-    <!-- НИЖНЯЯ НАВИГАЦИЯ (ДОКБАР) -->
     <nav class="bottom-nav" id="bottomNav">
         <button class="nav-item active" data-tab="tabJournal">
             <svg class="nav-icon" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="11" x2="14" y2="11"/><line x1="8" y1="15" x2="12" y2="15"/></svg>
@@ -1288,14 +1314,13 @@
         let isDataLoaded = false;
         let isAdmin = false;
 
-        const CACHE_KEY = 'journal_86rtk_v35';
+        const CACHE_KEY = 'journal_86rtk_v36';
         const EXAM_SUBJECTS = [
             'Цифровая и микропроцессорная техника',
             'Промышленная электроника и микроэлектроника',
             'Автоматизация производства'
         ];
 
-        // Дни недели на русском
         const DAYS_RU = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье'];
         const DAYS_SHORT = ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС'];
 
@@ -1489,7 +1514,7 @@
         }
 
         // ============================================================
-        // 7. КАРТОЧКА СТУДЕНТА
+        // 7. КАРТОЧКА СТУДЕНТА (СОКРАЩЕНО)
         // ============================================================
         function toggleMarks(id) {
             const el = document.getElementById(id);
@@ -1872,42 +1897,32 @@
         }
 
         // ============================================================
-        // 12. РАСПИСАНИЕ (ПАРСИНГ И ОТОБРАЖЕНИЕ)
+        // 12. РАСПИСАНИЕ
         // ============================================================
         function parseScheduleHTML(html) {
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, 'text/html');
             
-            // Ищем расписание для группы 86
-            const groups = doc.querySelectorAll('h2');
             let targetSection = null;
-            let targetGroup = '';
-            
+            const groups = doc.querySelectorAll('h2');
             for (const h2 of groups) {
                 const text = h2.textContent.trim();
                 if (text.includes('Группа - 86')) {
                     targetSection = h2;
-                    targetGroup = '86';
                     break;
                 }
             }
             
             if (!targetSection) {
-                // Пробуем найти по другому
                 const allText = doc.body.textContent;
-                if (allText.includes('Группа - 86')) {
-                    // Ищем ближайшую таблицу после "Группа - 86"
-                    const regex = /Группа - 86([\s\S]*?)(?:Группа -|$)/i;
-                    const match = allText.match(regex);
-                    if (match) {
-                        // Парсим из текста
-                        return parseTextSchedule(match[1]);
-                    }
+                const regex = /Группа - 86([\s\S]*?)(?:Группа -|$)/i;
+                const match = allText.match(regex);
+                if (match) {
+                    return parseTextSchedule(match[1]);
                 }
                 throw new Error('Расписание для группы 86 не найдено');
             }
             
-            // Находим таблицу расписания
             let table = targetSection.nextElementSibling;
             while (table && table.tagName !== 'TABLE') {
                 table = table.nextElementSibling;
@@ -1926,41 +1941,31 @@
                 throw new Error('Таблица расписания пуста');
             }
             
-            // Определяем дни недели из второй строки (заголовок)
             const headerRow = rows[1];
             const dayHeaders = [];
             const dayCells = headerRow.querySelectorAll('td, th');
-            
-            // Пропускаем первую ячейку (№)
             for (let i = 1; i < dayCells.length; i++) {
                 const text = dayCells[i].textContent.trim();
                 dayHeaders.push(text);
             }
             
-            // Парсим пары
             const schedule = {};
             const days = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
-            
-            // Инициализируем дни
             days.forEach(day => { schedule[day] = []; });
             
-            // Проходим по строкам с парами (начиная с 3-й строки)
             for (let i = 2; i < rows.length; i++) {
                 const row = rows[i];
                 const cells = row.querySelectorAll('td');
                 if (cells.length < 2) continue;
                 
-                // Номер пары (первая ячейка)
                 const pairNum = cells[0].textContent.trim();
                 if (!pairNum || pairNum === '') continue;
                 
-                // Проходим по дням
                 for (let d = 0; d < Math.min(dayHeaders.length, cells.length - 1); d++) {
                     const cell = cells[d + 1];
                     const content = cell.textContent.trim();
                     
                     if (content && content !== '' && content !== '-') {
-                        // Парсим строку: "Дисциплина (Вид) Преподаватель Ауд."
                         const lesson = parseLessonContent(content, pairNum);
                         if (lesson) {
                             const dayName = days[d] || dayHeaders[d] || 'Неизвестно';
@@ -1989,14 +1994,12 @@
             
             for (const line of lines) {
                 const trimmed = line.trim();
-                // Проверяем, не является ли строка названием дня
                 const dayMatch = trimmed.match(/^(Понедельник|Вторник|Среда|Четверг|Пятница|Суббота)/i);
                 if (dayMatch) {
                     currentDay = dayMatch[1];
                     continue;
                 }
                 
-                // Если строка начинается с цифры - это пара
                 if (currentDay && /^\d/.test(trimmed)) {
                     const parts = trimmed.split(/\s+/);
                     const pairNum = parts[0];
@@ -2014,32 +2017,26 @@
         function parseLessonContent(content, pairNum) {
             if (!content || content.trim() === '') return null;
             
-            // Пробуем извлечь: дисциплина, вид, преподаватель, аудитория
             let discipline = content;
             let lessonType = '';
             let teacher = '';
             let room = '';
             
-            // Ищем аудиторию (обычно в формате "2-205" или "Кн.1-224(к)")
             const roomMatch = content.match(/(Кн\.?\s*[\d\-()]+|[\d\-]+\(?[к\)]?)/i);
             if (roomMatch) {
                 room = roomMatch[0];
                 discipline = discipline.replace(roomMatch[0], '').trim();
             }
             
-            // Ищем преподавателя (в скобках или после названия)
             const teacherMatch = discipline.match(/\(([^)]+)\)/);
             if (teacherMatch) {
                 const parts = teacherMatch[1].split(/\s+/);
-                // Проверяем, похоже ли на ФИО
                 if (parts.length >= 2) {
                     teacher = teacherMatch[1];
-                    // Убираем преподавателя из дисциплины
                     discipline = discipline.replace(teacherMatch[0], '').trim();
                 }
             }
             
-            // Ищем вид занятия (Лек, ЛР, ПР и т.д.)
             const typeMatch = discipline.match(/\(([^)]+)\)/);
             if (typeMatch) {
                 const type = typeMatch[1].trim();
@@ -2055,7 +2052,6 @@
                 discipline = discipline.replace(typeMatch[0], '').trim();
             }
             
-            // Убираем лишние пробелы и разделители
             discipline = discipline.replace(/[,\-–\s]+$/, '').trim();
             
             return {
@@ -2080,12 +2076,9 @@
                 return;
             }
             
-            // Определяем текущий день для подсветки "сегодня"
             const today = new Date();
-            const todayIndex = today.getDay(); // 0 - воскресенье, 1 - понедельник
+            const todayIndex = today.getDay();
             const todayName = todayIndex === 0 ? 'Воскресенье' : DAYS_RU[todayIndex - 1];
-            
-            // Формируем даты для текущей недели
             const weekDates = getWeekDates(today);
             
             let html = '';
@@ -2151,7 +2144,6 @@
         function getWeekDates(today) {
             const dates = [];
             const day = today.getDay();
-            // Находим понедельник текущей недели
             const diff = today.getDate() - day + (day === 0 ? -6 : 1);
             const monday = new Date(today);
             monday.setDate(diff);
@@ -2167,8 +2159,13 @@
         function loadSchedule() {
             const container = document.getElementById('scheduleContent');
             const weekLabel = document.getElementById('scheduleWeekLabel');
+            const fallbackContainer = document.getElementById('scheduleIframeFallback');
+            const fallbackBtn = document.getElementById('scheduleFallbackBtn');
             
-            // Показываем загрузку
+            // Скрываем iframe при загрузке
+            fallbackContainer.classList.remove('active');
+            fallbackBtn.textContent = '📄 Открыть на сайте';
+            
             container.innerHTML = `
                 <div class="schedule-loader">
                     <div class="spinner"></div>
@@ -2177,30 +2174,17 @@
             `;
             weekLabel.textContent = 'Загрузка...';
             
-            // Пробуем загрузить через fetch с прокси (CORS)
-            // Используем corsproxy.io или другой прокси
-            const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(SCHEDULE_URL);
+            // Пробуем загрузить через прокси
+            const proxyUrls = [
+                'https://api.allorigins.win/raw?url=' + encodeURIComponent(SCHEDULE_URL),
+                'https://corsproxy.io/?' + encodeURIComponent(SCHEDULE_URL)
+            ];
             
-            fetch(proxyUrl)
-                .then(response => {
-                    if (!response.ok) throw new Error('Ошибка загрузки: ' + response.status);
-                    return response.text();
-                })
-                .then(html => {
-                    const schedule = parseScheduleHTML(html);
-                    renderSchedule(schedule);
-                    
-                    // Обновляем неделю
-                    const today = new Date();
-                    const weekDates = getWeekDates(today);
-                    if (weekDates.length >= 2) {
-                        const start = weekDates[0].toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
-                        const end = weekDates[6].toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
-                        weekLabel.textContent = `${start} — ${end}`;
-                    }
-                })
-                .catch(error => {
-                    console.error('Ошибка загрузки расписания:', error);
+            let attempt = 0;
+            
+            function tryFetch() {
+                if (attempt >= proxyUrls.length) {
+                    // Если все прокси не сработали - показываем iframe
                     container.innerHTML = `
                         <div class="schedule-error">
                             <span class="error-icon">⚠️</span>
@@ -2209,11 +2193,50 @@
                         </div>
                     `;
                     weekLabel.textContent = 'Ошибка загрузки';
+                    fallbackBtn.textContent = '📄 Открыть на сайте (альтернатива)';
+                    return;
+                }
+                
+                const url = proxyUrls[attempt];
+                console.log(`🔄 Попытка ${attempt + 1}: ${url}`);
+                
+                fetch(url, {
+                    signal: AbortSignal.timeout(10000)
+                })
+                .then(response => {
+                    if (!response.ok) throw new Error('Ошибка: ' + response.status);
+                    return response.text();
+                })
+                .then(html => {
+                    // Проверяем, что это действительно HTML с расписанием
+                    if (html.includes('Группа - 86') || html.includes('weekly-timetable')) {
+                        const schedule = parseScheduleHTML(html);
+                        renderSchedule(schedule);
+                        
+                        const today = new Date();
+                        const weekDates = getWeekDates(today);
+                        if (weekDates.length >= 2) {
+                            const start = weekDates[0].toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
+                            const end = weekDates[6].toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
+                            weekLabel.textContent = `${start} — ${end}`;
+                        }
+                        fallbackBtn.textContent = '📄 Открыть на сайте';
+                    } else {
+                        throw new Error('Расписание не найдено');
+                    }
+                })
+                .catch(error => {
+                    console.warn(`❌ Попытка ${attempt + 1} не удалась:`, error.message);
+                    attempt++;
+                    tryFetch();
                 });
+            }
+            
+            tryFetch();
         }
 
         // ============================================================
-        // 13. НАВИГАЦИЯ (ДОКБАР)
+        // 13. ОБРАБОТЧИКИ
         // ============================================================
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
@@ -2222,18 +2245,18 @@
             document.querySelector(`.nav-item[data-tab="${tabId}"]`).classList.add('active');
             
             if (tabId === 'tabSchedule') {
-                // Проверяем, загружено ли расписание
                 const container = document.getElementById('scheduleContent');
-                if (container.querySelector('.schedule-loader') || container.querySelector('.schedule-error') || container.innerHTML === '') {
+                // Проверяем, есть ли уже загруженное расписание
+                if (container.querySelector('.schedule-loader') || 
+                    container.querySelector('.schedule-error') || 
+                    container.innerHTML === '' ||
+                    container.querySelector('.schedule-empty')) {
                     loadSchedule();
                 }
             }
             if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
         }
 
-        // ============================================================
-        // 14. ОБРАБОТЧИКИ
-        // ============================================================
         document.getElementById('profileBtn').addEventListener('click', function(e) {
             e.stopPropagation();
             const bound = getBoundStudent();
@@ -2251,7 +2274,6 @@
         document.getElementById('fabUpdate').addEventListener('click', forceUpdate);
         document.getElementById('retryButton').addEventListener('click', forceUpdate);
 
-        // Навигация
         document.querySelectorAll('.nav-item').forEach(item => {
             item.addEventListener('click', function() {
                 const tabId = this.dataset.tab;
@@ -2259,13 +2281,29 @@
             });
         });
 
-        // Расписание - обновление
         document.getElementById('scheduleRefreshBtn').addEventListener('click', function() {
             loadSchedule();
             if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
         });
 
-        // Админ-панель
+        // Fallback — открыть в iframe
+        document.getElementById('scheduleFallbackBtn').addEventListener('click', function() {
+            const fallbackContainer = document.getElementById('scheduleIframeFallback');
+            const iframe = document.getElementById('scheduleFallbackIframe');
+            
+            if (fallbackContainer.classList.contains('active')) {
+                fallbackContainer.classList.remove('active');
+                this.textContent = '📄 Открыть на сайте';
+            } else {
+                fallbackContainer.classList.add('active');
+                this.textContent = '❌ Закрыть сайт';
+                if (iframe.src === 'about:blank' || iframe.src === '') {
+                    iframe.src = SCHEDULE_URL;
+                }
+            }
+        });
+
+        // Админ
         document.getElementById('adminFab').addEventListener('click', function() {
             document.getElementById('adminPanel').classList.add('open');
             if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
@@ -2375,12 +2413,13 @@
         }
 
         // ============================================================
-        // 15. ЗАПУСК
+        // 14. ЗАПУСК
         // ============================================================
         window.openCard = openCard;
         window.closeCard = closeCard;
         window.toggleMarks = toggleMarks;
         window.loadSchedule = loadSchedule;
+        window.switchTab = switchTab;
 
         loadData();
     </script>
