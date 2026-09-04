@@ -150,7 +150,6 @@
         // ============================================================
         function cleanDiscipline(name) {
             if (!name) return '';
-            // Убираем лишние пробелы, точки, запятые
             let cleaned = name.trim();
             // Убираем (Лек), (ЛР), (ПР) и т.д.
             cleaned = cleaned.replace(/\([^)]*\)/g, '').trim();
@@ -161,14 +160,21 @@
             return cleaned;
         }
 
+        function extractTeacher(text) {
+            const teacherPattern = /([А-Я][а-я]+\s+[А-Я]\.\s*[А-Я]\.)|([А-Я][а-я]+\s+[А-Я]\.\s*[А-Я]\.)|([А-Я][а-я]+\s+[А-Я][а-я]+\s+[А-Я][а-я]+)/;
+            const match = text.match(teacherPattern);
+            if (match) {
+                return match[0].trim();
+            }
+            return null;
+        }
+
         function parseLessonText(text, pairNum) {
             if (!text || text.trim() === '' || text.trim() === '-') return null;
             
             let content = text.trim();
             let subgroup = '';
-            let discipline = '';
             let lessonType = '';
-            let teacher = '';
             let room = '';
             
             // 1. Подгруппа
@@ -202,24 +208,53 @@
                 content = content.replace(typeMatch[0], '').trim();
             }
             
-            // 5. Преподаватель
-            const teacherPattern = /([А-Я][а-я]+\s+[А-Я]\.\s*[А-Я]\.)|([А-Я][а-я]+\s+[А-Я]\.\s*[А-Я]\.)|([А-Я][а-я]+\s+[А-Я][а-я]+\s+[А-Я][а-я]+)/;
-            const teacherMatch = content.match(teacherPattern);
-            if (teacherMatch) {
-                teacher = teacherMatch[0].trim();
-                content = content.replace(teacherMatch[0], '').trim();
+            // 5. Извлекаем всех преподавателей из текста
+            const teachers = [];
+            // Разбиваем на части по точке с запятой или просто ищем все ФИО
+            const parts = content.split(/[;.,]\s*/);
+            for (const part of parts) {
+                const teacher = extractTeacher(part);
+                if (teacher) {
+                    teachers.push(teacher);
+                    // Убираем преподавателя из текста
+                    content = content.replace(teacher, '').trim();
+                }
             }
             
-            // 6. Дисциплина — чистим от мусора
-            discipline = cleanDiscipline(content);
-            if (!discipline) discipline = 'Без названия';
+            // Если не нашли через разбивку, ищем прямо в тексте
+            if (teachers.length === 0) {
+                const teacher = extractTeacher(content);
+                if (teacher) {
+                    teachers.push(teacher);
+                    content = content.replace(teacher, '').trim();
+                }
+            }
+            
+            // 6. Дисциплина — очищаем от мусора
+            let discipline = cleanDiscipline(content);
+            // Если дисциплина пустая, пытаемся извлечь из оригинального текста
+            if (!discipline) {
+                const cleanText = text.trim();
+                // Убираем подгруппу
+                let temp = cleanText.replace(/^\d+\.\s*/, '').trim();
+                // Убираем все, что похоже на преподавателя
+                const teacher = extractTeacher(temp);
+                if (teacher) {
+                    temp = temp.replace(teacher, '').trim();
+                }
+                // Убираем (Лек), (ЛР) и т.д.
+                temp = temp.replace(/\([^)]*\)/g, '').trim();
+                // Убираем (к), (кн)
+                temp = temp.replace(/\([кКнН]\)/g, '').trim();
+                discipline = cleanDiscipline(temp);
+                if (!discipline) discipline = 'Без названия';
+            }
             
             return {
                 pair: pairNum,
                 discipline: discipline,
-                rawDiscipline: content,
                 type: lessonType,
-                teacher: teacher,
+                teachers: teachers,
                 room: room,
                 subgroup: subgroup
             };
@@ -243,8 +278,13 @@
                         subgroups: []
                     };
                 }
-                if (lesson.teacher && !grouped[key].teachers.includes(lesson.teacher)) {
-                    grouped[key].teachers.push(lesson.teacher);
+                // Добавляем всех преподавателей
+                if (lesson.teachers && lesson.teachers.length > 0) {
+                    for (const teacher of lesson.teachers) {
+                        if (!grouped[key].teachers.includes(teacher)) {
+                            grouped[key].teachers.push(teacher);
+                        }
+                    }
                 }
                 if (lesson.subgroup && !grouped[key].subgroups.includes(lesson.subgroup)) {
                     grouped[key].subgroups.push(lesson.subgroup);
