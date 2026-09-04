@@ -148,6 +148,19 @@
         // ============================================================
         // 3. ПАРСИНГ
         // ============================================================
+        function cleanDiscipline(name) {
+            if (!name) return '';
+            // Убираем лишние пробелы, точки, запятые
+            let cleaned = name.trim();
+            // Убираем (Лек), (ЛР), (ПР) и т.д.
+            cleaned = cleaned.replace(/\([^)]*\)/g, '').trim();
+            // Убираем (к), (кн) в конце
+            cleaned = cleaned.replace(/\([кКнН]\)$/, '').trim();
+            // Убираем лишние точки и запятые в конце
+            cleaned = cleaned.replace(/[.,\s]+$/, '').trim();
+            return cleaned;
+        }
+
         function parseLessonText(text, pairNum) {
             if (!text || text.trim() === '' || text.trim() === '-') return null;
             
@@ -165,24 +178,19 @@
                 content = content.replace(/^\d+\.\s*/, '').trim();
             }
             
-            // 2. Ищем аудиторию
+            // 2. Аудитория
             const roomMatch = content.match(/(Кн\.?\s*[\d\-()]+|[\d\-]+\(?[к\)]?)/i);
             if (roomMatch) {
                 room = roomMatch[0].trim();
                 content = content.replace(roomMatch[0], '').trim();
             }
             
-            // 3. ВЫРЕЗАЕМ (к) И (кн) ИЗ НАЗВАНИЯ И ПРИКЛЕИВАЕМ К АУДИТОРИИ
+            // 3. Вырезаем (к) и (кн) из названия
             const kMatch = content.match(/\([кКнН]\)/);
             if (kMatch) {
                 const kText = kMatch[0];
-                // Если аудитории нет — создаем
-                if (!room) {
-                    room = kText;
-                } else {
-                    // Если аудитория есть — добавляем в конец
-                    room = room + ' ' + kText;
-                }
+                if (!room) room = kText;
+                else room = room + ' ' + kText;
                 content = content.replace(kMatch[0], '').trim();
             }
             
@@ -202,13 +210,14 @@
                 content = content.replace(teacherMatch[0], '').trim();
             }
             
-            // 6. Дисциплина
-            discipline = content.trim();
+            // 6. Дисциплина — чистим от мусора
+            discipline = cleanDiscipline(content);
             if (!discipline) discipline = 'Без названия';
             
             return {
                 pair: pairNum,
                 discipline: discipline,
+                rawDiscipline: content,
                 type: lessonType,
                 teacher: teacher,
                 room: room,
@@ -222,6 +231,7 @@
             const grouped = {};
             
             for (const lesson of lessons) {
+                // Ключ для группировки: пара + очищенное название предмета + тип + аудитория
                 const key = lesson.pair + '|' + lesson.discipline + '|' + lesson.type + '|' + lesson.room;
                 if (!grouped[key]) {
                     grouped[key] = {
