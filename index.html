@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Расписание 86РТК</title>
+    <title>Журнал 86РТК</title>
+    <script src="https://telegram.org/js/telegram-web-app.js?56"></script>
     <style>
         :root {
             --bg: #0f172a;
@@ -13,626 +14,1988 @@
             --muted: #94a3b8;
             --error: #ef4444;
             --gold: #fbbf24;
+            --exam-color: #f472b6;
+            --exam-bg: rgba(244, 114, 182, 0.12);
             --success: #10b981;
-            --schedule-day-bg: rgba(56, 189, 248, 0.06);
-            --schedule-border: rgba(56, 189, 248, 0.12);
+            --admin: #8b5cf6;
         }
-        * { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; user-select: none; box-sizing: border-box; }
-        html, body { background-color: var(--bg); margin: 0; padding: 0; color: var(--text); min-height: 100vh; }
-        body { padding: 16px; padding-bottom: 30px; }
+        * { 
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; 
+            -webkit-font-smoothing: antialiased; 
+            -webkit-tap-highlight-color: transparent; 
+            user-select: none; 
+            box-sizing: border-box; 
+        }
+        html, body { 
+            background-color: var(--bg); 
+            margin: 0; 
+            padding: 0; 
+            color: var(--text); 
+            min-height: 100vh; 
+        }
+        body { 
+            padding: 16px; 
+            padding-bottom: 30px; 
+        }
+
+        #loader { 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            background: var(--bg); 
+            z-index: 2000; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1); 
+        }
         
-        .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; flex-wrap: wrap; gap: 6px; }
-        .header h1 { font-size: 20px; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 8px; }
-        .header h1 span { font-size: 24px; }
-        .header .group-label { background: rgba(56, 189, 248, 0.12); padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; color: var(--accent); border: 1px solid rgba(56, 189, 248, 0.15); }
-        .header .week-label { font-size: 11px; color: var(--muted); font-weight: 400; width: 100%; }
-        .header .status-badge { font-size: 9px; padding: 2px 10px; border-radius: 12px; font-weight: 600; background: rgba(255,255,255,0.06); color: var(--muted); }
-        .header .status-badge.success { background: rgba(16, 185, 129, 0.15); color: var(--success); }
-        .header .status-badge.error { background: rgba(239, 68, 68, 0.15); color: var(--error); }
-        .header .status-badge.loading { background: rgba(56, 189, 248, 0.12); color: var(--accent); }
+        .loader-inner {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            padding: 20px;
+        }
+        
+        .logo-container { 
+            position: relative; 
+            width: 100px; 
+            height: 100px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            margin-bottom: 30px; 
+        }
+        
+        .logo-outline {
+            position: absolute; 
+            width: 100%; 
+            height: 100%;
+            border-radius: 50%; 
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+        
+        #loader:not(.error-mode) .logo-container {
+            animation: breatheContainer 2s ease-in-out infinite;
+        }
+        
+        #loader:not(.error-mode) .logo-outline {
+            border: 2px solid rgba(56, 189, 248, 0.15);
+            border-top: 2px solid var(--accent);
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
+            animation: spin 1.2s linear infinite;
+        }
+        
+        #loader:not(.error-mode) .logo-icon {
+            background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+            animation: breatheIcon 2s ease-in-out infinite;
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.3);
+        }
+        
+        #loader.error-mode .logo-outline {
+            border: 2px solid var(--error);
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.5);
+            animation: none;
+        }
+        
+        #loader.error-mode .logo-icon {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            animation: breatheIconError 2s ease-in-out infinite;
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.5);
+        }
+        
+        .logo-icon {
+            width: 45px; 
+            height: 60px; 
+            border-radius: 5px 12px 12px 5px; 
+            position: relative; 
+            z-index: 2;
+        }
+        
+        .logo-icon::before {
+            content: ""; 
+            position: absolute; 
+            top: 12px; 
+            left: 8px;
+            width: 25px; 
+            height: 3px; 
+            background: rgba(255,255,255,0.5);
+            border-radius: 2px; 
+            box-shadow: 0 8px 0 rgba(255,255,255,0.5), 0 16px 0 rgba(255,255,255,0.5);
+        }
+        
+        .loader-status { 
+            font-size: 11px; 
+            font-weight: 600; 
+            color: var(--accent); 
+            text-transform: uppercase; 
+            letter-spacing: 0.3em; 
+            margin-bottom: 25px;
+        }
+        
+        .error-container {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-top: 20px;
+            width: 100%;
+            max-width: 280px;
+        }
+        
+        .error-container.visible {
+            display: flex;
+        }
+        
+        .error-message {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--error);
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .retry-button {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 12px 28px;
+            border-radius: 30px;
+            color: var(--text);
+            font-weight: 500;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        .copyright {
+            position: absolute;
+            bottom: 25px;
+            font-size: 9px;
+            color: rgba(255,255,255,0.08);
+        }
 
-        .controls { display: flex; justify-content: flex-end; gap: 8px; margin-bottom: 12px; }
-        .controls button { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 6px 14px; color: var(--muted); font-size: 11px; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: all 0.2s; }
-        .controls button:active { transform: scale(0.95); background: rgba(255,255,255,0.08); }
-        .controls button svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; }
+        @keyframes breatheContainer {
+            0% { transform: scale(0.98); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(0.98); }
+        }
+        
+        @keyframes breatheIcon {
+            0% { transform: scale(0.97); opacity: 0.85; }
+            50% { transform: scale(1.03); opacity: 1; }
+            100% { transform: scale(0.97); opacity: 0.85; }
+        }
+        
+        @keyframes breatheIconError {
+            0% { transform: scale(0.97); opacity: 0.85; }
+            50% { transform: scale(1.03); opacity: 1; }
+            100% { transform: scale(0.97); opacity: 0.85; }
+        }
+        
+        @keyframes spin { 
+            0% { transform: rotate(0deg); } 
+            100% { transform: rotate(360deg); } 
+        }
 
-        .schedule-loader { text-align: center; padding: 40px 20px; color: var(--muted); font-size: 13px; }
-        .schedule-loader .spinner { width: 28px; height: 28px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.06); border-top-color: var(--accent); animation: spin 0.8s linear infinite; margin: 0 auto 12px; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        #main-content { 
+            opacity: 0; 
+            transition: 0.5s; 
+            display: none;
+        }
+        #main-content.visible {
+            display: block;
+            opacity: 1;
+        }
+        
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 4px;
+        }
+        
+        .header-title {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .header-logo {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        
+        .mini-journal-icon {
+            width: 28px;
+            height: 36px;
+            background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+            border-radius: 3px 8px 8px 3px;
+            position: relative;
+            display: inline-block;
+        }
+        
+        .mini-journal-icon::before {
+            content: "";
+            position: absolute;
+            top: 7px;
+            left: 5px;
+            width: 18px;
+            height: 2px;
+            background: rgba(255,255,255,0.6);
+            border-radius: 1px;
+            box-shadow: 0 7px 0 rgba(255,255,255,0.6), 0 14px 0 rgba(255,255,255,0.6);
+        }
+        
+        .profile-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            border: 2px solid rgba(56, 189, 248, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+        .profile-btn:active { transform: scale(0.92); }
+        .profile-btn .ring {
+            position: absolute;
+            inset: -3px;
+            border-radius: 50%;
+            padding: 2px;
+            background: linear-gradient(135deg, #38bdf8, #f472b6, #fbbf24);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        .profile-btn.active .ring { opacity: 1; animation: spinRing 3s linear infinite; }
+        @keyframes spinRing { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .profile-btn .profile-icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            color: #94a3b8;
+        }
+        .profile-btn .profile-icon svg {
+            width: 100%;
+            height: 100%;
+            stroke: currentColor;
+            fill: none;
+            transition: all 0.3s ease;
+        }
+        .profile-btn.active .profile-icon { color: #38bdf8; filter: drop-shadow(0 0 8px rgba(56,189,248,0.3)); }
+        
+        .profile-btn .mode-label {
+            display: none;
+            position: absolute;
+            bottom: -18px;
+            font-size: 7px;
+            color: var(--muted);
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+        }
+        .profile-btn.active .mode-label {
+            display: block;
+        }
 
-        .schedule-error { text-align: center; padding: 30px 20px; color: var(--error); font-size: 13px; }
-        .schedule-error .error-icon { font-size: 28px; display: block; margin-bottom: 8px; }
-        .schedule-error .retry-btn { margin-top: 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); padding: 8px 24px; border-radius: 20px; color: var(--text); font-size: 12px; cursor: pointer; }
-        .schedule-error .retry-btn:active { transform: scale(0.95); }
+        .header-sub { 
+            font-size: 11px; 
+            color: var(--muted); 
+            margin-bottom: 16px; 
+            text-transform: uppercase; 
+            letter-spacing: 0.5px; 
+        }
+        
+        #search { 
+            width: 100%; 
+            border: 1px solid rgba(255,255,255,0.08); 
+            padding: 12px 16px; 
+            border-radius: 14px; 
+            background: rgba(255,255,255,0.04); 
+            color: #fff; 
+            font-size: 15px; 
+            outline: none; 
+            margin-bottom: 16px; 
+        }
+        #search:focus { 
+            border-color: var(--accent); 
+        }
+        
+        .card { 
+            background: var(--card); 
+            border-radius: 18px; 
+            padding: 14px; 
+            margin-bottom: 10px; 
+            border: 1px solid rgba(255,255,255,0.05); 
+            cursor: pointer;
+        }
+        .card:active { 
+            transform: scale(0.98); 
+        }
+        .student-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+        }
+        .student-name { 
+            font-size: 15px; 
+            font-weight: 600; 
+            display: flex; 
+            align-items: center; 
+            gap: 6px; 
+            flex-wrap: wrap; 
+        }
+        
+        .abs-badge {
+            font-size: 9px;
+            font-weight: 600;
+            padding: 2px 6px;
+            border-radius: 5px;
+            background: rgba(255,255,255,0.04);
+            color: var(--muted);
+            border: 1px solid rgba(255,255,255,0.05);
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+        }
+        
+        .score-pill { 
+            font-size: 11px; 
+            font-weight: 700; 
+            padding: 3px 8px; 
+            border-radius: 7px; 
+            min-width: 36px; 
+            text-align: center; 
+            display: inline-block;
+        }
+        .m-low { background: #ef4444; color: white; } 
+        .m-warn { background: #f59e0b; color: white; } 
+        .m-high { background: #10b981; color: white; }
+        .m-gold { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #0f172a; }
+        .m-none { background: rgba(255,255,255,0.08); color: var(--muted); }
+        
+        .subs-container { 
+            display: none;
+            padding-top: 12px; 
+            margin-top: 12px; 
+            border-top: 1px solid rgba(255,255,255,0.05); 
+        }
+        .subs-container.open { 
+            display: block; 
+        }
+        .sub-item { 
+            margin-bottom: 10px; 
+            cursor: pointer; 
+            padding: 8px 10px;
+            border-radius: 10px;
+            transition: background 0.2s;
+            position: relative;
+        }
+        .sub-item.exam-subject {
+            background: var(--exam-bg);
+            border-left: 3px solid var(--exam-color);
+        }
+        .sub-item.exam-subject:active {
+            background: rgba(244, 114, 182, 0.2);
+        }
+        .sub-row { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 6px; 
+            font-size: 13px; 
+        }
+        .subject-name-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .exam-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            background: var(--exam-color);
+            border-radius: 50%;
+            color: #0f172a;
+            font-size: 11px;
+            font-weight: 800;
+            flex-shrink: 0;
+            pointer-events: none;
+        }
+        .exam-tooltip {
+            display: none;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--exam-color);
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-size: 11px;
+            color: var(--text);
+            line-height: 1.5;
+            max-width: 100%;
+            margin-top: 6px;
+            animation: fadeIn 0.25s ease;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .exam-tooltip.open {
+            display: block;
+        }
+        .exam-tooltip .tooltip-title {
+            color: var(--exam-color);
+            font-weight: 600;
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+        .exam-tooltip .tooltip-text {
+            color: var(--muted);
+        }
+        .exam-tooltip .tooltip-text strong {
+            color: var(--text);
+        }
+        .exam-tooltip .tooltip-hint {
+            font-size: 9px;
+            color: rgba(255,255,255,0.25);
+            margin-top: 6px;
+            text-align: center;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            padding-top: 6px;
+        }
+        
+        .marks-box { 
+            display: none; 
+            background: rgba(0,0,0,0.25); 
+            padding: 10px; 
+            border-radius: 10px; 
+            margin-top: 6px; 
+        }
+        .marks-box.open { 
+            display: block; 
+        }
+        .marks-row { 
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: 4px; 
+        }
+        .mark { 
+            width: 26px; 
+            height: 26px; 
+            display: inline-flex; 
+            align-items: center; 
+            justify-content: center; 
+            border-radius: 7px; 
+            font-size: 10px; 
+            font-weight: 700; 
+            margin-right: 2px; 
+        }
 
-        .schedule-day { margin-bottom: 14px; background: var(--schedule-day-bg); border-radius: 14px; border: 1px solid var(--schedule-border); overflow: hidden; }
-        .schedule-day-header { padding: 12px 16px 10px; background: rgba(56, 189, 248, 0.04); display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--schedule-border); flex-wrap: wrap; }
-        .schedule-day-header .day-name { font-size: 15px; font-weight: 700; color: var(--text); }
-        .schedule-day-header .day-date { font-size: 11px; color: var(--muted); font-weight: 400; }
-        .schedule-day-header .day-badge { margin-left: auto; font-size: 10px; padding: 2px 10px; border-radius: 12px; background: rgba(56, 189, 248, 0.12); color: var(--accent); font-weight: 600; white-space: nowrap; }
-        .schedule-day-header .day-badge.today { background: rgba(16, 185, 129, 0.15); color: var(--success); }
-        .schedule-day-header .day-badge.weekend { background: rgba(239, 68, 68, 0.1); color: var(--error); }
+        .card-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 1500;
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .card-overlay.open { display: flex; align-items: flex-start; justify-content: center; }
+        .card-overlay .card-wrapper { max-width: 420px; width: 100%; margin: auto; animation: slideUp 0.3s ease; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px) scale(0.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
 
-        .schedule-lesson { padding: 10px 16px; border-bottom: 1px solid rgba(255,255,255,0.03); display: flex; align-items: flex-start; gap: 12px; transition: background 0.15s; }
-        .schedule-lesson:last-child { border-bottom: none; }
-        .schedule-lesson:active { background: rgba(255,255,255,0.03); }
+        .student-card {
+            background: var(--card);
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.06);
+            overflow: hidden;
+            position: relative;
+        }
+        .student-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #38bdf8, #f472b6, #fbbf24);
+            opacity: 0.6;
+        }
 
-        .schedule-lesson .lesson-time { font-size: 12px; font-weight: 600; color: var(--accent); min-width: 36px; padding-top: 1px; }
-        .schedule-lesson .lesson-info { flex: 1; min-width: 0; }
-        .schedule-lesson .lesson-name { font-size: 14px; font-weight: 500; color: var(--text); }
-        .schedule-lesson .lesson-subgroup { font-size: 10px; font-weight: 600; color: var(--gold); background: rgba(251, 191, 36, 0.12); padding: 1px 8px; border-radius: 10px; display: inline-block; margin-left: 6px; }
-        .schedule-lesson .lesson-details { font-size: 12px; color: var(--muted); margin-top: 2px; display: flex; flex-wrap: wrap; gap: 8px; }
-        .schedule-lesson .lesson-details .detail-item { display: inline-flex; align-items: center; gap: 4px; }
-        .schedule-lesson .lesson-details .detail-item .icon { font-size: 11px; }
-        .schedule-lesson .lesson-details .detail-item .type-badge { font-size: 9px; padding: 1px 8px; border-radius: 10px; background: rgba(255,255,255,0.06); color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
-        .schedule-lesson .lesson-details .detail-item .type-badge.lecture { background: rgba(56, 189, 248, 0.12); color: var(--accent); }
-        .schedule-lesson .lesson-details .detail-item .type-badge.practice { background: rgba(251, 191, 36, 0.12); color: var(--gold); }
-        .schedule-lesson .lesson-details .detail-item .type-badge.lab { background: rgba(244, 114, 182, 0.12); color: #f472b6; }
+        .card-close {
+            position: absolute;
+            top: 12px;
+            right: 16px;
+            color: var(--muted);
+            font-size: 22px;
+            cursor: pointer;
+            z-index: 2;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.04);
+        }
+        .card-close:active { transform: scale(0.92); background: rgba(255,255,255,0.08); }
 
-        .schedule-lesson .lesson-teachers { font-size: 12px; color: var(--muted); margin-top: 2px; }
-        .schedule-lesson .lesson-teachers .teacher-item { display: inline-block; background: rgba(255,255,255,0.04); padding: 1px 8px; border-radius: 8px; margin: 1px 2px; }
+        .card-header {
+            padding: 24px 20px 18px;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        .card-header::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(56, 189, 248, 0.08), transparent 70%);
+            border-radius: 50%;
+        }
+        .card-header::before { content: '📚'; position: absolute; bottom: -10px; right: 20px; font-size: 48px; opacity: 0.06; }
 
-        .schedule-empty { text-align: center; padding: 20px; color: var(--muted); font-size: 13px; }
-        .schedule-empty .empty-icon { font-size: 24px; display: block; margin-bottom: 4px; opacity: 0.5; }
+        .card-user {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            position: relative;
+            z-index: 1;
+        }
+        .card-user-info { flex: 1; min-width: 0; }
+        .card-user-name { font-size: 19px; font-weight: 700; color: var(--text); margin-bottom: 2px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .card-user-badge {
+            font-size: 9px;
+            font-weight: 600;
+            padding: 2px 10px;
+            border-radius: 20px;
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+        .card-user-meta { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .card-user-meta .tag { background: rgba(255,255,255,0.06); padding: 2px 12px; border-radius: 20px; font-size: 10px; }
 
-        .debug-log { margin-top: 20px; padding: 12px 16px; background: rgba(0,0,0,0.3); border-radius: 10px; font-size: 11px; color: var(--muted); font-family: monospace; max-height: 200px; overflow-y: auto; white-space: pre-wrap; word-break: break-all; border: 1px solid rgba(255,255,255,0.04); }
-        .debug-log .log-entry { padding: 2px 0; border-bottom: 1px solid rgba(255,255,255,0.03); }
-        .debug-log .log-entry:last-child { border-bottom: none; }
-        .debug-log .log-entry .time { color: var(--muted); opacity: 0.5; }
-        .debug-log .log-entry.success { color: var(--success); }
-        .debug-log .log-entry.error { color: var(--error); }
-        .debug-log .log-entry.info { color: var(--accent); }
-        .debug-log .log-entry.warning { color: var(--gold); }
+        .card-stats {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 1px solid rgba(255,255,255,0.06);
+            position: relative;
+            z-index: 1;
+        }
+        .stat-circle {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 19px;
+            font-weight: 700;
+            flex-shrink: 0;
+            position: relative;
+        }
+        .stat-circle::before {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: 50%;
+            padding: 2px;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+        }
+        .stat-circle.gold { background: linear-gradient(135deg, rgba(251, 191, 36, 0.2), rgba(245, 158, 11, 0.1)); color: #fbbf24; }
+        .stat-circle.green { background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.1)); color: #10b981; }
+        .stat-circle.orange { background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(217, 119, 6, 0.1)); color: #f59e0b; }
+        .stat-circle.red { background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(220, 38, 38, 0.1)); color: #ef4444; }
+
+        .stat-info { flex: 1; }
+        .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-value { font-size: 14px; font-weight: 600; color: var(--text); }
+        .stat-value span { color: var(--muted); font-weight: 400; font-size: 12px; }
+
+        .card-body { padding: 18px 20px 20px; }
+        .card-body-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+        .card-body-title .count { font-size: 10px; font-weight: 400; color: var(--muted); background: rgba(255,255,255,0.04); padding: 1px 10px; border-radius: 20px; }
+
+        .subject-row {
+            display: flex;
+            align-items: center;
+            padding: 12px 14px;
+            border-radius: 12px;
+            margin-bottom: 6px;
+            background: rgba(255,255,255,0.02);
+            cursor: pointer;
+            width: 100%;
+        }
+        .subject-row:active { transform: scale(0.98); background: rgba(255,255,255,0.06); }
+        .subject-row .subject-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+        .subject-row .subject-icon.blue { background: rgba(56, 189, 248, 0.15); }
+        .subject-row .subject-icon.pink { background: rgba(244, 114, 182, 0.15); }
+        .subject-row .subject-icon.green { background: rgba(16, 185, 129, 0.15); }
+        .subject-row .subject-icon.orange { background: rgba(251, 191, 36, 0.15); }
+        .subject-row .subject-icon.purple { background: rgba(168, 85, 247, 0.15); }
+        .subject-row .subject-info { flex: 1; min-width: 0; }
+        .subject-row .subject-name { font-size: 14px; font-weight: 500; color: var(--text); }
+        .subject-row .subject-score { font-size: 14px; font-weight: 700; margin-left: 8px; flex-shrink: 0; min-width: 30px; text-align: right; }
+        .subject-row .subject-score.gold { color: #fbbf24; }
+        .subject-row .subject-score.green { color: #10b981; }
+        .subject-row .subject-score.orange { color: #f59e0b; }
+        .subject-row .subject-score.red { color: #ef4444; }
+        .subject-row .subject-score.gray { color: #475569; }
+        .subject-row.exam { background: rgba(244, 114, 182, 0.08); border-left: 3px solid #f472b6; border-radius: 0 12px 12px 0; padding-left: 11px; }
+        .subject-row.exam .exam-badge { font-size: 8px; font-weight: 700; text-transform: uppercase; color: #f472b6; background: rgba(244, 114, 182, 0.15); padding: 1px 8px; border-radius: 10px; margin-left: 6px; }
+
+        .subject-marks-container {
+            display: none;
+            margin: 6px 0 10px 0;
+            padding: 10px 14px;
+            background: rgba(0,0,0,0.25);
+            border-radius: 10px;
+            flex-wrap: wrap;
+            gap: 6px;
+            width: 100%;
+        }
+        .subject-marks-container.open { display: flex; }
+        .subject-marks-container .mark-item {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 700;
+            color: white;
+        }
+        .subject-marks-container .no-marks { color: var(--muted); font-size: 12px; padding: 4px 0; width: 100%; text-align: center; }
+
+        .identity-popup {
+            display: none;
+            position: fixed;
+            bottom: 30px;
+            left: 16px;
+            right: 16px;
+            background: var(--card);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+            z-index: 1001;
+            animation: slideUp 0.3s ease;
+            backdrop-filter: blur(20px);
+            background: rgba(30, 41, 59, 0.95);
+        }
+        .identity-popup.open { display: block; }
+        .identity-popup .title { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+        .identity-popup .sub { font-size: 12px; color: var(--muted); margin-bottom: 12px; }
+        .identity-popup .actions { display: flex; gap: 10px; margin-top: 12px; }
+        .identity-popup .actions button {
+            flex: 1;
+            padding: 12px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .identity-popup .actions button:active { transform: scale(0.96); }
+        .identity-popup .btn-yes { background: var(--success); color: white; }
+        .identity-popup .btn-no { background: rgba(255,255,255,0.08); color: var(--text); }
+
+        .student-select-list { max-height: 250px; overflow-y: auto; margin: 8px 0; }
+        .student-select-list .student-item {
+            padding: 12px 16px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.03);
+            margin-bottom: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .student-select-list .student-item:active { transform: scale(0.97); background: rgba(255,255,255,0.06); }
+        .student-select-list .student-item .s-name { font-size: 14px; font-weight: 500; color: var(--text); }
+        .student-select-list .student-item .s-group { font-size: 11px; color: var(--muted); margin-left: auto; }
+
+        .empty-state { text-align: center; padding: 40px 20px; color: var(--muted); font-size: 13px; }
+        .footer { text-align: center; padding: 16px; color: rgba(255,255,255,0.08); font-size: 9px; }
+        .fab-update {
+            position: fixed;
+            bottom: 30px;
+            right: 16px;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: rgba(30, 41, 59, 0.85);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255,255,255,0.12);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+            cursor: pointer;
+        }
+        .fab-update:active { transform: scale(0.92); }
+
+        .search-hidden #search,
+        .search-hidden .header-sub {
+            display: none;
+        }
+
+        /* ============================================================
+           АДМИН-ПАНЕЛЬ
+           ============================================================ */
+        .admin-panel {
+            display: none;
+            position: fixed;
+            bottom: 30px;
+            left: 16px;
+            right: 16px;
+            background: var(--card);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid var(--admin);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+            z-index: 1002;
+            animation: slideUp 0.3s ease;
+            backdrop-filter: blur(20px);
+            background: rgba(30, 41, 59, 0.95);
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+        .admin-panel.open {
+            display: block;
+        }
+        .admin-panel .admin-title {
+            color: var(--admin);
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .admin-panel .admin-title .close-admin {
+            margin-left: auto;
+            color: var(--muted);
+            cursor: pointer;
+            font-size: 20px;
+        }
+        
+        .admin-panel .admin-template-btn {
+            width: 100%;
+            padding: 10px 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            background: rgba(139, 92, 246, 0.08);
+            color: var(--admin);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 10px;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .admin-panel .admin-template-btn:active {
+            transform: scale(0.97);
+            background: rgba(139, 92, 246, 0.2);
+        }
+        
+        .admin-panel .admin-input {
+            width: 100%;
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 12px 16px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.05);
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+            margin-bottom: 10px;
+            resize: vertical;
+            min-height: 80px;
+            font-family: inherit;
+        }
+        .admin-panel .admin-input:focus {
+            border-color: var(--admin);
+        }
+        .admin-panel .admin-select {
+            width: 100%;
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 12px 16px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.05);
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+            margin-bottom: 10px;
+            appearance: none;
+            -webkit-appearance: none;
+        }
+        .admin-panel .admin-select:focus {
+            border-color: var(--admin);
+        }
+        .admin-panel .admin-select option {
+            background: var(--card);
+            color: #fff;
+        }
+        
+        .admin-panel .admin-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .admin-panel .admin-actions button {
+            flex: 1;
+            padding: 12px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .admin-panel .admin-actions button:active {
+            transform: scale(0.96);
+        }
+        .admin-panel .admin-actions .btn-send {
+            background: var(--admin);
+            color: white;
+        }
+        .admin-panel .admin-actions .btn-cancel {
+            background: rgba(255,255,255,0.08);
+            color: var(--text);
+        }
+        .admin-panel .admin-status {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 8px;
+            text-align: center;
+        }
+        .admin-panel .admin-status.success {
+            color: var(--success);
+        }
+        .admin-panel .admin-status.error {
+            color: var(--error);
+        }
+
+        /* Кнопка админа */
+        .admin-fab {
+            display: none;
+            position: fixed;
+            bottom: 85px;
+            right: 16px;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            align-items: center;
+            justify-content: center;
+            z-index: 998;
+            cursor: pointer;
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+        }
+        .admin-fab:active {
+            transform: scale(0.92);
+        }
+        .admin-fab.visible {
+            display: flex;
+        }
+        .admin-fab svg {
+            width: 22px;
+            height: 22px;
+            stroke: white;
+            fill: none;
+            stroke-width: 2;
+        }
+
+        @supports (padding-bottom: env(safe-area-inset-bottom)) {
+            body { padding-bottom: calc(30px + env(safe-area-inset-bottom)); }
+            .fab-update { bottom: calc(30px + env(safe-area-inset-bottom)); }
+            .identity-popup { bottom: calc(30px + env(safe-area-inset-bottom)); }
+            .admin-panel { bottom: calc(30px + env(safe-area-inset-bottom)); }
+            .admin-fab { bottom: calc(85px + env(safe-area-inset-bottom)); }
+        }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <div>
-            <h1><span>📅</span> Расписание</h1>
-            <span class="week-label" id="weekLabel">Загрузка...</span>
+    <div id="loader">
+        <div class="loader-inner">
+            <div class="logo-container">
+                <div class="logo-outline"></div>
+                <div class="logo-icon"></div>
+            </div>
+            <div class="loader-status" id="loaderStatus">Загрузка данных</div>
+            <div class="error-container" id="errorContainer">
+                <div class="error-message" id="errorMessage">Не удалось подключиться к серверу</div>
+                <button class="retry-button" id="retryButton">Повторить</button>
+            </div>
         </div>
-        <div style="display: flex; align-items: center; gap: 8px;">
-            <span class="group-label">Группа 86</span>
-            <span class="status-badge loading" id="statusBadge">⏳ Загрузка...</span>
-        </div>
+        <div class="copyright">by @skwared</div>
     </div>
 
-    <div class="controls">
-        <button id="refreshBtn">
-            <svg viewBox="0 0 24 24"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-            <span>Обновить</span>
+    <div id="main-content">
+        <div class="header">
+            <div class="header-title">
+                <span class="header-logo"><span class="mini-journal-icon"></span></span>
+                Журнал 86РТК
+            </div>
+            <div class="profile-btn" id="profileBtn">
+                <span class="ring"></span>
+                <span class="profile-icon" id="profileIcon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                        <circle cx="12" cy="7" r="4"/>
+                    </svg>
+                </span>
+                <span class="mode-label" id="modeLabel">ЖУРНАЛ</span>
+            </div>
+        </div>
+        
+        <div class="header-sub">Электронный журнал успеваемости</div>
+        <input type="text" id="search" placeholder="Поиск по фамилии" autocomplete="off">
+        <div id="list"></div>
+        <div class="footer">by @skwared</div>
+    </div>
+
+    <!-- Кнопка админа (видна только владельцу) -->
+    <div class="admin-fab" id="adminFab">
+        <svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            <path d="M8 10h.01"/>
+            <path d="M12 10h.01"/>
+            <path d="M16 10h.01"/>
+        </svg>
+    </div>
+
+    <!-- Админ-панель -->
+    <div class="admin-panel" id="adminPanel">
+        <div class="admin-title">
+            👑 Админ-панель
+            <span class="close-admin" id="closeAdmin">✕</span>
+        </div>
+        
+        <!-- Один шаблон -->
+        <button class="admin-template-btn" id="templateNewScores">
+            📊 Новые баллы
         </button>
+        
+        <textarea class="admin-input" id="adminMessage" placeholder="Введите сообщение для рассылки..."></textarea>
+        <select class="admin-select" id="adminRecipient">
+            <option value="all">📢 Всем студентам</option>
+        </select>
+        <div class="admin-actions">
+            <button class="btn-send" id="adminSend">📨 Отправить</button>
+            <button class="btn-cancel" id="adminCancel">Отмена</button>
+        </div>
+        <div class="admin-status" id="adminStatus"></div>
     </div>
 
-    <div id="scheduleContent">
-        <div class="schedule-loader">
-            <div class="spinner"></div>
-            <span>Загрузка расписания...</span>
+    <div class="identity-popup" id="identityPopup">
+        <div class="title">👤 Это вы?</div>
+        <div class="sub" id="popupSubText">Выберите свою фамилию из списка:</div>
+        <div class="student-select-list" id="studentSelectList"></div>
+        <div class="actions">
+            <button class="btn-yes" id="btnIdentityYes">Да, это я</button>
+            <button class="btn-no" id="btnIdentityNo">Нет</button>
         </div>
     </div>
 
-    <div class="debug-log" id="debugLog">
-        <div class="log-entry info"><span class="time">[⏳]</span> Ожидание загрузки...</div>
+    <div class="card-overlay" id="cardOverlay">
+        <div class="card-wrapper" id="cardWrapper"></div>
+    </div>
+
+    <div class="fab-update" id="fabUpdate">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+        </svg>
     </div>
 
     <script>
         // ============================================================
         // 1. НАСТРОЙКИ
         // ============================================================
-        const PROXY_URL = 'https://schedule-proxy.arsenijbro5.workers.dev/';
-        const DAYS_RU = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
-        const TYPE_MAP = {
-            'Лек': 'лекция',
-            'ЛР': 'лабораторная',
-            'ПР': 'практика',
-            'Лекция': 'лекция',
-            'Лабораторная': 'лабораторная',
-            'Практика': 'практика'
+        const API_JOURNAL = 'https://script.google.com/macros/s/AKfycbwtV3eFenNotdiVr3u1DQPJdOLn2fieHDsvWUwlsQquKURzkLkW4wuTiLqkNFnWCH0v/exec';
+        const API_ABSENCES = 'https://script.google.com/macros/s/AKfycbyux4wfN_lVoodDq-JHHjbYAGuJys_DsZ2mADyUGdw1MERG-iZK833dN0tSzI7lq_QeZg/exec';
+        const BOT_TOKEN = '8559243948:AAFAW1LdoTmE1a0I1pTgOvv6c9jDLz_1nnI';
+        const OWNER_CHAT_ID = '5753985995';
+        
+        // ============================================================
+        // 2. ПРИВЯЗКА СТУДЕНТОВ
+        // ============================================================
+        const BINDINGS = {
+            '5753985995': 'Беляцкий',
+            '1939232438': 'Конюк',
+            '5359580675': 'Славиковский',
+            '1224567874': 'Кошевар',
+            '1581076393': 'Азарко',
+            '5300397368': 'Таган',
+            '1360839045': 'Сазонов',
+            '6229532704': 'Маковик',
+            '1090323809': 'Бобко',
+            '1466663890': 'Лазовиков',
+            '6501621442': 'Колодяжный',
+            '986867638' : 'Дроздов',
+            '1236220960' : 'Песецкий'
         };
-
+        
         // ============================================================
-        // 2. ЛОГГЕР
+        // 3. ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ
         // ============================================================
-        function addLog(message, type = 'info') {
-            const log = document.getElementById('debugLog');
-            const time = new Date().toLocaleTimeString();
-            const entry = document.createElement('div');
-            entry.className = `log-entry ${type}`;
-            entry.innerHTML = `<span class="time">[${time}]</span> ${message}`;
-            log.appendChild(entry);
-            log.scrollTop = log.scrollHeight;
-            console.log(`[${type}] ${message}`);
-        }
-
+        let tg = null;
+        let userId = null;
+        let isCardMode = false;
+        let ALL_DATA = { journal: [], absences: {} };
+        let isLoading = false;
+        let selectedStudentForIdentity = null;
+        let isDataLoaded = false;
+        let isAdmin = false;
+        
+        const CACHE_KEY = 'journal_86rtk_v31';
+        const EXAM_SUBJECTS = [
+            'Цифровая и микропроцессорная техника',
+            'Промышленная электроника и микроэлектроника',
+            'Автоматизация производства'
+        ];
+        
         // ============================================================
-        // 3. ПАРСИНГ
+        // 4. Telegram WebApp
         // ============================================================
-        function cleanDiscipline(name) {
-            if (!name) return '';
-            let cleaned = name.trim();
-            // Убираем (Лек), (ЛР), (ПР) и т.д.
-            cleaned = cleaned.replace(/\([^)]*\)/g, '').trim();
-            // Убираем (к), (кн) в конце
-            cleaned = cleaned.replace(/\([кКнН]\)$/, '').trim();
-            // Убираем лишние точки и запятые в конце
-            cleaned = cleaned.replace(/[.,\s]+$/, '').trim();
-            return cleaned;
-        }
-
-        function extractTeacher(text) {
-            const teacherPattern = /([А-Я][а-я]+\s+[А-Я]\.\s*[А-Я]\.)|([А-Я][а-я]+\s+[А-Я]\.\s*[А-Я]\.)|([А-Я][а-я]+\s+[А-Я][а-я]+\s+[А-Я][а-я]+)/;
-            const match = text.match(teacherPattern);
-            if (match) {
-                return match[0].trim();
-            }
-            return null;
-        }
-
-        function parseLessonText(text, pairNum) {
-            if (!text || text.trim() === '' || text.trim() === '-') return null;
-            
-            let content = text.trim();
-            let subgroup = '';
-            let lessonType = '';
-            let room = '';
-            
-            // 1. Подгруппа
-            const subMatch = content.match(/^(\d+)\./);
-            if (subMatch) {
-                subgroup = subMatch[1];
-                content = content.replace(/^\d+\.\s*/, '').trim();
-            }
-            
-            // 2. Аудитория
-            const roomMatch = content.match(/(Кн\.?\s*[\d\-()]+|[\d\-]+\(?[к\)]?)/i);
-            if (roomMatch) {
-                room = roomMatch[0].trim();
-                content = content.replace(roomMatch[0], '').trim();
-            }
-            
-            // 3. Вырезаем (к) и (кн) из названия
-            const kMatch = content.match(/\([кКнН]\)/);
-            if (kMatch) {
-                const kText = kMatch[0];
-                if (!room) room = kText;
-                else room = room + ' ' + kText;
-                content = content.replace(kMatch[0], '').trim();
-            }
-            
-            // 4. Тип занятия
-            const typeMatch = content.match(/\(([^)]+)\)/);
-            if (typeMatch) {
-                const type = typeMatch[1].trim();
-                lessonType = TYPE_MAP[type] || type;
-                content = content.replace(typeMatch[0], '').trim();
-            }
-            
-            // 5. Извлекаем всех преподавателей из текста
-            const teachers = [];
-            // Разбиваем на части по точке с запятой или просто ищем все ФИО
-            const parts = content.split(/[;.,]\s*/);
-            for (const part of parts) {
-                const teacher = extractTeacher(part);
-                if (teacher) {
-                    teachers.push(teacher);
-                    // Убираем преподавателя из текста
-                    content = content.replace(teacher, '').trim();
-                }
-            }
-            
-            // Если не нашли через разбивку, ищем прямо в тексте
-            if (teachers.length === 0) {
-                const teacher = extractTeacher(content);
-                if (teacher) {
-                    teachers.push(teacher);
-                    content = content.replace(teacher, '').trim();
-                }
-            }
-            
-            // 6. Дисциплина — очищаем от мусора
-            let discipline = cleanDiscipline(content);
-            // Если дисциплина пустая, пытаемся извлечь из оригинального текста
-            if (!discipline) {
-                const cleanText = text.trim();
-                // Убираем подгруппу
-                let temp = cleanText.replace(/^\d+\.\s*/, '').trim();
-                // Убираем все, что похоже на преподавателя
-                const teacher = extractTeacher(temp);
-                if (teacher) {
-                    temp = temp.replace(teacher, '').trim();
-                }
-                // Убираем (Лек), (ЛР) и т.д.
-                temp = temp.replace(/\([^)]*\)/g, '').trim();
-                // Убираем (к), (кн)
-                temp = temp.replace(/\([кКнН]\)/g, '').trim();
-                discipline = cleanDiscipline(temp);
-                if (!discipline) discipline = 'Без названия';
-            }
-            
-            return {
-                pair: pairNum,
-                discipline: discipline,
-                type: lessonType,
-                teachers: teachers,
-                room: room,
-                subgroup: subgroup
-            };
-        }
-
-        function mergeLessonsInPair(lessons) {
-            if (!lessons || lessons.length === 0) return [];
-            
-            const grouped = {};
-            
-            for (const lesson of lessons) {
-                // Ключ для группировки: пара + очищенное название предмета + тип + аудитория
-                const key = lesson.pair + '|' + lesson.discipline + '|' + lesson.type + '|' + lesson.room;
-                if (!grouped[key]) {
-                    grouped[key] = {
-                        pair: lesson.pair,
-                        discipline: lesson.discipline,
-                        type: lesson.type,
-                        room: lesson.room,
-                        teachers: [],
-                        subgroups: []
-                    };
-                }
-                // Добавляем всех преподавателей
-                if (lesson.teachers && lesson.teachers.length > 0) {
-                    for (const teacher of lesson.teachers) {
-                        if (!grouped[key].teachers.includes(teacher)) {
-                            grouped[key].teachers.push(teacher);
-                        }
+        try {
+            if (window.Telegram && window.Telegram.WebApp) {
+                tg = window.Telegram.WebApp;
+                tg.ready();
+                tg.expand();
+                
+                const user = tg.initDataUnsafe?.user;
+                if (user) {
+                    userId = String(user.id);
+                    console.log('👤 Пользователь ID:', userId);
+                    isAdmin = (userId === OWNER_CHAT_ID);
+                    if (isAdmin) {
+                        console.log('👑 Админ режим активирован');
+                        document.getElementById('adminFab').classList.add('visible');
                     }
                 }
-                if (lesson.subgroup && !grouped[key].subgroups.includes(lesson.subgroup)) {
-                    grouped[key].subgroups.push(lesson.subgroup);
-                }
             }
-            
-            return Object.values(grouped);
+        } catch(e) {
+            console.warn('Telegram WebApp не доступен:', e);
         }
-
-        function parseSchedule(html) {
-            addLog('🔍 Начинаем парсинг...', 'info');
-            
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(html, 'text/html');
-            
-            let table = null;
-            const headings = doc.querySelectorAll('h2');
-            
-            for (const h2 of headings) {
-                if (h2.textContent.includes('Группа - 86')) {
-                    let el = h2.nextElementSibling;
-                    while (el) {
-                        if (el.tagName === 'TABLE') {
-                            table = el;
-                            addLog('✅ Таблица найдена', 'success');
-                            break;
-                        }
-                        el = el.nextElementSibling;
-                    }
-                    break;
+        
+        // ============================================================
+        // 5. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+        // ============================================================
+        function getBoundStudent() {
+            if (!userId) return null;
+            return BINDINGS[userId] || null;
+        }
+        
+        function findStudentByName(name) {
+            if (!name) return null;
+            let found = ALL_DATA.journal.find(s => s.studentName === name);
+            if (found) return found;
+            const lastName = name.split(' ')[0];
+            found = ALL_DATA.journal.find(s => s.studentName && s.studentName.startsWith(lastName));
+            return found || null;
+        }
+        
+        function isExamSubject(subjectName) {
+            if (!subjectName) return false;
+            const name = subjectName.toLowerCase().trim();
+            return EXAM_SUBJECTS.some(exam => name.includes(exam.toLowerCase()) || exam.toLowerCase().includes(name));
+        }
+        
+        function calculateAverage(marks) {
+            if (!marks || marks.length === 0) return null;
+            let sum = 0;
+            let count = 0;
+            for (const m of marks) {
+                const val = parseFloat(String(m).replace(',', '.'));
+                if (!isNaN(val) && val > 0) {
+                    sum += val;
+                    count++;
                 }
             }
+            if (count === 0) return null;
+            const avg = sum / count;
+            return avg.toFixed(1).replace('.', ',');
+        }
+        
+        function calculateTotalAverage(subjects) {
+            if (!subjects || subjects.length === 0) return null;
+            let sum = 0;
+            let count = 0;
+            for (const sub of subjects) {
+                if (sub.avg && sub.avg !== '—') {
+                    const val = parseFloat(String(sub.avg).replace(',', '.'));
+                    if (!isNaN(val) && val > 0) {
+                        sum += val;
+                        count++;
+                    }
+                }
+            }
+            if (count === 0) return null;
+            const avg = sum / count;
+            return avg.toFixed(1).replace('.', ',');
+        }
+        
+        function getStyleForScore(score) {
+            if (!score || score === '—' || score === '0,0') return 'm-none';
+            const v = parseFloat(String(score).replace(',', '.'));
+            if (isNaN(v)) return 'm-none';
+            if (v >= 9.5) return 'm-gold';
+            if (v >= 7.5) return 'm-high';
+            if (v >= 5) return 'm-warn';
+            return 'm-low';
+        }
+        
+        function getInitials(name) {
+            if (!name) return '?';
+            const parts = name.trim().split(' ');
+            if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+            return (parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase();
+        }
+        
+        function getGroup(name) {
+            return '86РТК';
+        }
+        
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+        
+        function showError(message) {
+            const loader = document.getElementById('loader');
+            const loaderStatus = document.getElementById('loaderStatus');
+            const errorContainer = document.getElementById('errorContainer');
+            const errorMessage = document.getElementById('errorMessage');
+            loader.classList.add('error-mode');
+            loaderStatus.textContent = 'Ошибка соединения';
+            errorMessage.textContent = message || 'Не удалось подключиться к серверу';
+            errorContainer.classList.add('visible');
+        }
+        
+        function hideError() {
+            const loader = document.getElementById('loader');
+            const errorContainer = document.getElementById('errorContainer');
+            loader.classList.remove('error-mode');
+            errorContainer.classList.remove('visible');
+            document.getElementById('loaderStatus').textContent = 'Загрузка журнала';
+        }
+        
+        // ============================================================
+        // 6. ОТПРАВКА УВЕДОМЛЕНИЙ
+        // ============================================================
+        function notifyOwner(userId, studentName) {
+            const message = '🔔 <b>Новая привязка!</b>\n\n' +
+                '👤 Студент: <b>' + escapeHtml(studentName) + '</b>\n' +
+                '🆔 Telegram ID: <code>' + userId + '</code>\n\n' +
+                'Для привязки добавьте в BINDINGS:\n' +
+                '<code>\'' + userId + '\' : \'' + escapeHtml(studentName) + '\'</code>';
             
-            if (!table) {
-                const tables = doc.querySelectorAll('table');
-                if (tables.length > 0) {
-                    table = tables[0];
-                    addLog('⚠️ Использую первую таблицу', 'warning');
+            const url = 'https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage';
+            fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: OWNER_CHAT_ID,
+                    text: message,
+                    parse_mode: 'HTML'
+                })
+            }).then(r => r.json()).then(data => {
+                if (data.ok) {
+                    console.log('✅ Уведомление отправлено');
                 } else {
-                    addLog('❌ Таблица не найдена', 'error');
-                    return null;
+                    console.error('❌ Ошибка:', data);
                 }
-            }
-            
-            const rows = table.querySelectorAll('tr');
-            addLog(`📊 Строк: ${rows.length}`, 'info');
-            
-            if (rows.length < 4) {
-                addLog('❌ Слишком мало строк', 'error');
-                return null;
-            }
-            
-            // ============================================================
-            // 1. ОПРЕДЕЛЯЕМ ДНИ НЕДЕЛИ
-            // ============================================================
-            let headerRow = null;
-            let headerRowIndex = 0;
-            
-            for (let i = 0; i < Math.min(3, rows.length); i++) {
-                const cells = rows[i].querySelectorAll('td, th');
-                let hasDay = false;
-                for (const cell of cells) {
-                    const text = cell.textContent.trim();
-                    for (const day of DAYS_RU) {
-                        if (text.includes(day)) {
-                            hasDay = true;
-                            break;
-                        }
-                    }
-                    if (hasDay) break;
-                }
-                if (hasDay) {
-                    headerRow = rows[i];
-                    headerRowIndex = i;
-                    addLog(`✅ Строка с днями: ${i}`, 'success');
-                    break;
-                }
-            }
-            
-            if (!headerRow) {
-                addLog('❌ Строка с днями не найдена', 'error');
-                return null;
-            }
-            
-            const headerCells = headerRow.querySelectorAll('td, th');
-            
-            const dayMap = {};
-            let currentCol = 0;
-            
-            for (const cell of headerCells) {
-                const text = cell.textContent.trim();
-                const colspan = parseInt(cell.getAttribute('colspan')) || 1;
-                
-                let foundDay = null;
-                for (const day of DAYS_RU) {
-                    if (text.includes(day)) {
-                        foundDay = day;
-                        break;
-                    }
-                }
-                
-                if (foundDay) {
-                    dayMap[foundDay] = {
-                        subjectCol: currentCol,
-                        roomCol: currentCol + 1,
-                        date: text
-                    };
-                    addLog(`📅 ${foundDay}: колонка ${currentCol} (ауд ${currentCol+1})`, 'success');
-                }
-                
-                currentCol += colspan;
-            }
-            
-            if (Object.keys(dayMap).length === 0) {
-                addLog('⚠️ Дни не найдены, использую стандартные', 'warning');
-                for (let i = 0; i < 6; i++) {
-                    dayMap[DAYS_RU[i]] = {
-                        subjectCol: 1 + i * 2,
-                        roomCol: 2 + i * 2,
-                        date: ''
-                    };
-                }
-            }
-            
-            // ============================================================
-            // 2. ПАРСИМ ПАРЫ
-            // ============================================================
-            const schedule = {};
-            Object.keys(dayMap).forEach(day => { schedule[day] = []; });
-            
-            let totalPairs = 0;
-            const startRow = headerRowIndex + 2;
-            
-            for (let i = startRow; i < rows.length; i++) {
-                const cells = rows[i].querySelectorAll('td, th');
-                if (cells.length < 2) continue;
-                
-                const pairNum = cells[0].textContent.trim();
-                if (!pairNum || pairNum === '') continue;
-                
-                for (const [dayName, info] of Object.entries(dayMap)) {
-                    const subjCol = info.subjectCol;
-                    const roomCol = info.roomCol;
-                    
-                    let subject = '';
-                    let room = '';
-                    
-                    if (subjCol < cells.length) {
-                        subject = cells[subjCol].textContent.trim();
-                    }
-                    if (roomCol < cells.length) {
-                        room = cells[roomCol].textContent.trim();
-                    }
-                    
-                    if (!subject || subject === '' || subject === '-') continue;
-                    
-                    let fullText = subject;
-                    if (room && room !== '' && room !== '-') {
-                        fullText += ' ' + room;
-                    }
-                    
-                    const lesson = parseLessonText(fullText, pairNum);
-                    if (lesson) {
-                        if (!lesson.room && room && room !== '' && room !== '-') {
-                            lesson.room = room;
-                        }
-                        schedule[dayName].push(lesson);
-                        totalPairs++;
-                    }
-                }
-            }
-            
-            addLog(`📊 Всего пар: ${totalPairs}`, 'info');
-            
-            if (totalPairs === 0) {
-                addLog('⚠️ Пары не найдены', 'error');
-                return null;
-            }
-            
-            for (const day of Object.keys(schedule)) {
-                schedule[day] = mergeLessonsInPair(schedule[day]);
-            }
-            
-            return schedule;
+            }).catch(e => console.error('❌ Ошибка:', e));
         }
-
+        
         // ============================================================
-        // 4. ОТОБРАЖЕНИЕ
+        // 7. АДМИН-ФУНКЦИИ
         // ============================================================
-        function renderSchedule(schedule, sourceType) {
-            const container = document.getElementById('scheduleContent');
-            const statusBadge = document.getElementById('statusBadge');
-            const weekLabel = document.getElementById('weekLabel');
+        function updateAdminRecipients() {
+            const select = document.getElementById('adminRecipient');
+            const currentValue = select.value;
+            select.innerHTML = '<option value="all">📢 Всем студентам</option>';
             
-            if (!schedule) {
-                container.innerHTML = `<div class="schedule-empty"><span class="empty-icon">📭</span><span>Расписание не найдено</span></div>`;
-                statusBadge.textContent = '❌ Ошибка';
-                statusBadge.className = 'status-badge error';
+            const boundStudents = Object.keys(BINDINGS).map(id => ({
+                id: id,
+                name: BINDINGS[id]
+            }));
+            
+            boundStudents.sort((a, b) => a.name.localeCompare(b.name));
+            
+            boundStudents.forEach(s => {
+                const option = document.createElement('option');
+                option.value = s.name;
+                option.textContent = '👤 ' + s.name;
+                select.appendChild(option);
+            });
+            
+            if (currentValue) {
+                select.value = currentValue;
+            }
+        }
+        
+        function sendMessageToStudents(text, recipient) {
+            const statusEl = document.getElementById('adminStatus');
+            statusEl.textContent = '⏳ Отправка...';
+            statusEl.className = 'admin-status';
+            
+            let students = [];
+            if (recipient === 'all') {
+                students = Object.keys(BINDINGS).map(id => ({
+                    id: id,
+                    name: BINDINGS[id]
+                }));
+            } else {
+                const boundId = Object.keys(BINDINGS).find(id => BINDINGS[id] === recipient);
+                if (boundId) {
+                    students = [{ id: boundId, name: recipient }];
+                }
+            }
+            
+            // Фильтруем владельца
+            students = students.filter(s => s.id !== OWNER_CHAT_ID);
+            
+            if (students.length === 0) {
+                statusEl.textContent = '❌ Нет получателей';
+                statusEl.className = 'admin-status error';
                 return;
             }
             
-            if (sourceType === 'live') {
-                statusBadge.textContent = '✅ С сервера';
-                statusBadge.className = 'status-badge success';
-            } else {
-                statusBadge.textContent = '❌ Ошибка парсинга';
-                statusBadge.className = 'status-badge error';
-            }
+            // Убираем "Объявление от преподавателя"
+            const msg = '📢 ' + escapeHtml(text) + '\n\n━━━━━━━━━━━━━━\n📱 Журнал 86РТК';
             
-            const today = new Date();
-            const weekDates = [];
-            const day = today.getDay();
-            const diff = today.getDate() - day + (day === 0 ? -6 : 1);
-            const monday = new Date(today);
-            monday.setDate(diff);
-            for (let i = 0; i < 7; i++) {
-                const d = new Date(monday);
-                d.setDate(monday.getDate() + i);
-                weekDates.push(d);
-            }
+            let sent = 0;
+            let failed = 0;
+            const promises = students.map(s => {
+                const url = 'https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage';
+                return fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chat_id: s.id,
+                        text: msg,
+                        parse_mode: 'HTML'
+                    })
+                }).then(r => r.json()).then(data => {
+                    if (data.ok) {
+                        sent++;
+                        console.log('✅ Отправлено:', s.name);
+                    } else {
+                        failed++;
+                        console.error('❌ Ошибка отправки:', s.name, data);
+                    }
+                }).catch(() => {
+                    failed++;
+                    console.error('❌ Ошибка сети:', s.name);
+                });
+            });
             
-            weekLabel.textContent = `${weekDates[0].toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' })} — ${weekDates[6].toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' })}`;
-            
-            const todayName = today.getDay() === 0 ? 'Воскресенье' : DAYS_RU[today.getDay() - 1];
-            
-            let html = '';
-            
-            for (let i = 0; i < 6; i++) {
-                const dayName = DAYS_RU[i];
-                const lessons = schedule[dayName] || [];
-                const isToday = dayName === todayName;
-                const isWeekend = i === 5;
-                const dateStr = weekDates[i].toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
-                
-                html += `
-                    <div class="schedule-day">
-                        <div class="schedule-day-header">
-                            <span class="day-name">${dayName}</span>
-                            <span class="day-date">${dateStr}</span>
-                            <span class="day-badge ${isToday ? 'today' : ''} ${isWeekend ? 'weekend' : ''}">${isToday ? 'СЕГОДНЯ' : isWeekend ? 'СУББОТА' : lessons.length > 0 ? `${lessons.length} пар` : 'ВЫХОДНОЙ'}</span>
-                        </div>
-                `;
-                
-                if (lessons.length === 0) {
-                    html += `<div class="schedule-empty"><span class="empty-icon">📭</span><span>Нет занятий</span></div>`;
+            Promise.all(promises).then(() => {
+                if (failed === 0) {
+                    statusEl.textContent = '✅ Отправлено ' + sent + ' студентам!';
+                    statusEl.className = 'admin-status success';
+                    if (tg && tg.HapticFeedback) {
+                        tg.HapticFeedback.notificationOccurred('success');
+                    }
                 } else {
-                    lessons.sort((a, b) => parseInt(a.pair) - parseInt(b.pair));
-                    lessons.forEach(lesson => {
-                        const typeClass = lesson.type === 'лекция' ? 'lecture' : 
-                                        lesson.type === 'лабораторная' ? 'lab' : 
-                                        lesson.type === 'практика' ? 'practice' : '';
-                        const typeLabel = lesson.type ? lesson.type.charAt(0).toUpperCase() + lesson.type.slice(1) : '';
+                    statusEl.textContent = '⚠️ Отправлено ' + sent + ', ошибок: ' + failed;
+                    statusEl.className = 'admin-status error';
+                    if (tg && tg.HapticFeedback) {
+                        tg.HapticFeedback.notificationOccurred('error');
+                    }
+                }
+                setTimeout(() => {
+                    document.getElementById('adminMessage').value = '';
+                }, 3000);
+            });
+        }
+        
+        // ============================================================
+        // 8. КАРТОЧКА СТУДЕНТА
+        // ============================================================
+        function toggleMarks(id) {
+            const el = document.getElementById(id);
+            if (el) el.classList.toggle('open');
+        }
+        
+        function renderCard(studentName) {
+            const container = document.getElementById('cardWrapper');
+            if (!studentName) {
+                container.innerHTML = '<div class="student-card"><div class="card-close" onclick="closeCard()">✕</div><div style="text-align:center;padding:40px 20px;color:var(--muted);">Выберите студента</div></div>';
+                return;
+            }
+            
+            const student = findStudentByName(studentName);
+            if (!student) {
+                container.innerHTML = '<div class="student-card"><div class="card-close" onclick="closeCard()">✕</div><div style="text-align:center;padding:40px 20px;color:var(--muted);">Студент не найден</div></div>';
+                return;
+            }
+            
+            const isBound = userId && getBoundStudent() === student.studentName;
+            const absCount = ALL_DATA.absences[student.studentName] || '0';
+            const totalAvg = student.totalAverage || '—';
+            const avgNum = parseFloat(String(totalAvg).replace(',', '.'));
+            let avgClass = 'gold';
+            if (isNaN(avgNum)) avgClass = 'gold';
+            else if (avgNum >= 7.5) avgClass = 'gold';
+            else if (avgNum >= 5) avgClass = 'orange';
+            else avgClass = 'red';
+            
+            const sorted = ALL_DATA.journal.filter(s => s && s.studentName).sort((a, b) => a.studentName.localeCompare(b.studentName));
+            const idx = sorted.findIndex(s => s.studentName === student.studentName) + 1;
+            const studentId = String(idx).padStart(3, '0');
+            
+            const icons = ['📐','💻','⚡','🔌','🏭','📡','🔧','📊','🎯','🧮','📈','🔬'];
+            const colors = ['blue','pink','purple','green','orange','blue','pink','purple','green','orange','blue','pink'];
+            
+            let subjectsHtml = '';
+            if (student.subjects && Array.isArray(student.subjects)) {
+                student.subjects.forEach((sub, i) => {
+                    const isExam = isExamSubject(sub.subject);
+                    const avg = sub.avg || '—';
+                    const num = parseFloat(String(avg).replace(',', '.'));
+                    let sc = 'gray';
+                    if (!isNaN(num)) { if (num >= 7.5) sc = 'gold'; else if (num >= 5) sc = 'orange'; else sc = 'red'; }
+                    
+                    let marksHtml = '';
+                    if (sub.marks && sub.marks.length) {
+                        marksHtml = sub.marks.map(m => {
+                            const n = parseFloat(String(m).replace(',', '.'));
+                            let bg = '#475569';
+                            if (!isNaN(n)) { if (n >= 7.5) bg = '#10b981'; else if (n >= 5) bg = '#f59e0b'; else bg = '#ef4444'; }
+                            return '<span class="mark-item" style="background:' + bg + ';">' + m + '</span>';
+                        }).join('');
+                    } else {
+                        marksHtml = '<span class="no-marks">Нет оценок</span>';
+                    }
+                    
+                    const id = 'm_' + i + '_' + Math.random().toString(36).substr(2, 4);
+                    subjectsHtml += 
+                        '<div class="subject-row ' + (isExam ? 'exam' : '') + '" onclick="toggleMarks(\'' + id + '\')">' +
+                            '<div class="subject-icon ' + colors[i % colors.length] + '">' + icons[i % icons.length] + '</div>' +
+                            '<div class="subject-info"><div class="subject-name">' + escapeHtml(sub.subject || 'Без названия') + (isExam ? ' <span class="exam-badge">📝 Экзамен</span>' : '') + '</div></div>' +
+                            '<div class="subject-score ' + sc + '">' + avg + '</div>' +
+                        '</div>' +
+                        '<div class="subject-marks-container" id="' + id + '">' + marksHtml + '</div>';
+                });
+            }
+            
+            const subjectsCount = student.subjects ? student.subjects.length : 0;
+            const statusText = avgNum >= 9 ? '🏆 Отлично' : avgNum >= 7.5 ? '✅ Хорошо' : avgNum >= 5 ? '⚠️ Удовлетворительно' : '❌ Требуется внимание';
+            const badge = isBound ? '<span class="card-user-badge">✅ Вы</span>' : '';
+            
+            container.innerHTML = 
+                '<div class="student-card">' +
+                    '<div class="card-close" onclick="closeCard()">✕</div>' +
+                    '<div class="card-header">' +
+                        '<div class="card-user">' +
+                            '<div class="card-user-info">' +
+                                '<div class="card-user-name">' + escapeHtml(student.studentName) + ' ' + badge + '</div>' +
+                                '<div class="card-user-meta">' +
+                                    '<span class="tag">' + getGroup(student.studentName) + '</span>' +
+                                    '<span>• ID: #' + studentId + '</span>' +
+                                    '<span>• ' + subjectsCount + ' предметов</span>' +
+                                '</div>' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="card-stats">' +
+                            '<div class="stat-circle ' + avgClass + '">' + totalAvg + '</div>' +
+                            '<div class="stat-info">' +
+                                '<div class="stat-label">Средний балл</div>' +
+                                '<div class="stat-value">' + statusText + ' <span>• Отгулы: ' + absCount + '</span></div>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="card-body">' +
+                        '<div class="card-body-title">📋 Предметы <span class="count">' + subjectsCount + '</span></div>' +
+                        subjectsHtml +
+                    '</div>' +
+                '</div>';
+        }
+        
+        function openCard(name) {
+            if (!ALL_DATA.journal || ALL_DATA.journal.length === 0) {
+                console.log('Данные не загружены');
+                return;
+            }
+            
+            if (document.getElementById('cardOverlay').classList.contains('open')) {
+                return;
+            }
+            
+            isCardMode = true;
+            document.body.classList.add('search-hidden');
+            document.getElementById('cardOverlay').classList.add('open');
+            renderCard(name);
+            updateProfileButton();
+        }
+        
+        function closeCard() {
+            document.getElementById('cardOverlay').classList.remove('open');
+            isCardMode = false;
+            document.body.classList.remove('search-hidden');
+            updateProfileButton();
+        }
+        
+        // ============================================================
+        // 9. РЕНДЕРИНГ ЖУРНАЛА
+        // ============================================================
+        function renderJournal() {
+            const container = document.getElementById('list');
+            if (!container) return;
+            container.innerHTML = '';
+            const query = document.getElementById('search')?.value.toLowerCase().trim() || '';
+            
+            if (!ALL_DATA.journal || ALL_DATA.journal.length === 0) {
+                container.innerHTML = '<div class="empty-state">Нет данных</div>';
+                return;
+            }
+            
+            const filteredStudents = ALL_DATA.journal.filter(s => s && s.studentName);
+            
+            const sortedByTotal = [...filteredStudents].sort((a, b) => {
+                const avgA = parseFloat(String(a.totalAverage).replace(',', '.'));
+                const avgB = parseFloat(String(b.totalAverage).replace(',', '.'));
+                if (isNaN(avgA)) return 1;
+                if (isNaN(avgB)) return -1;
+                return avgB - avgA;
+            });
+            const topNames = sortedByTotal.slice(0, 3).map(s => s.studentName);
+            const crowns = ['🥇', '🥈', '🥉'];
+            
+            const list = filteredStudents
+                .filter(s => s && s.studentName && s.studentName.toLowerCase().includes(query))
+                .sort((a, b) => a.studentName.localeCompare(b.studentName));
+            
+            if (list.length === 0) {
+                container.innerHTML = '<div class="empty-state">Ничего не найдено</div>';
+                return;
+            }
+            
+            list.forEach(s => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                const absCount = ALL_DATA.absences[s.studentName] || '0';
+                const tIdx = topNames.indexOf(s.studentName);
+                const isBoundToMe = userId && getBoundStudent() === s.studentName;
+                
+                let subsHtml = '';
+                if (s.subjects && Array.isArray(s.subjects)) {
+                    subsHtml = s.subjects.map(sub => {
+                        const isExam = isExamSubject(sub.subject);
                         
-                        let teachersHtml = '';
-                        if (lesson.teachers && lesson.teachers.length > 0) {
-                            teachersHtml = lesson.teachers.map(t => 
-                                `<span class="teacher-item">${escapeHtml(t)}</span>`
-                            ).join(' ');
+                        let marksHtml = '';
+                        if (sub.marks && Array.isArray(sub.marks) && sub.marks.length > 0) {
+                            marksHtml = sub.marks.map(m => '<div class="mark ' + getStyleForScore(m) + '">' + m + '</div>').join('');
+                        } else {
+                            marksHtml = '<div style="font-size:10px; opacity:0.4; padding:6px;">Нет отметок</div>';
                         }
                         
-                        let subgroupsHtml = '';
-                        if (lesson.subgroups && lesson.subgroups.length > 0) {
-                            subgroupsHtml = lesson.subgroups.map(s => 
-                                `${s} подгруппа`
-                            ).join(' / ');
-                        }
+                        const avgDisplay = sub.avg && sub.avg !== '—' ? sub.avg : '—';
+                        const examClass = isExam ? 'exam-subject' : '';
+                        const tooltipId = 'tooltip_' + Math.random().toString(36).substr(2, 9);
+                        const examIcon = isExam ? '<span class="exam-icon">!</span>' : '';
+                        const tooltipHtml = isExam ? 
+                            '<div class="exam-tooltip" id="' + tooltipId + '">' +
+                                '<div class="tooltip-title">📝 Экзаменационный предмет</div>' +
+                                '<div class="tooltip-text">Итоговая отметка может <strong>отличаться</strong> от текущей успеваемости и выставляется по результатам экзамена.</div>' +
+                                '<div class="tooltip-hint">Нажмите на подсказку, чтобы скрыть</div>' +
+                            '</div>' : '';
                         
-                        html += `
-                            <div class="schedule-lesson">
-                                <span class="lesson-time">${lesson.pair}</span>
-                                <div class="lesson-info">
-                                    <div class="lesson-name">${escapeHtml(lesson.discipline)}</div>
-                                    ${subgroupsHtml ? `<div class="lesson-subgroup">${subgroupsHtml}</div>` : ''}
-                                    <div class="lesson-details">
-                                        ${lesson.room ? `<span class="detail-item"><span class="icon">🏛️</span> ${escapeHtml(lesson.room)}</span>` : ''}
-                                        ${typeLabel ? `<span class="detail-item"><span class="type-badge ${typeClass}">${typeLabel}</span></span>` : ''}
-                                    </div>
-                                    ${teachersHtml ? `<div class="lesson-teachers">${teachersHtml}</div>` : ''}
-                                </div>
-                            </div>
-                        `;
+                        return '<div class="sub-item ' + examClass + '" data-tooltip="' + tooltipId + '" data-tooltip-shown="false">' +
+                            '<div class="sub-row">' +
+                                '<div class="subject-name-wrapper">' +
+                                    '<span>' + escapeHtml(sub.subject || 'Без названия') + '</span>' +
+                                    examIcon +
+                                '</div>' +
+                                '<span class="score-pill ' + getStyleForScore(avgDisplay) + '">' + avgDisplay + '</span>' +
+                            '</div>' +
+                            '<div class="marks-box">' +
+                                '<div class="marks-row">' + marksHtml + '</div>' +
+                            '</div>' +
+                            tooltipHtml +
+                        '</div>';
+                    }).join('');
+                } else {
+                    subsHtml = '<div style="font-size:11px; opacity:0.4; text-align:center; padding:10px;">Нет предметов</div>';
+                }
+                
+                const totalDisplay = s.totalAverage && s.totalAverage !== '—' ? s.totalAverage : '—';
+                const identityBadge = isBoundToMe ? 
+                    '<span style="font-size:9px;background:var(--success);color:white;padding:1px 8px;border-radius:10px;margin-left:6px;">✅ Вы</span>' : '';
+                
+                card.innerHTML = 
+                    '<div class="student-header">' +
+                        '<span class="student-name">' +
+                            escapeHtml(s.studentName) + ' ' + (tIdx !== -1 ? crowns[tIdx] : '') +
+                            '<span class="abs-badge">⏳ ' + absCount + '</span>' +
+                            identityBadge +
+                        '</span>' +
+                        '<span class="score-pill ' + getStyleForScore(totalDisplay) + '">' + totalDisplay + '</span>' +
+                    '</div>' +
+                    '<div class="subs-container">' + subsHtml + '</div>';
+                
+                card.onclick = (function(name) {
+                    return function(e) {
+                        e.stopPropagation();
+                        openCard(name);
+                    };
+                })(s.studentName);
+                
+                container.appendChild(card);
+            });
+            
+            document.querySelectorAll('.sub-item').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const marksBox = this.querySelector('.marks-box');
+                    if (marksBox) marksBox.classList.toggle('open');
+                    
+                    if (this.classList.contains('exam-subject')) {
+                        const tooltipId = this.dataset.tooltip;
+                        const tooltip = document.getElementById(tooltipId);
+                        if (tooltip && this.dataset.tooltipShown === 'false') {
+                            tooltip.classList.add('open');
+                            this.dataset.tooltipShown = 'true';
+                            
+                            tooltip.onclick = function(e) {
+                                e.stopPropagation();
+                                this.classList.remove('open');
+                                if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+                            };
+                            
+                            if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+                        }
+                    }
+                });
+            });
+            
+            updateProfileButton();
+        }
+        
+        // ============================================================
+        // 10. КНОПКА ПРОФИЛЯ
+        // ============================================================
+        function updateProfileButton() {
+            const btn = document.getElementById('profileBtn');
+            const icon = document.getElementById('profileIcon');
+            const label = document.getElementById('modeLabel');
+            const boundStudent = getBoundStudent();
+            
+            if (boundStudent) {
+                btn.classList.add('active');
+                const initials = getInitials(boundStudent);
+                icon.innerHTML = '<span style="font-size:16px;font-weight:700;color:white;">' + initials + '</span>';
+                label.textContent = isCardMode ? 'ЖУРНАЛ' : 'МОЯ КАРТОЧКА';
+            } else {
+                btn.classList.remove('active');
+                icon.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+                label.textContent = '';
+            }
+        }
+        
+        // ============================================================
+        // 11. ВЫБОР СТУДЕНТА
+        // ============================================================
+        function showStudentSelect() {
+            const popup = document.getElementById('identityPopup');
+            const list = document.getElementById('studentSelectList');
+            const sub = document.getElementById('popupSubText');
+            
+            sub.textContent = 'Выберите свою фамилию из списка:';
+            list.innerHTML = '';
+            
+            const sorted = ALL_DATA.journal.filter(s => s && s.studentName).sort((a, b) => a.studentName.localeCompare(b.studentName));
+            
+            if (sorted.length === 0) {
+                list.innerHTML = '<div style="padding:20px;text-align:center;color:var(--muted);">Нет студентов</div>';
+                popup.classList.add('open');
+                return;
+            }
+            
+            sorted.forEach(s => {
+                const item = document.createElement('div');
+                item.className = 'student-item';
+                item.innerHTML = '<span class="s-name">' + escapeHtml(s.studentName) + '</span><span class="s-group">' + getGroup(s.studentName) + '</span>';
+                item.onclick = (function(name) {
+                    return function() {
+                        selectedStudentForIdentity = name;
+                        document.querySelectorAll('.student-item').forEach(el => {
+                            el.style.background = 'transparent';
+                            el.style.border = 'none';
+                        });
+                        this.style.background = 'rgba(56, 189, 248, 0.1)';
+                        this.style.border = '1px solid rgba(56, 189, 248, 0.2)';
+                        document.getElementById('popupSubText').textContent = '✅ Вы выбрали: ' + name;
+                    };
+                })(s.studentName);
+                list.appendChild(item);
+            });
+            
+            popup.classList.add('open');
+            if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+        }
+        
+        // ============================================================
+        // 12. ЗАГРУЗКА ДАННЫХ
+        // ============================================================
+        function loadData() {
+            if (isLoading) return;
+            isLoading = true;
+            isDataLoaded = false;
+            
+            const loader = document.getElementById('loader');
+            const loaderStatus = document.getElementById('loaderStatus');
+            loader.style.display = 'flex';
+            loader.style.opacity = '1';
+            hideError();
+            loaderStatus.textContent = 'Загрузка журнала';
+            
+            // Сначала проверяем кеш
+            try {
+                const cached = localStorage.getItem(CACHE_KEY);
+                if (cached) {
+                    const data = JSON.parse(cached);
+                    if (data.journal && data.journal.length > 0) {
+                        ALL_DATA = data;
+                        processAllAverages();
+                        isDataLoaded = true;
+                        renderJournal();
+                        updateProfileButton();
+                        if (isAdmin) {
+                            updateAdminRecipients();
+                        }
+                        hideLoader();
+                        isLoading = false;
+                        console.log('✅ Загружено из кеша');
+                    }
+                }
+            } catch(e) {
+                console.warn('Ошибка чтения кеша:', e);
+            }
+            
+            // Загружаем свежие данные с сервера
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 8000);
+            
+            Promise.all([
+                fetch(API_JOURNAL, { signal: controller.signal }).then(r => r.json()),
+                fetch(API_ABSENCES, { signal: controller.signal }).then(r => r.json())
+            ]).then(([resJ, resA]) => {
+                clearTimeout(timeoutId);
+                
+                const absMap = {};
+                if (Array.isArray(resA)) {
+                    resA.forEach(a => { 
+                        if (a && a.name) absMap[a.name.trim()] = a.count || '0'; 
                     });
                 }
                 
-                html += `</div>`;
-            }
-            
-            container.innerHTML = html;
-        }
-
-        function escapeHtml(str) {
-            if (!str) return '';
-            return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[m] || m);
-        }
-
-        // ============================================================
-        // 5. ЗАГРУЗКА
-        // ============================================================
-        async function loadSchedule() {
-            const container = document.getElementById('scheduleContent');
-            const statusBadge = document.getElementById('statusBadge');
-            
-            document.getElementById('debugLog').innerHTML = '';
-            addLog('🚀 Загрузка расписания...', 'info');
-            
-            container.innerHTML = `<div class="schedule-loader"><div class="spinner"></div><span>Загрузка расписания...</span></div>`;
-            statusBadge.textContent = '⏳ Загрузка...';
-            statusBadge.className = 'status-badge loading';
-            
-            try {
-                const response = await fetch(PROXY_URL, { signal: AbortSignal.timeout(15000) });
-                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                let journalData = [];
+                if (Array.isArray(resJ)) journalData = resJ;
+                else if (resJ && resJ.journal && Array.isArray(resJ.journal)) journalData = resJ.journal;
+                else if (resJ && !resJ.error) journalData = resJ;
                 
-                const html = await response.text();
-                addLog(`✅ Получен HTML (${html.length} символов)`, 'success');
+                if (!journalData.length) throw new Error('Нет данных');
                 
-                const schedule = parseSchedule(html);
+                ALL_DATA = { journal: journalData, absences: absMap };
+                processAllAverages();
+                localStorage.setItem(CACHE_KEY, JSON.stringify(ALL_DATA));
+                isDataLoaded = true;
                 
-                if (schedule && Object.values(schedule).some(arr => arr.length > 0)) {
-                    renderSchedule(schedule, 'live');
-                    addLog(`✅ Готово!`, 'success');
-                    return;
-                } else {
-                    addLog('❌ Парсинг не дал результатов', 'error');
+                renderJournal();
+                updateProfileButton();
+                if (isAdmin) {
+                    updateAdminRecipients();
                 }
-            } catch(e) {
-                addLog(`❌ Ошибка: ${e.message}`, 'error');
+                
+                if (loader.style.display !== 'none') {
+                    hideLoader();
+                }
+                
+                if (tg && tg.HapticFeedback) {
+                    tg.HapticFeedback.notificationOccurred('success');
+                }
+                
+                console.log('✅ Загружено с сервера');
+                isLoading = false;
+                
+            }).catch(e => {
+                clearTimeout(timeoutId);
+                console.error('Ошибка загрузки с сервера:', e);
+                
+                if (isDataLoaded && ALL_DATA.journal.length > 0) {
+                    console.log('📦 Использую кеш');
+                    isLoading = false;
+                    return;
+                }
+                
+                showError('Проверьте подключение к интернету');
+                isLoading = false;
+            });
+        }
+        
+        function processAllAverages() {
+            ALL_DATA.journal.forEach(student => {
+                if (student.subjects && Array.isArray(student.subjects)) {
+                    student.subjects.forEach(subject => {
+                        const calculatedAvg = calculateAverage(subject.marks);
+                        subject.avg = calculatedAvg || '—';
+                    });
+                    const totalAvg = calculateTotalAverage(student.subjects);
+                    student.totalAverage = totalAvg || '—';
+                }
+            });
+        }
+        
+        function forceUpdate() {
+            localStorage.removeItem(CACHE_KEY);
+            if (document.getElementById('cardOverlay').classList.contains('open')) {
+                closeCard();
+            }
+            const loader = document.getElementById('loader');
+            loader.style.display = 'flex';
+            loader.style.opacity = '1';
+            document.getElementById('main-content').classList.remove('visible');
+            loadData();
+        }
+        
+        function hideLoader() {
+            const loader = document.getElementById('loader');
+            const mainContent = document.getElementById('main-content');
+            loader.style.opacity = '0';
+            setTimeout(() => {
+                loader.style.display = 'none';
+                mainContent.classList.add('visible');
+            }, 400);
+        }
+        
+        // ============================================================
+        // 13. ОБРАБОТЧИКИ
+        // ============================================================
+        document.getElementById('profileBtn').addEventListener('click', function(e) {
+            e.stopPropagation();
+            const bound = getBoundStudent();
+            
+            if (bound) {
+                if (isCardMode) {
+                    closeCard();
+                } else {
+                    openCard(bound);
+                }
+            } else {
+                showStudentSelect();
+            }
+        });
+        
+        document.getElementById('cardOverlay').addEventListener('click', function(e) {
+            if (e.target === this) closeCard();
+        });
+        
+        document.getElementById('search').addEventListener('input', renderJournal);
+        document.getElementById('fabUpdate').addEventListener('click', forceUpdate);
+        document.getElementById('retryButton').addEventListener('click', forceUpdate);
+        
+        // ============================================================
+        // АДМИН-ОБРАБОТЧИКИ
+        // ============================================================
+        document.getElementById('adminFab').addEventListener('click', function() {
+            document.getElementById('adminPanel').classList.add('open');
+            if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+        });
+        
+        document.getElementById('closeAdmin').addEventListener('click', function() {
+            document.getElementById('adminPanel').classList.remove('open');
+        });
+        
+        document.getElementById('adminCancel').addEventListener('click', function() {
+            document.getElementById('adminPanel').classList.remove('open');
+            document.getElementById('adminMessage').value = '';
+            document.getElementById('adminStatus').textContent = '';
+            document.getElementById('adminStatus').className = 'admin-status';
+        });
+        
+        document.getElementById('adminSend').addEventListener('click', function() {
+            const message = document.getElementById('adminMessage').value.trim();
+            const recipient = document.getElementById('adminRecipient').value;
+            
+            if (!message) {
+                const statusEl = document.getElementById('adminStatus');
+                statusEl.textContent = '❌ Введите сообщение';
+                statusEl.className = 'admin-status error';
+                if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
+                return;
             }
             
-            container.innerHTML = `
-                <div class="schedule-error">
-                    <span class="error-icon">⚠️</span>
-                    <span>Не удалось загрузить расписание</span>
-                    <br>
-                    <span style="font-size:11px;color:var(--muted);">Проверьте прокси-сервер</span>
-                    <br>
-                    <button class="retry-btn" onclick="loadSchedule()">🔄 Попробовать снова</button>
-                </div>
-            `;
-            statusBadge.textContent = '❌ Ошибка';
-            statusBadge.className = 'status-badge error';
+            if (recipient === 'all') {
+                if (tg) {
+                    tg.showPopup({
+                        title: '⚠️ Подтверждение',
+                        message: 'Отправить сообщение ВСЕМ студентам?',
+                        buttons: [
+                            { id: 'cancel', type: 'cancel' },
+                            { id: 'ok', type: 'ok' }
+                        ]
+                    }, function(buttonId) {
+                        if (buttonId === 'ok') {
+                            sendMessageToStudents(message, recipient);
+                        }
+                    });
+                } else {
+                    if (confirm('Отправить сообщение ВСЕМ студентам?')) {
+                        sendMessageToStudents(message, recipient);
+                    }
+                }
+            } else {
+                sendMessageToStudents(message, recipient);
+            }
+        });
+        
+        // Шаблон "Новые баллы"
+        document.getElementById('templateNewScores').addEventListener('click', function() {
+            const text = '📊 Выставлены новые баллы, проверьте журнал!';
+            document.getElementById('adminMessage').value = text;
+            if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+        });
+        
+        // ============================================================
+        // АВТОРИЗАЦИЯ
+        // ============================================================
+        document.getElementById('btnIdentityYes').addEventListener('click', function() {
+            if (!selectedStudentForIdentity) {
+                if (tg) {
+                    tg.HapticFeedback.notificationOccurred('error');
+                    tg.showAlert('❌ Выберите свою фамилию из списка.');
+                } else {
+                    alert('❌ Выберите свою фамилию из списка.');
+                }
+                return;
+            }
+            
+            document.getElementById('identityPopup').classList.remove('open');
+            
+            if (!userId) {
+                if (tg) tg.showAlert('❌ Ошибка: не удалось определить пользователя');
+                return;
+            }
+            
+            notifyOwner(userId, selectedStudentForIdentity);
+            
+            if (tg) {
+                tg.HapticFeedback.notificationOccurred('success');
+                tg.showAlert('✅ Запрос отправлен! Ожидайте подтверждения.');
+            } else {
+                alert('✅ Запрос отправлен!');
+            }
+            
+            selectedStudentForIdentity = null;
+            document.querySelectorAll('.student-item').forEach(el => {
+                el.style.background = 'transparent';
+                el.style.border = 'none';
+            });
+            document.getElementById('popupSubText').textContent = 'Выберите свою фамилию из списка:';
+        });
+        
+        document.getElementById('btnIdentityNo').addEventListener('click', function() {
+            document.getElementById('identityPopup').classList.remove('open');
+            selectedStudentForIdentity = null;
+            document.querySelectorAll('.student-item').forEach(el => {
+                el.style.background = 'transparent';
+                el.style.border = 'none';
+            });
+            document.getElementById('popupSubText').textContent = 'Выберите свою фамилию из списка:';
+            if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+        });
+        
+        document.addEventListener('click', function(e) {
+            const popup = document.getElementById('identityPopup');
+            if (popup.classList.contains('open')) {
+                if (!popup.contains(e.target)) {
+                    popup.classList.remove('open');
+                    selectedStudentForIdentity = null;
+                    document.querySelectorAll('.student-item').forEach(el => {
+                        el.style.background = 'transparent';
+                        el.style.border = 'none';
+                    });
+                    document.getElementById('popupSubText').textContent = 'Выберите свою фамилию из списка:';
+                }
+            }
+        });
+        
+        if (tg) {
+            tg.onEvent('backButtonClicked', function() {
+                if (document.getElementById('cardOverlay').classList.contains('open')) {
+                    closeCard();
+                } else if (document.getElementById('adminPanel').classList.contains('open')) {
+                    document.getElementById('adminPanel').classList.remove('open');
+                } else {
+                    tg.close();
+                }
+            });
         }
-
+        
         // ============================================================
-        // 6. ЗАПУСК
+        // 14. ЗАПУСК
         // ============================================================
-        document.getElementById('refreshBtn').addEventListener('click', loadSchedule);
-        loadSchedule();
+        window.openCard = openCard;
+        window.closeCard = closeCard;
+        window.toggleMarks = toggleMarks;
+        
+        loadData();
     </script>
 </body>
 </html>
