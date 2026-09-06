@@ -1760,32 +1760,33 @@
 function sendScheduleToOwner(scheduleHTML) {
     if (!tg || !isAdmin) return;
     
-    // Извлекаем текст из HTML с правильным форматированием
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = scheduleHTML;
     
-    // Получаем все блоки дней
     const dayElements = tempDiv.querySelectorAll('.schedule-day');
     let msg = '📅 <b>Расписание группы 86РТК</b>\n\n';
     
-    dayElements.forEach(day => {
-        // Заголовок дня
+    dayElements.forEach((day, index) => {
         const header = day.querySelector('.schedule-day-header');
-        if (header) {
-            const dayName = header.querySelector('.day-name')?.textContent || '';
-            const date = header.querySelector('.day-date')?.textContent || '';
-            const badge = header.querySelector('.day-badge')?.textContent || '';
-            
-            msg += `\n<b>${dayName}</b> (${date})`;
-            if (badge && badge.includes('СЕГОДНЯ')) {
-                msg += ' 🔴 СЕГОДНЯ';
-            } else if (badge && badge.includes('СУББОТА')) {
-                msg += ' 🟣 СУББОТА';
-            }
-            msg += '\n' + '─'.repeat(25) + '\n';
+        if (!header) return;
+        
+        const dayName = header.querySelector('.day-name')?.textContent?.trim() || '';
+        const date = header.querySelector('.day-date')?.textContent?.trim() || '';
+        const badge = header.querySelector('.day-badge')?.textContent?.trim() || '';
+        
+        // Определяем день недели для "завтра"
+        let dayPrefix = '';
+        if (badge.includes('СЕГОДНЯ')) {
+            dayPrefix = '🔴 ';
+        } else if (index === 0 && !badge.includes('СЕГОДНЯ')) {
+            dayPrefix = '🟡 ';
         }
         
-        // Занятия
+        // Формируем заголовок дня
+        msg += `\n<b>${dayPrefix}${dayName}</b>`;
+        if (date) msg += `, ${date}`;
+        msg += '\n' + '━'.repeat(30) + '\n';
+        
         const lessons = day.querySelectorAll('.schedule-lesson');
         if (lessons.length === 0) {
             msg += '📭 Нет занятий\n';
@@ -1796,7 +1797,7 @@ function sendScheduleToOwner(scheduleHTML) {
                 const room = lesson.querySelector('.room-badge')?.textContent?.trim() || '';
                 const type = lesson.querySelector('.type-badge')?.textContent?.trim() || '';
                 
-                // Преподаватели
+                // Собираем преподавателей
                 const teacherItems = lesson.querySelectorAll('.teacher-item .teacher-name');
                 let teachers = [];
                 teacherItems.forEach(t => {
@@ -1805,25 +1806,34 @@ function sendScheduleToOwner(scheduleHTML) {
                 });
                 
                 // Формируем строку занятия
-                let line = `🕐 ${time}`;
-                line += `  ${name}`;
-                if (type) line += ` (${type})`;
-                if (room) line += ` [${room}]`;
+                let line = `${time}. ${name}`;
+                if (type) line += ` (${type.slice(0, 3)})`;
+                
+                // Преподаватели и аудитория
+                let details = [];
                 if (teachers.length > 0) {
-                    line += `\n   👨‍🏫 ${teachers.join(', ')}`;
+                    details.push(teachers.join(', '));
                 }
+                if (room) {
+                    details.push(room);
+                }
+                
+                if (details.length > 0) {
+                    line += ` ${details.join(' • ')}`;
+                }
+                
                 msg += line + '\n';
             });
         }
-        msg += '\n';
     });
     
-    // Убираем лишние переносы и обрезаем
+    // Убираем лишние переносы
     msg = msg.replace(/\n{3,}/g, '\n\n');
+    msg = msg.trim();
     
     // Обрезаем если слишком длинное
     if (msg.length > 4000) {
-        msg = msg.substring(0, 3950) + '\n\n... (сообщение обрезано)';
+        msg = msg.substring(0, 3950) + '\n\n… (сообщение обрезано)';
     }
     
     const url = 'https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage';
