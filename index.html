@@ -701,6 +701,7 @@
         .admin-panel .admin-status.success { color: var(--success); }
         .admin-panel .admin-status.error { color: var(--error); }
 
+        /* КНОПКА ВЫЗОВА АДМИН-ПАНЕЛИ (скрыта по умолчанию) */
         .admin-fab {
             display: none;
             position: fixed;
@@ -1349,7 +1350,7 @@
             </div>
         </div>
 
-        <!-- КНОПКА АДМИН-ПАНЕЛИ -->
+        <!-- КНОПКА АДМИН-ПАНЕЛИ (видна только владельцу) -->
         <div class="admin-fab" id="adminFab">
             <svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
@@ -1903,7 +1904,7 @@
         }
 
         // ============================================================
-        // 8. КАРТОЧКА СТУДЕНТА (сокращено для экономии места)
+        // 8. КАРТОЧКА СТУДЕНТА
         // ============================================================
         function toggleMarks(id) {
             const el = document.getElementById(id);
