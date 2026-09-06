@@ -1019,7 +1019,7 @@
             <span class="close-admin" id="closeAdmin">✕</span>
         </div>
         
-        <!-- Один шаблон -->
+        <!-- Шаблон -->
         <button class="admin-template-btn" id="templateNewScores">
             📊 Новые баллы
         </button>
@@ -1315,7 +1315,6 @@
                 return;
             }
             
-            // Убираем "Объявление от преподавателя"
             const msg = '📢 ' + escapeHtml(text) + '\n\n━━━━━━━━━━━━━━\n📱 Журнал 86РТК';
             
             let sent = 0;
@@ -1825,35 +1824,13 @@
         }
         
         // ============================================================
-        // 13. ОБРАБОТЧИКИ
-        // ============================================================
-        document.getElementById('profileBtn').addEventListener('click', function(e) {
-            e.stopPropagation();
-            const bound = getBoundStudent();
-            
-            if (bound) {
-                if (isCardMode) {
-                    closeCard();
-                } else {
-                    openCard(bound);
-                }
-            } else {
-                showStudentSelect();
-            }
-        });
-        
-        document.getElementById('cardOverlay').addEventListener('click', function(e) {
-            if (e.target === this) closeCard();
-        });
-        
-        document.getElementById('search').addEventListener('input', renderJournal);
-        document.getElementById('fabUpdate').addEventListener('click', forceUpdate);
-        document.getElementById('retryButton').addEventListener('click', forceUpdate);
-        
-        // ============================================================
-        // АДМИН-ОБРАБОТЧИКИ
+        // 13. АДМИН-ОБРАБОТЧИКИ
         // ============================================================
         document.getElementById('adminFab').addEventListener('click', function() {
+            if (!isAdmin) {
+                if (tg) tg.showAlert('⛔ Доступ запрещен');
+                return;
+            }
             document.getElementById('adminPanel').classList.add('open');
             if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
         });
@@ -1870,6 +1847,7 @@
         });
         
         document.getElementById('adminSend').addEventListener('click', function() {
+            if (!isAdmin) return;
             const message = document.getElementById('adminMessage').value.trim();
             const recipient = document.getElementById('adminRecipient').value;
             
@@ -1907,10 +1885,37 @@
         
         // Шаблон "Новые баллы"
         document.getElementById('templateNewScores').addEventListener('click', function() {
+            if (!isAdmin) return;
             const text = '📊 Выставлены новые баллы, проверьте журнал!';
             document.getElementById('adminMessage').value = text;
             if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
         });
+        
+        // ============================================================
+        // 14. ОБРАБОТЧИКИ
+        // ============================================================
+        document.getElementById('profileBtn').addEventListener('click', function(e) {
+            e.stopPropagation();
+            const bound = getBoundStudent();
+            
+            if (bound) {
+                if (isCardMode) {
+                    closeCard();
+                } else {
+                    openCard(bound);
+                }
+            } else {
+                showStudentSelect();
+            }
+        });
+        
+        document.getElementById('cardOverlay').addEventListener('click', function(e) {
+            if (e.target === this) closeCard();
+        });
+        
+        document.getElementById('search').addEventListener('input', renderJournal);
+        document.getElementById('fabUpdate').addEventListener('click', forceUpdate);
+        document.getElementById('retryButton').addEventListener('click', forceUpdate);
         
         // ============================================================
         // АВТОРИЗАЦИЯ
@@ -1989,7 +1994,7 @@
         }
         
         // ============================================================
-        // 14. ЗАПУСК
+        // 15. ЗАПУСК
         // ============================================================
         window.openCard = openCard;
         window.closeCard = closeCard;
