@@ -272,33 +272,49 @@
             justify-content: center;
         }
         .schedule-header .schedule-logo .calendar-icon {
-            width: 32px;
+            width: 36px;
             height: 36px;
             background: linear-gradient(135deg, #38bdf8, #0ea5e9);
-            border-radius: 6px;
+            border-radius: 8px;
             position: relative;
-            display: inline-block;
-            box-shadow: 0 0 20px rgba(56, 189, 248, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 25px rgba(56, 189, 248, 0.3);
+            transition: all 0.3s ease;
         }
-        .schedule-header .schedule-logo .calendar-icon::before {
-            content: "";
-            position: absolute;
-            top: 5px;
-            left: 5px;
-            right: 5px;
-            height: 5px;
-            background: rgba(255,255,255,0.35);
-            border-radius: 2px 2px 0 0;
-        }
-        .schedule-header .schedule-logo .calendar-icon::after {
-            content: "📅";
-            position: absolute;
-            bottom: 2px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 16px;
+        .schedule-header .schedule-logo .calendar-icon .icon-inner {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
             line-height: 1;
+            color: rgba(255,255,255,0.9);
         }
+        .schedule-header .schedule-logo .calendar-icon .icon-inner .day {
+            font-size: 16px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin-top: 2px;
+        }
+        .schedule-header .schedule-logo .calendar-icon .icon-inner .month {
+            font-size: 6px;
+            font-weight: 600;
+            text-transform: uppercase;
+            opacity: 0.7;
+            letter-spacing: 1px;
+        }
+        .schedule-header .schedule-logo .calendar-icon .dot {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+        }
+        .schedule-header .schedule-logo .calendar-icon .dot.d1 { top: 4px; left: 6px; }
+        .schedule-header .schedule-logo .calendar-icon .dot.d2 { top: 4px; right: 6px; }
+        .schedule-header .schedule-logo .calendar-icon .dot.d3 { bottom: 4px; left: 6px; }
+        .schedule-header .schedule-logo .calendar-icon .dot.d4 { bottom: 4px; right: 6px; }
         .schedule-header .week-label {
             font-size: 12px;
             color: var(--muted);
@@ -607,6 +623,18 @@
             transform: scale(0.97);
             background: rgba(139, 92, 246, 0.2);
         }
+        .admin-panel .admin-template-btn.success {
+            border-color: var(--success);
+            color: var(--success);
+        }
+        .admin-panel .admin-template-btn.accent {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+        .admin-panel .admin-template-btn.gold {
+            border-color: var(--gold);
+            color: var(--gold);
+        }
         .admin-panel .admin-input {
             width: 100%;
             border: 1px solid rgba(255,255,255,0.1);
@@ -640,7 +668,7 @@
             background: var(--card);
             color: #fff;
         }
-        .admin-panel .admin-actions { display: flex; gap: 10px; }
+        .admin-panel .admin-actions { display: flex; gap: 10px; flex-wrap: wrap; }
         .admin-panel .admin-actions button {
             flex: 1;
             padding: 12px;
@@ -649,6 +677,7 @@
             font-weight: 600;
             font-size: 14px;
             cursor: pointer;
+            min-width: 70px;
         }
         .admin-panel .admin-actions button:active { transform: scale(0.96); }
         .admin-panel .admin-actions .btn-send { background: var(--admin); color: white; }
@@ -1274,14 +1303,20 @@
                 <div>
                     <h2>
                         <span class="schedule-logo">
-                            <span class="calendar-icon"></span>
+                            <span class="calendar-icon">
+                                <span class="dot d1"></span>
+                                <span class="dot d2"></span>
+                                <span class="dot d3"></span>
+                                <span class="dot d4"></span>
+                                <span class="icon-inner">
+                                    <span class="day" id="scheduleLogoDay">--</span>
+                                    <span class="month" id="scheduleLogoMonth">---</span>
+                                </span>
+                            </span>
                         </span>
                         Расписание
                     </h2>
                     <span class="week-label" id="scheduleWeekLabel">Загрузка...</span>
-                </div>
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <button class="admin-test-btn" id="adminTestBtn" style="display:none;">📤 Тест</button>
                 </div>
             </div>
 
@@ -1325,11 +1360,12 @@
                 👑 Админ-панель
                 <span class="close-admin" id="closeAdmin">✕</span>
             </div>
-            <button class="admin-template-btn" id="templateNewScores">📊 Новые баллы</button>
-            <button class="admin-template-btn" id="templateSendToMe" style="border-color: var(--success); color: var(--success);">📤 Отправить себе</button>
-            <button class="admin-template-btn" id="notifyAfterPair" style="border-color: var(--accent); color: var(--accent);">🔔 Уведомление о конце пары</button>
-            <button class="admin-template-btn" id="notifyNextWeek" style="border-color: var(--gold); color: var(--gold);">📆 Расписание на след. неделю</button>
-            <button class="admin-template-btn" id="sendMenuBtn" style="border-color: var(--accent); color: var(--accent);">📋 Отправить меню</button>
+            
+            <button class="admin-template-btn success" id="notifyNewScores">📊 Новые оценки!</button>
+            <button class="admin-template-btn accent" id="notifyStudents">💬 Сообщение ученикам</button>
+            <button class="admin-template-btn gold" id="notifyTomorrowSchedule">📅 Расписание на завтра</button>
+            <button class="admin-template-btn" id="notifyNextWeek" style="border-color: var(--accent); color: var(--accent);">📆 Расписание на след. неделю</button>
+            
             <textarea class="admin-input" id="adminMessage" placeholder="Введите сообщение для рассылки..."></textarea>
             <select class="admin-select" id="adminRecipient">
                 <option value="all">📢 Всем студентам</option>
@@ -1385,6 +1421,7 @@
         const OWNER_CHAT_ID = '5753985995';
         const PROXY_URL = 'https://schedule-proxy.arsenijbro5.workers.dev/';
         const DAYS_RU = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
+        const MONTHS_RU = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
         const TYPE_MAP = {
             'Лек': 'лекция',
             'ЛР': 'лабораторная',
@@ -1394,7 +1431,7 @@
             'Практика': 'практика'
         };
         
-        // Расписание пар (исправленное - берем последнее время для 1-4 пар)
+        // Расписание пар
         const PAIR_SCHEDULE = {
             '1': { start: '8:55', end: '9:40', nextBreak: '9:40-9:50' },
             '2': { start: '10:45', end: '11:30', nextBreak: '11:30-11:50' },
@@ -1464,7 +1501,6 @@
                     if (isAdmin) {
                         console.log('👑 Админ режим активирован');
                         document.getElementById('adminFab').classList.add('visible');
-                        document.getElementById('adminTestBtn').style.display = 'inline-block';
                     }
                 }
             }
@@ -1580,7 +1616,7 @@
         }
 
         // ============================================================
-        // 6. АДМИН-ФУНКЦИИ (с Reply Keyboard)
+        // 6. АДМИН-ФУНКЦИИ
         // ============================================================
         function updateAdminRecipients() {
             const select = document.getElementById('adminRecipient');
@@ -1613,28 +1649,92 @@
             }
         }
 
-        function sendMessageToUser(chatId, text, keyboard = null) {
+        function sendMessageToUser(chatId, text) {
             const url = 'https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage';
-            const payload = {
-                chat_id: chatId,
-                text: text,
-                parse_mode: 'Markdown'
-            };
-            
-            if (keyboard) {
-                payload.reply_markup = keyboard;
-            }
-            
             fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
+                body: JSON.stringify({
+                    chat_id: chatId,
+                    text: text,
+                    parse_mode: 'Markdown'
+                })
             }).then(r => r.json()).then(data => {
                 if (!data.ok) {
                     console.error('❌ Ошибка отправки:', data);
                 }
             }).catch(err => {
                 console.error('❌ Ошибка сети:', err);
+            });
+        }
+
+        function notifyAllStudentsAboutNewScores() {
+            const students = Object.keys(BINDINGS);
+            const message = '📊 *Новые оценки!*\n\nПроверьте журнал успеваемости.\n\n📱 Журнал 86РТК';
+            
+            let sent = 0;
+            students.forEach(id => {
+                if (id !== OWNER_CHAT_ID) {
+                    sendMessageToUser(id, message);
+                    sent++;
+                }
+            });
+            
+            const statusEl = document.getElementById('adminStatus');
+            statusEl.textContent = `✅ Уведомление о новых оценках отправлено ${sent} студентам!`;
+            statusEl.className = 'admin-status success';
+            
+            if (tg && tg.HapticFeedback) {
+                tg.HapticFeedback.notificationOccurred('success');
+            }
+        }
+
+        function sendMessageToStudents(text) {
+            const students = Object.keys(BINDINGS);
+            const msg = '📢 ' + escapeHtml(text) + '\n\n━━━━━━━━━━━━━━\n📱 Журнал 86РТК';
+            
+            let sent = 0;
+            let failed = 0;
+            const promises = students.map(id => {
+                if (id === OWNER_CHAT_ID) return Promise.resolve();
+                const url = 'https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage';
+                return fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chat_id: id,
+                        text: msg,
+                        parse_mode: 'HTML'
+                    })
+                }).then(r => r.json()).then(data => {
+                    if (data.ok) {
+                        sent++;
+                        console.log('✅ Отправлено:', BINDINGS[id]);
+                    } else {
+                        failed++;
+                        console.error('❌ Ошибка отправки:', BINDINGS[id], data);
+                    }
+                }).catch(() => {
+                    failed++;
+                    console.error('❌ Ошибка сети:', BINDINGS[id]);
+                });
+            });
+            
+            Promise.all(promises).then(() => {
+                const statusEl = document.getElementById('adminStatus');
+                if (failed === 0) {
+                    statusEl.textContent = `✅ Отправлено ${sent} студентам!`;
+                    statusEl.className = 'admin-status success';
+                    if (tg && tg.HapticFeedback) {
+                        tg.HapticFeedback.notificationOccurred('success');
+                    }
+                } else {
+                    statusEl.textContent = `⚠️ Отправлено ${sent}, ошибок: ${failed}`;
+                    statusEl.className = 'admin-status error';
+                }
+                setTimeout(() => {
+                    document.getElementById('adminMessage').value = '';
+                }, 3000);
             });
         }
 
@@ -1655,182 +1755,9 @@
             }, 3000);
         }
 
-        function sendMessageToStudents(text, recipient) {
-            const statusEl = document.getElementById('adminStatus');
-            statusEl.textContent = '⏳ Отправка...';
-            statusEl.className = 'admin-status';
-            
-            let students = [];
-            if (recipient === 'all') {
-                students = Object.keys(BINDINGS).map(id => ({
-                    id: id,
-                    name: BINDINGS[id]
-                }));
-            } else if (recipient === OWNER_CHAT_ID) {
-                students = [{ id: OWNER_CHAT_ID, name: BINDINGS[OWNER_CHAT_ID] || 'Владелец' }];
-            } else {
-                const boundId = Object.keys(BINDINGS).find(id => BINDINGS[id] === recipient);
-                if (boundId) {
-                    students = [{ id: boundId, name: recipient }];
-                }
-            }
-            
-            if (students.length === 0) {
-                statusEl.textContent = '❌ Нет получателей';
-                statusEl.className = 'admin-status error';
-                return;
-            }
-            
-            const msg = '📢 ' + escapeHtml(text) + '\n\n━━━━━━━━━━━━━━\n📱 Журнал 86РТК';
-            
-            let sent = 0;
-            let failed = 0;
-            const promises = students.map(s => {
-                const url = 'https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage';
-                return fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        chat_id: s.id,
-                        text: msg,
-                        parse_mode: 'HTML'
-                    })
-                }).then(r => r.json()).then(data => {
-                    if (data.ok) {
-                        sent++;
-                        console.log('✅ Отправлено:', s.name);
-                    } else {
-                        failed++;
-                        console.error('❌ Ошибка отправки:', s.name, data);
-                    }
-                }).catch(() => {
-                    failed++;
-                    console.error('❌ Ошибка сети:', s.name);
-                });
-            });
-            
-            Promise.all(promises).then(() => {
-                if (failed === 0) {
-                    statusEl.textContent = '✅ Отправлено ' + sent + ' получателям!';
-                    statusEl.className = 'admin-status success';
-                    if (tg && tg.HapticFeedback) {
-                        tg.HapticFeedback.notificationOccurred('success');
-                    }
-                } else {
-                    statusEl.textContent = '⚠️ Отправлено ' + sent + ', ошибок: ' + failed;
-                    statusEl.className = 'admin-status error';
-                    if (tg && tg.HapticFeedback) {
-                        tg.HapticFeedback.notificationOccurred('error');
-                    }
-                }
-                setTimeout(() => {
-                    document.getElementById('adminMessage').value = '';
-                }, 3000);
-            });
-        }
-
-        function sendScheduleToOwner(scheduleHTML) {
-            if (!tg || !isAdmin) return;
-            
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = scheduleHTML;
-            
-            const dayElements = tempDiv.querySelectorAll('.schedule-day');
-            let msg = '📅 *Расписание группы 86РТК*\n\n';
-            
-            dayElements.forEach((day, index) => {
-                const header = day.querySelector('.schedule-day-header');
-                if (!header) return;
-                
-                const dayName = header.querySelector('.day-name')?.textContent?.trim() || '';
-                const date = header.querySelector('.day-date')?.textContent?.trim() || '';
-                const badge = header.querySelector('.day-badge')?.textContent?.trim() || '';
-                
-                let dayPrefix = '';
-                if (badge.includes('СЕГОДНЯ')) {
-                    dayPrefix = '🔴 ';
-                }
-                
-                msg += `\n*${dayPrefix}${dayName}*`;
-                if (date) msg += `, ${date}`;
-                msg += '\n' + '━'.repeat(30) + '\n';
-                
-                const lessons = day.querySelectorAll('.schedule-lesson');
-                if (lessons.length === 0) {
-                    msg += '📭 Нет занятий\n';
-                } else {
-                    lessons.forEach(lesson => {
-                        const time = lesson.querySelector('.lesson-time')?.textContent?.trim() || '';
-                        const name = lesson.querySelector('.lesson-name')?.textContent?.trim() || '';
-                        const room = lesson.querySelector('.room-badge')?.textContent?.trim() || '';
-                        const type = lesson.querySelector('.type-badge')?.textContent?.trim() || '';
-                        
-                        const teacherItems = lesson.querySelectorAll('.teacher-item .teacher-name');
-                        let teachers = [];
-                        teacherItems.forEach(t => {
-                            const name = t.textContent.trim();
-                            if (name) teachers.push(name);
-                        });
-                        
-                        let line = `${time}. ${name}`;
-                        if (type) line += ` (${type.slice(0, 3)})`;
-                        
-                        let details = [];
-                        if (teachers.length > 0) {
-                            details.push(teachers.join(', '));
-                        }
-                        if (room) {
-                            details.push(room);
-                        }
-                        
-                        if (details.length > 0) {
-                            line += ` ${details.join(' • ')}`;
-                        }
-                        
-                        msg += line + '\n';
-                    });
-                }
-            });
-            
-            msg = msg.replace(/\n{3,}/g, '\n\n');
-            msg = msg.trim();
-            
-            if (msg.length > 4000) {
-                msg = msg.substring(0, 3950) + '\n\n… (сообщение обрезано)';
-            }
-            
-            sendMessageToUser(OWNER_CHAT_ID, msg);
-            tg.showAlert('✅ Расписание отправлено!');
-        }
-
         // ============================================================
-        // 7. УВЕДОМЛЕНИЯ С REPLY KEYBOARD
+        // 7. УВЕДОМЛЕНИЯ РАСПИСАНИЯ
         // ============================================================
-        function getCurrentPair() {
-            const now = new Date();
-            const time = now.getHours() * 60 + now.getMinutes();
-            const day = now.getDay();
-            
-            if (day === 0 || day === 6) return null;
-            
-            for (const [pair, schedule] of Object.entries(PAIR_SCHEDULE)) {
-                const [startH, startM] = schedule.start.split(':').map(Number);
-                const [endH, endM] = schedule.end.split(':').map(Number);
-                const start = startH * 60 + startM;
-                const end = endH * 60 + endM;
-                
-                if (time >= start && time <= end + 2) {
-                    return {
-                        pair: pair,
-                        start: schedule.start,
-                        end: schedule.end,
-                        break: schedule.nextBreak
-                    };
-                }
-            }
-            return null;
-        }
-
         function getScheduleForDay(dayName) {
             if (!scheduleBlocks || scheduleBlocks.length === 0) {
                 return null;
@@ -1857,60 +1784,48 @@
             return schedule[dayName] || null;
         }
 
-        function sendAfterPairNotification(pairNumber) {
+        // Отправка расписания на завтра
+        function sendTomorrowSchedule() {
             const students = Object.keys(BINDINGS);
-            const nextPair = parseInt(pairNumber) + 1;
-            const nextSchedule = PAIR_SCHEDULE[nextPair];
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const dayName = tomorrow.getDay() === 0 ? 'Воскресенье' : DAYS_RU[tomorrow.getDay() - 1];
+            const dateStr = tomorrow.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
             
-            if (!nextSchedule) {
-                console.log('📚 Все пары на сегодня закончились');
-                return;
-            }
-            
-            const today = new Date();
-            const dayName = today.getDay() === 0 ? 'Воскресенье' : DAYS_RU[today.getDay() - 1];
             const schedule = getScheduleForDay(dayName);
-            const nextLesson = schedule ? schedule.find(l => l.pair === String(nextPair)) : null;
             
-            let message = `🔔 *Пара ${pairNumber} закончилась!*\n\n`;
-            message += `⏰ Следующая пара (${nextPair}) начнется в *${nextSchedule.start}*\n`;
+            let message = `📅 *Расписание на завтра*\n`;
+            message += `*${dayName}* (${dateStr})\n\n`;
             
-            if (nextLesson) {
-                message += `\n📚 *${nextLesson.discipline}*`;
-                if (nextLesson.type) message += ` (${nextLesson.type})`;
-                if (nextLesson.teachers && nextLesson.teachers.length > 0) {
-                    message += `\n👨‍🏫 ${nextLesson.teachers.join(', ')}`;
-                }
-                if (nextLesson.room) message += `\n🏛️ Аудитория: ${nextLesson.room}`;
-                message += `\n⏱️ Длится до ${nextSchedule.end}`;
+            if (!schedule || schedule.length === 0) {
+                message += '📭 Выходной! 🎉';
             } else {
-                message += `\n📭 Занятий на следующую пару нет`;
+                schedule.forEach(lesson => {
+                    message += `${lesson.pair}. ${lesson.discipline}`;
+                    if (lesson.type) message += ` (${lesson.type})`;
+                    if (lesson.teachers && lesson.teachers.length > 0) {
+                        message += ` ${lesson.teachers.join(', ')}`;
+                    }
+                    if (lesson.room) message += ` [${lesson.room}]`;
+                    message += '\n';
+                });
             }
             
-            if (nextSchedule.nextBreak) {
-                message += `\n\n☕ Перемена до ${nextSchedule.nextBreak}`;
-            }
-            
-            const keyboard = {
-                keyboard: [
-                    [
-                        { text: '📅 На день' },
-                        { text: '📆 На неделю' }
-                    ]
-                ],
-                resize_keyboard: true,
-                one_time_keyboard: false
-            };
-            
+            let sent = 0;
             students.forEach(id => {
                 if (id !== OWNER_CHAT_ID) {
-                    sendMessageToUser(id, message, keyboard);
+                    sendMessageToUser(id, message);
+                    sent++;
                 }
             });
             
-            console.log(`✅ Отправлено уведомление о конце пары ${pairNumber}`);
+            const statusEl = document.getElementById('adminStatus');
+            statusEl.textContent = `✅ Расписание на завтра отправлено ${sent} студентам!`;
+            statusEl.className = 'admin-status success';
+            console.log('✅ Отправлено расписание на завтра');
         }
 
+        // Отправка расписания на следующую неделю
         function sendNextWeekSchedule() {
             const students = Object.keys(BINDINGS);
             const today = new Date();
@@ -1947,160 +1862,46 @@
                 }
             }
             
-            const keyboard = {
-                keyboard: [
-                    [
-                        { text: '📅 На день' },
-                        { text: '📆 На неделю' }
-                    ]
-                ],
-                resize_keyboard: true,
-                one_time_keyboard: false
-            };
-            
+            let sent = 0;
             students.forEach(id => {
                 if (id !== OWNER_CHAT_ID) {
-                    sendMessageToUser(id, message, keyboard);
+                    sendMessageToUser(id, message);
+                    sent++;
                 }
             });
             
+            const statusEl = document.getElementById('adminStatus');
+            statusEl.textContent = `✅ Расписание на следующую неделю отправлено ${sent} студентам!`;
+            statusEl.className = 'admin-status success';
             console.log('✅ Отправлено расписание на следующую неделю');
         }
 
-        function sendTodaySchedule(chatId) {
-            const today = new Date();
-            const dayName = today.getDay() === 0 ? 'Воскресенье' : DAYS_RU[today.getDay() - 1];
-            const dateStr = today.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
-            const schedule = getScheduleForDay(dayName);
-            
-            let message = `📅 *${dayName}* (${dateStr})\n\n`;
-            if (!schedule || schedule.length === 0) {
-                message += '📭 Выходной! 🎉';
-            } else {
-                schedule.forEach(lesson => {
-                    message += `${lesson.pair}. ${lesson.discipline}`;
-                    if (lesson.type) message += ` (${lesson.type})`;
-                    if (lesson.teachers && lesson.teachers.length > 0) {
-                        message += ` ${lesson.teachers.join(', ')}`;
-                    }
-                    if (lesson.room) message += ` [${lesson.room}]`;
-                    message += '\n';
-                });
-            }
-            
-            const keyboard = {
-                keyboard: [
-                    [
-                        { text: '📅 На день' },
-                        { text: '📆 На неделю' }
-                    ]
-                ],
-                resize_keyboard: true,
-                one_time_keyboard: false
-            };
-            
-            sendMessageToUser(chatId, message, keyboard);
-        }
-
-        function sendWeekSchedule(chatId) {
-            const today = new Date();
-            const dayOfWeek = today.getDay();
-            const daysUntilMonday = dayOfWeek === 0 ? 1 : 8 - dayOfWeek;
-            const monday = new Date(today);
-            monday.setDate(today.getDate() + daysUntilMonday);
-            
-            let message = `📆 *Расписание на эту неделю*\n`;
-            message += `🗓️ *${monday.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' })}*\n\n`;
-            
-            for (let i = 0; i < 6; i++) {
-                const date = new Date(monday);
-                date.setDate(monday.getDate() + i);
-                const dayName = date.getDay() === 0 ? 'Воскресенье' : DAYS_RU[date.getDay() - 1];
-                const dateStr = date.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
-                
-                const schedule = getScheduleForDay(dayName);
-                
-                message += `*${dayName}* (${dateStr})\n`;
-                if (!schedule || schedule.length === 0) {
-                    message += '📭 Выходной\n\n';
-                } else {
-                    schedule.forEach(lesson => {
-                        message += `  ${lesson.pair}. ${lesson.discipline}`;
-                        if (lesson.type) message += ` (${lesson.type})`;
-                        if (lesson.teachers && lesson.teachers.length > 0) {
-                            message += ` ${lesson.teachers.join(', ')}`;
-                        }
-                        if (lesson.room) message += ` [${lesson.room}]`;
-                        message += '\n';
-                    });
-                    message += '\n';
-                }
-            }
-            
-            const keyboard = {
-                keyboard: [
-                    [
-                        { text: '📅 На день' },
-                        { text: '📆 На неделю' }
-                    ]
-                ],
-                resize_keyboard: true,
-                one_time_keyboard: false
-            };
-            
-            sendMessageToUser(chatId, message, keyboard);
-        }
-
-        function sendScheduleMenu(chatId) {
-            const message = '📚 *Расписание группы 86РТК*\n\nВыберите действие:';
-            const keyboard = {
-                keyboard: [
-                    [
-                        { text: '📅 На день' },
-                        { text: '📆 На неделю' }
-                    ]
-                ],
-                resize_keyboard: true,
-                one_time_keyboard: false
-            };
-            sendMessageToUser(chatId, message, keyboard);
-        }
-
-        function handleMessage(text, chatId) {
-            console.log(`📨 Сообщение: "${text}" от ${chatId}`);
-            
-            if (text === '📅 На день' || text === '/today') {
-                sendTodaySchedule(chatId);
-            } else if (text === '📆 На неделю' || text === '/week') {
-                sendWeekSchedule(chatId);
-            } else if (text === '/start' || text === '/menu') {
-                sendScheduleMenu(chatId);
-            } else {
-                sendScheduleMenu(chatId);
-            }
-        }
-
-        function checkNotifications() {
+        // Автоматическая отправка расписания на завтра после окончания пар
+        function checkAndSendTomorrowSchedule() {
             const now = new Date();
             const hour = now.getHours();
             const minutes = now.getMinutes();
             const day = now.getDay();
             
-            if (minutes % 2 === 0 || minutes === 1) {
-                const currentPair = getCurrentPair();
-                if (currentPair) {
-                    const [endH, endM] = currentPair.end.split(':').map(Number);
-                    const endTime = endH * 60 + endM;
-                    const currentTime = hour * 60 + minutes;
-                    
-                    if (currentTime >= endTime && currentTime <= endTime + 2) {
-                        sendAfterPairNotification(currentPair.pair);
-                    }
-                }
+            // Если пятница (5) и время 17:00 - отправляем расписание на следующую неделю
+            if (day === 5 && hour === 17 && minutes === 0) {
+                sendNextWeekSchedule();
+                return;
             }
             
-            if (day === 6 && hour === 17 && minutes === 0) {
-                sendNextWeekSchedule();
+            // Проверяем окончание последней пары (7 пара заканчивается в 20:30)
+            const lastPairEnd = 20 * 60 + 30; // 20:30
+            const currentTime = hour * 60 + minutes;
+            
+            // Если после 20:30 и не воскресенье - отправляем на завтра
+            if (currentTime > lastPairEnd && day !== 0 && day !== 6) {
+                // Проверяем, не отправляли ли уже сегодня
+                const lastSent = localStorage.getItem('last_tomorrow_sent');
+                const todayStr = now.toDateString();
+                if (lastSent !== todayStr) {
+                    sendTomorrowSchedule();
+                    localStorage.setItem('last_tomorrow_sent', todayStr);
+                }
             }
         }
 
@@ -2900,9 +2701,20 @@
             return schedule;
         }
 
+        function updateScheduleLogo() {
+            const now = new Date();
+            const day = now.getDate();
+            const month = MONTHS_RU[now.getMonth()];
+            
+            document.getElementById('scheduleLogoDay').textContent = day;
+            document.getElementById('scheduleLogoMonth').textContent = month;
+        }
+
         function renderScheduleUI(schedule, weekOffset) {
             const container = document.getElementById('scheduleContent');
             const weekLabel = document.getElementById('scheduleWeekLabel');
+            
+            updateScheduleLogo();
             
             if (!schedule) {
                 container.innerHTML = `<div class="schedule-empty"><span class="empty-icon">📭</span><span>Расписание не найдено</span></div>`;
@@ -3086,6 +2898,7 @@
                     container.querySelector('.schedule-empty')) {
                     loadScheduleData();
                 }
+                updateScheduleLogo();
             }
             if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
         }
@@ -3144,13 +2957,6 @@
             loadScheduleData();
         });
 
-        document.getElementById('adminTestBtn').addEventListener('click', function() {
-            if (!isAdmin) return;
-            const container = document.getElementById('scheduleContent');
-            const scheduleHTML = container.innerHTML;
-            sendScheduleToOwner(scheduleHTML);
-        });
-
         document.getElementById('adminFab').addEventListener('click', function() {
             document.getElementById('adminPanel').classList.add('open');
             if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
@@ -3179,55 +2985,29 @@
             sendToMe(message);
         });
 
-        document.getElementById('templateSendToMe').addEventListener('click', function() {
-            document.getElementById('adminMessage').value = '📊 Проверьте журнал, есть обновления!';
-            if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+        document.getElementById('notifyNewScores').addEventListener('click', function() {
+            notifyAllStudentsAboutNewScores();
         });
 
-        document.getElementById('notifyAfterPair').addEventListener('click', function() {
-            const currentPair = getCurrentPair();
-            if (currentPair) {
-                sendAfterPairNotification(currentPair.pair);
+        document.getElementById('notifyStudents').addEventListener('click', function() {
+            const message = document.getElementById('adminMessage').value.trim();
+            if (!message) {
                 const statusEl = document.getElementById('adminStatus');
-                statusEl.textContent = `✅ Уведомление о конце пары ${currentPair.pair} отправлено!`;
-                statusEl.className = 'admin-status success';
-            } else {
-                const statusEl = document.getElementById('adminStatus');
-                statusEl.textContent = '❌ Сейчас нет активных пар';
+                statusEl.textContent = '❌ Введите сообщение в поле выше';
                 statusEl.className = 'admin-status error';
+                if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
+                return;
             }
+            sendMessageToStudents(message);
+        });
+
+        document.getElementById('notifyTomorrowSchedule').addEventListener('click', function() {
+            sendTomorrowSchedule();
         });
 
         document.getElementById('notifyNextWeek').addEventListener('click', function() {
             if (confirm('Отправить расписание на следующую неделю всем студентам?')) {
                 sendNextWeekSchedule();
-                const statusEl = document.getElementById('adminStatus');
-                statusEl.textContent = '✅ Расписание на следующую неделю отправлено!';
-                statusEl.className = 'admin-status success';
-            }
-        });
-
-        document.getElementById('sendMenuBtn').addEventListener('click', function() {
-            const recipient = document.getElementById('adminRecipient').value;
-            
-            if (recipient === 'all') {
-                const students = Object.keys(BINDINGS);
-                students.forEach(id => {
-                    if (id !== OWNER_CHAT_ID) {
-                        sendScheduleMenu(id);
-                    }
-                });
-                const statusEl = document.getElementById('adminStatus');
-                statusEl.textContent = '✅ Меню отправлено всем!';
-                statusEl.className = 'admin-status success';
-            } else {
-                const boundId = Object.keys(BINDINGS).find(id => BINDINGS[id] === recipient);
-                if (boundId) {
-                    sendScheduleMenu(boundId);
-                    const statusEl = document.getElementById('adminStatus');
-                    statusEl.textContent = '✅ Меню отправлено ' + recipient;
-                    statusEl.className = 'admin-status success';
-                }
             }
         });
         
@@ -3244,32 +3024,18 @@
             }
             
             if (recipient === 'all') {
-                if (tg) {
-                    tg.showPopup({
-                        title: '⚠️ Подтверждение',
-                        message: 'Отправить сообщение ВСЕМ студентам?',
-                        buttons: [
-                            { id: 'cancel', type: 'cancel' },
-                            { id: 'ok', type: 'ok' }
-                        ]
-                    }, function(buttonId) {
-                        if (buttonId === 'ok') {
-                            sendMessageToStudents(message, recipient);
-                        }
-                    });
-                } else {
-                    if (confirm('Отправить сообщение ВСЕМ студентам?')) {
-                        sendMessageToStudents(message, recipient);
-                    }
+                if (confirm('Отправить сообщение ВСЕМ студентам?')) {
+                    sendMessageToStudents(message);
                 }
             } else {
-                sendMessageToStudents(message, recipient);
+                const boundId = Object.keys(BINDINGS).find(id => BINDINGS[id] === recipient);
+                if (boundId) {
+                    sendMessageToUser(boundId, '📢 ' + message);
+                    const statusEl = document.getElementById('adminStatus');
+                    statusEl.textContent = '✅ Отправлено ' + recipient;
+                    statusEl.className = 'admin-status success';
+                }
             }
-        });
-        
-        document.getElementById('templateNewScores').addEventListener('click', function() {
-            document.getElementById('adminMessage').value = '📊 Выставлены новые баллы, проверьте журнал!';
-            if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
         });
 
         document.getElementById('btnIdentityYes').addEventListener('click', function() {
@@ -3351,11 +3117,12 @@
         // ============================================================
         // 16. ЗАПУСК УВЕДОМЛЕНИЙ
         // ============================================================
-        setInterval(checkNotifications, 60000);
+        // Проверка отправки расписания на завтра каждые 5 минут
+        setInterval(checkAndSendTomorrowSchedule, 300000);
         setTimeout(() => {
-            checkNotifications();
+            checkAndSendTomorrowSchedule();
             console.log('🔔 Система уведомлений запущена');
-        }, 5000);
+        }, 10000);
 
         // ============================================================
         // 17. ЗАПУСК
@@ -3364,7 +3131,6 @@
         window.closeCard = closeCard;
         window.toggleMarks = toggleMarks;
         window.loadScheduleData = loadScheduleData;
-        window.handleMessage = handleMessage;
 
         loadData();
     </script>
