@@ -682,6 +682,11 @@
         .admin-panel .admin-actions button:active { transform: scale(0.96); }
         .admin-panel .admin-actions .btn-send { background: var(--admin); color: white; }
         .admin-panel .admin-actions .btn-cancel { background: rgba(255,255,255,0.08); color: var(--text); }
+        .admin-panel .admin-actions .btn-send-me { 
+            background: var(--success); 
+            color: white;
+            flex: 0.5;
+        }
         .admin-panel .admin-status {
             font-size: 12px;
             color: var(--muted);
@@ -1355,12 +1360,14 @@
                 <span class="close-admin" id="closeAdmin">✕</span>
             </div>
             <button class="admin-template-btn" id="templateNewScores">📊 Новые баллы</button>
+            <button class="admin-template-btn" id="templateSendToMe" style="border-color: var(--success); color: var(--success);">📤 Отправить себе</button>
             <textarea class="admin-input" id="adminMessage" placeholder="Введите сообщение для рассылки..."></textarea>
             <select class="admin-select" id="adminRecipient">
                 <option value="all">📢 Всем студентам</option>
             </select>
             <div class="admin-actions">
                 <button class="btn-send" id="adminSend">📨 Отправить</button>
+                <button class="btn-send-me" id="adminSendToMe">👤 Себе</button>
                 <button class="btn-cancel" id="adminCancel">Отмена</button>
             </div>
             <div class="admin-status" id="adminStatus"></div>
@@ -1596,39 +1603,79 @@
         }
 
         // ============================================================
-        // 6. АДМИН-ФУНКЦИИ (ДЛЯ РАССЫЛКИ)
+        // 6. АДМИН-ФУНКЦИИ
         // ============================================================
-function updateAdminRecipients() {
-    const select = document.getElementById('adminRecipient');
-    const currentValue = select.value;
-    select.innerHTML = '<option value="all">📢 Всем студентам</option>';
-    
-    // Добавляем владельца в список
-    const ownerOption = document.createElement('option');
-    ownerOption.value = OWNER_CHAT_ID;
-    ownerOption.textContent = '👑 Владелец (я)';
-    select.appendChild(ownerOption);
-    
-    const boundStudents = Object.keys(BINDINGS).map(id => ({
-        id: id,
-        name: BINDINGS[id]
-    }));
-    
-    boundStudents.sort((a, b) => a.name.localeCompare(b.name));
-    
-    boundStudents.forEach(s => {
-        // Пропускаем владельца, чтобы не было дубля
-        if (s.id === OWNER_CHAT_ID) return;
-        const option = document.createElement('option');
-        option.value = s.name;
-        option.textContent = '👤 ' + s.name;
-        select.appendChild(option);
-    });
-    
-    if (currentValue) {
-        select.value = currentValue;
-    }
-}
+        function updateAdminRecipients() {
+            const select = document.getElementById('adminRecipient');
+            const currentValue = select.value;
+            select.innerHTML = '<option value="all">📢 Всем студентам</option>';
+            
+            const boundStudents = Object.keys(BINDINGS).map(id => ({
+                id: id,
+                name: BINDINGS[id]
+            }));
+            
+            boundStudents.sort((a, b) => a.name.localeCompare(b.name));
+            
+            boundStudents.forEach(s => {
+                if (s.id === OWNER_CHAT_ID) {
+                    const option = document.createElement('option');
+                    option.value = s.id;
+                    option.textContent = '👑 ' + s.name + ' (я)';
+                    select.appendChild(option);
+                } else {
+                    const option = document.createElement('option');
+                    option.value = s.name;
+                    option.textContent = '👤 ' + s.name;
+                    select.appendChild(option);
+                }
+            });
+            
+            if (currentValue) {
+                select.value = currentValue;
+            }
+        }
+
+        // Функция отправки себе
+        function sendToMe(text) {
+            const statusEl = document.getElementById('adminStatus');
+            statusEl.textContent = '⏳ Отправка себе...';
+            statusEl.className = 'admin-status';
+            
+            const url = 'https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage';
+            fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: OWNER_CHAT_ID,
+                    text: '📢 ' + escapeHtml(text) + '\n\n━━━━━━━━━━━━━━\n📱 Журнал 86РТК',
+                    parse_mode: 'HTML'
+                })
+            }).then(r => r.json()).then(data => {
+                if (data.ok) {
+                    statusEl.textContent = '✅ Отправлено вам!';
+                    statusEl.className = 'admin-status success';
+                    if (tg && tg.HapticFeedback) {
+                        tg.HapticFeedback.notificationOccurred('success');
+                    }
+                    setTimeout(() => {
+                        document.getElementById('adminMessage').value = '';
+                    }, 3000);
+                } else {
+                    statusEl.textContent = '❌ Ошибка: ' + (data.description || 'неизвестная ошибка');
+                    statusEl.className = 'admin-status error';
+                    if (tg && tg.HapticFeedback) {
+                        tg.HapticFeedback.notificationOccurred('error');
+                    }
+                }
+            }).catch(() => {
+                statusEl.textContent = '❌ Ошибка сети';
+                statusEl.className = 'admin-status error';
+                if (tg && tg.HapticFeedback) {
+                    tg.HapticFeedback.notificationOccurred('error');
+                }
+            });
+        }
 
         function sendMessageToStudents(text, recipient) {
             const statusEl = document.getElementById('adminStatus');
@@ -1642,13 +1689,19 @@ function updateAdminRecipients() {
                     name: BINDINGS[id]
                 }));
             } else {
-                const boundId = Object.keys(BINDINGS).find(id => BINDINGS[id] === recipient);
-                if (boundId) {
-                    students = [{ id: boundId, name: recipient }];
+                // Если recipient это ID владельца
+                if (recipient === OWNER_CHAT_ID) {
+                    students = [{ id: OWNER_CHAT_ID, name: BINDINGS[OWNER_CHAT_ID] || 'Владелец' }];
+                } else {
+                    const boundId = Object.keys(BINDINGS).find(id => BINDINGS[id] === recipient);
+                    if (boundId) {
+                        students = [{ id: boundId, name: recipient }];
+                    }
                 }
             }
             
-            students = students.filter(s => s.id !== OWNER_CHAT_ID);
+            // Убираем проверку на исключение владельца
+            // students = students.filter(s => s.id !== OWNER_CHAT_ID);
             
             if (students.length === 0) {
                 statusEl.textContent = '❌ Нет получателей';
@@ -1686,7 +1739,7 @@ function updateAdminRecipients() {
             
             Promise.all(promises).then(() => {
                 if (failed === 0) {
-                    statusEl.textContent = '✅ Отправлено ' + sent + ' студентам!';
+                    statusEl.textContent = '✅ Отправлено ' + sent + ' получателям!';
                     statusEl.className = 'admin-status success';
                     if (tg && tg.HapticFeedback) {
                         tg.HapticFeedback.notificationOccurred('success');
@@ -1730,7 +1783,7 @@ function updateAdminRecipients() {
         }
 
         // ============================================================
-        // 7. КАРТОЧКА СТУДЕНТА (СОКРАЩЕНО)
+        // 7. КАРТОЧКА СТУДЕНТА
         // ============================================================
         function toggleMarks(id) {
             const el = document.getElementById(id);
@@ -2791,7 +2844,6 @@ function updateAdminRecipients() {
         // Тестовая кнопка для владельца
         document.getElementById('adminTestBtn').addEventListener('click', function() {
             if (!isAdmin) return;
-            // Формируем HTML-сообщение с расписанием
             const container = document.getElementById('scheduleContent');
             const scheduleHTML = container.innerHTML;
             sendScheduleToOwner(scheduleHTML);
@@ -2812,6 +2864,25 @@ function updateAdminRecipients() {
             document.getElementById('adminMessage').value = '';
             document.getElementById('adminStatus').textContent = '';
             document.getElementById('adminStatus').className = 'admin-status';
+        });
+        
+        // Отправка себе (новая кнопка в действиях)
+        document.getElementById('adminSendToMe').addEventListener('click', function() {
+            const message = document.getElementById('adminMessage').value.trim();
+            if (!message) {
+                const statusEl = document.getElementById('adminStatus');
+                statusEl.textContent = '❌ Введите сообщение';
+                statusEl.className = 'admin-status error';
+                if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
+                return;
+            }
+            sendToMe(message);
+        });
+
+        // Шаблон "Отправить себе" (кнопка сверху)
+        document.getElementById('templateSendToMe').addEventListener('click', function() {
+            document.getElementById('adminMessage').value = '📊 Проверьте журнал, есть обновления!';
+            if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
         });
         
         document.getElementById('adminSend').addEventListener('click', function() {
