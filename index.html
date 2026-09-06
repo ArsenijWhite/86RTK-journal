@@ -272,34 +272,32 @@
             justify-content: center;
         }
         .schedule-header .schedule-logo .calendar-icon {
-            width: 28px;
-            height: 32px;
+            width: 32px;
+            height: 36px;
             background: linear-gradient(135deg, #38bdf8, #0ea5e9);
-            border-radius: 4px;
+            border-radius: 6px;
             position: relative;
             display: inline-block;
-            box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.25);
         }
         .schedule-header .schedule-logo .calendar-icon::before {
             content: "";
             position: absolute;
-            top: 4px;
-            left: 4px;
-            right: 4px;
-            height: 4px;
-            background: rgba(255,255,255,0.3);
+            top: 5px;
+            left: 5px;
+            right: 5px;
+            height: 5px;
+            background: rgba(255,255,255,0.35);
             border-radius: 2px 2px 0 0;
         }
         .schedule-header .schedule-logo .calendar-icon::after {
-            content: "86";
+            content: "📅";
             position: absolute;
-            bottom: 3px;
+            bottom: 2px;
             left: 50%;
             transform: translateX(-50%);
-            font-size: 10px;
-            font-weight: 800;
-            color: rgba(255,255,255,0.9);
-            letter-spacing: 0.5px;
+            font-size: 16px;
+            line-height: 1;
         }
         .schedule-header .week-label {
             font-size: 12px;
@@ -1331,6 +1329,7 @@
             <button class="admin-template-btn" id="templateSendToMe" style="border-color: var(--success); color: var(--success);">📤 Отправить себе</button>
             <button class="admin-template-btn" id="notifyAfterPair" style="border-color: var(--accent); color: var(--accent);">🔔 Уведомление о конце пары</button>
             <button class="admin-template-btn" id="notifyNextWeek" style="border-color: var(--gold); color: var(--gold);">📆 Расписание на след. неделю</button>
+            <button class="admin-template-btn" id="sendMenuBtn" style="border-color: var(--accent); color: var(--accent);">📋 Отправить меню</button>
             <textarea class="admin-input" id="adminMessage" placeholder="Введите сообщение для рассылки..."></textarea>
             <select class="admin-select" id="adminRecipient">
                 <option value="all">📢 Всем студентам</option>
@@ -1397,11 +1396,9 @@
         
         // Расписание пар (исправленное - берем последнее время для 1-4 пар)
         const PAIR_SCHEDULE = {
-            // 1 смена - берем последнее время из каждой строки
             '1': { start: '8:55', end: '9:40', nextBreak: '9:40-9:50' },
             '2': { start: '10:45', end: '11:30', nextBreak: '11:30-11:50' },
             '3': { start: '12:45', end: '13:30', nextBreak: '13:30-13:40' },
-            // 2 смена
             '4': { start: '14:35', end: '15:20', nextBreak: '15:20-15:40' },
             '5': { start: '15:40', end: '17:10', nextBreak: '' },
             '6': { start: '17:20', end: '18:50', nextBreak: '' },
@@ -1583,7 +1580,7 @@
         }
 
         // ============================================================
-        // 6. АДМИН-ФУНКЦИИ
+        // 6. АДМИН-ФУНКЦИИ (с Reply Keyboard)
         // ============================================================
         function updateAdminRecipients() {
             const select = document.getElementById('adminRecipient');
@@ -1616,16 +1613,22 @@
             }
         }
 
-        function sendMessageToUser(chatId, text) {
+        function sendMessageToUser(chatId, text, keyboard = null) {
             const url = 'https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage';
+            const payload = {
+                chat_id: chatId,
+                text: text,
+                parse_mode: 'Markdown'
+            };
+            
+            if (keyboard) {
+                payload.reply_markup = keyboard;
+            }
+            
             fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    chat_id: chatId,
-                    text: text,
-                    parse_mode: 'Markdown'
-                })
+                body: JSON.stringify(payload)
             }).then(r => r.json()).then(data => {
                 if (!data.ok) {
                     console.error('❌ Ошибка отправки:', data);
@@ -1801,7 +1804,7 @@
         }
 
         // ============================================================
-        // 7. УВЕДОМЛЕНИЯ ПО РАСПИСАНИЮ ПАР
+        // 7. УВЕДОМЛЕНИЯ С REPLY KEYBOARD
         // ============================================================
         function getCurrentPair() {
             const now = new Date();
@@ -1888,9 +1891,20 @@
                 message += `\n\n☕ Перемена до ${nextSchedule.nextBreak}`;
             }
             
+            const keyboard = {
+                keyboard: [
+                    [
+                        { text: '📅 На день' },
+                        { text: '📆 На неделю' }
+                    ]
+                ],
+                resize_keyboard: true,
+                one_time_keyboard: false
+            };
+            
             students.forEach(id => {
                 if (id !== OWNER_CHAT_ID) {
-                    sendMessageToUser(id, message);
+                    sendMessageToUser(id, message, keyboard);
                 }
             });
             
@@ -1933,13 +1947,137 @@
                 }
             }
             
+            const keyboard = {
+                keyboard: [
+                    [
+                        { text: '📅 На день' },
+                        { text: '📆 На неделю' }
+                    ]
+                ],
+                resize_keyboard: true,
+                one_time_keyboard: false
+            };
+            
             students.forEach(id => {
                 if (id !== OWNER_CHAT_ID) {
-                    sendMessageToUser(id, message);
+                    sendMessageToUser(id, message, keyboard);
                 }
             });
             
             console.log('✅ Отправлено расписание на следующую неделю');
+        }
+
+        function sendTodaySchedule(chatId) {
+            const today = new Date();
+            const dayName = today.getDay() === 0 ? 'Воскресенье' : DAYS_RU[today.getDay() - 1];
+            const dateStr = today.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
+            const schedule = getScheduleForDay(dayName);
+            
+            let message = `📅 *${dayName}* (${dateStr})\n\n`;
+            if (!schedule || schedule.length === 0) {
+                message += '📭 Выходной! 🎉';
+            } else {
+                schedule.forEach(lesson => {
+                    message += `${lesson.pair}. ${lesson.discipline}`;
+                    if (lesson.type) message += ` (${lesson.type})`;
+                    if (lesson.teachers && lesson.teachers.length > 0) {
+                        message += ` ${lesson.teachers.join(', ')}`;
+                    }
+                    if (lesson.room) message += ` [${lesson.room}]`;
+                    message += '\n';
+                });
+            }
+            
+            const keyboard = {
+                keyboard: [
+                    [
+                        { text: '📅 На день' },
+                        { text: '📆 На неделю' }
+                    ]
+                ],
+                resize_keyboard: true,
+                one_time_keyboard: false
+            };
+            
+            sendMessageToUser(chatId, message, keyboard);
+        }
+
+        function sendWeekSchedule(chatId) {
+            const today = new Date();
+            const dayOfWeek = today.getDay();
+            const daysUntilMonday = dayOfWeek === 0 ? 1 : 8 - dayOfWeek;
+            const monday = new Date(today);
+            monday.setDate(today.getDate() + daysUntilMonday);
+            
+            let message = `📆 *Расписание на эту неделю*\n`;
+            message += `🗓️ *${monday.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' })}*\n\n`;
+            
+            for (let i = 0; i < 6; i++) {
+                const date = new Date(monday);
+                date.setDate(monday.getDate() + i);
+                const dayName = date.getDay() === 0 ? 'Воскресенье' : DAYS_RU[date.getDay() - 1];
+                const dateStr = date.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
+                
+                const schedule = getScheduleForDay(dayName);
+                
+                message += `*${dayName}* (${dateStr})\n`;
+                if (!schedule || schedule.length === 0) {
+                    message += '📭 Выходной\n\n';
+                } else {
+                    schedule.forEach(lesson => {
+                        message += `  ${lesson.pair}. ${lesson.discipline}`;
+                        if (lesson.type) message += ` (${lesson.type})`;
+                        if (lesson.teachers && lesson.teachers.length > 0) {
+                            message += ` ${lesson.teachers.join(', ')}`;
+                        }
+                        if (lesson.room) message += ` [${lesson.room}]`;
+                        message += '\n';
+                    });
+                    message += '\n';
+                }
+            }
+            
+            const keyboard = {
+                keyboard: [
+                    [
+                        { text: '📅 На день' },
+                        { text: '📆 На неделю' }
+                    ]
+                ],
+                resize_keyboard: true,
+                one_time_keyboard: false
+            };
+            
+            sendMessageToUser(chatId, message, keyboard);
+        }
+
+        function sendScheduleMenu(chatId) {
+            const message = '📚 *Расписание группы 86РТК*\n\nВыберите действие:';
+            const keyboard = {
+                keyboard: [
+                    [
+                        { text: '📅 На день' },
+                        { text: '📆 На неделю' }
+                    ]
+                ],
+                resize_keyboard: true,
+                one_time_keyboard: false
+            };
+            sendMessageToUser(chatId, message, keyboard);
+        }
+
+        function handleMessage(text, chatId) {
+            console.log(`📨 Сообщение: "${text}" от ${chatId}`);
+            
+            if (text === '📅 На день' || text === '/today') {
+                sendTodaySchedule(chatId);
+            } else if (text === '📆 На неделю' || text === '/week') {
+                sendWeekSchedule(chatId);
+            } else if (text === '/start' || text === '/menu') {
+                sendScheduleMenu(chatId);
+            } else {
+                sendScheduleMenu(chatId);
+            }
         }
 
         function checkNotifications() {
@@ -1948,7 +2086,6 @@
             const minutes = now.getMinutes();
             const day = now.getDay();
             
-            // Проверка окончания пар (каждые 2 минуты)
             if (minutes % 2 === 0 || minutes === 1) {
                 const currentPair = getCurrentPair();
                 if (currentPair) {
@@ -1962,7 +2099,6 @@
                 }
             }
             
-            // Проверка субботы 17:00
             if (day === 6 && hour === 17 && minutes === 0) {
                 sendNextWeekSchedule();
             }
@@ -2781,14 +2917,10 @@
                 weekDates.push(d);
             }
             
-            const weekNum = getWeekNumber(mondayDate);
-            const isEvenWeek = weekNum % 2 === 0;
-            const weekType = isEvenWeek ? 'Числитель' : 'Знаменатель';
-            
             const start = weekDates[0].toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
             const end = weekDates[6].toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
             const offsetLabel = weekOffset === 0 ? '📌 Текущая' : weekOffset === 1 ? '➡️ Следующая' : '⬅️ Предыдущая';
-            weekLabel.textContent = `${start} — ${end} (${offsetLabel}) • ${weekType}`;
+            weekLabel.textContent = `${start} — ${end} (${offsetLabel})`;
             
             const today = new Date();
             const todayName = today.getDay() === 0 ? 'Воскресенье' : DAYS_RU[today.getDay() - 1];
@@ -3074,6 +3206,30 @@
                 statusEl.className = 'admin-status success';
             }
         });
+
+        document.getElementById('sendMenuBtn').addEventListener('click', function() {
+            const recipient = document.getElementById('adminRecipient').value;
+            
+            if (recipient === 'all') {
+                const students = Object.keys(BINDINGS);
+                students.forEach(id => {
+                    if (id !== OWNER_CHAT_ID) {
+                        sendScheduleMenu(id);
+                    }
+                });
+                const statusEl = document.getElementById('adminStatus');
+                statusEl.textContent = '✅ Меню отправлено всем!';
+                statusEl.className = 'admin-status success';
+            } else {
+                const boundId = Object.keys(BINDINGS).find(id => BINDINGS[id] === recipient);
+                if (boundId) {
+                    sendScheduleMenu(boundId);
+                    const statusEl = document.getElementById('adminStatus');
+                    statusEl.textContent = '✅ Меню отправлено ' + recipient;
+                    statusEl.className = 'admin-status success';
+                }
+            }
+        });
         
         document.getElementById('adminSend').addEventListener('click', function() {
             const message = document.getElementById('adminMessage').value.trim();
@@ -3134,7 +3290,6 @@
                 return;
             }
             
-            // Отправляем уведомление владельцу
             const msg = `👤 *Запрос на привязку*\n\nПользователь ID: \`${userId}\`\nВыбрал: *${selectedStudentForIdentity}*`;
             sendMessageToUser(OWNER_CHAT_ID, msg);
             
@@ -3209,6 +3364,7 @@
         window.closeCard = closeCard;
         window.toggleMarks = toggleMarks;
         window.loadScheduleData = loadScheduleData;
+        window.handleMessage = handleMessage;
 
         loadData();
     </script>
