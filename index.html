@@ -18,6 +18,7 @@
             --exam-bg: rgba(244, 114, 182, 0.12);
             --success: #10b981;
             --admin: #8b5cf6;
+            --tab-inactive: #334155;
         }
         * { 
             font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; 
@@ -35,7 +36,7 @@
         }
         body { 
             padding: 16px; 
-            padding-bottom: 30px; 
+            padding-bottom: 80px; 
         }
 
         #loader { 
@@ -52,7 +53,6 @@
             justify-content: center; 
             transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1); 
         }
-        
         .loader-inner {
             display: flex;
             flex-direction: column;
@@ -61,7 +61,6 @@
             width: 100%;
             padding: 20px;
         }
-        
         .logo-container { 
             position: relative; 
             width: 100px; 
@@ -71,7 +70,6 @@
             justify-content: center; 
             margin-bottom: 30px; 
         }
-        
         .logo-outline {
             position: absolute; 
             width: 100%; 
@@ -80,36 +78,30 @@
             box-sizing: border-box;
             transition: all 0.3s ease;
         }
-        
         #loader:not(.error-mode) .logo-container {
             animation: breatheContainer 2s ease-in-out infinite;
         }
-        
         #loader:not(.error-mode) .logo-outline {
             border: 2px solid rgba(56, 189, 248, 0.15);
             border-top: 2px solid var(--accent);
             box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
             animation: spin 1.2s linear infinite;
         }
-        
         #loader:not(.error-mode) .logo-icon {
             background: linear-gradient(135deg, #38bdf8, #0ea5e9);
             animation: breatheIcon 2s ease-in-out infinite;
             box-shadow: 0 0 15px rgba(56, 189, 248, 0.3);
         }
-        
         #loader.error-mode .logo-outline {
             border: 2px solid var(--error);
             box-shadow: 0 0 20px rgba(239, 68, 68, 0.5);
             animation: none;
         }
-        
         #loader.error-mode .logo-icon {
             background: linear-gradient(135deg, #ef4444, #dc2626);
             animation: breatheIconError 2s ease-in-out infinite;
             box-shadow: 0 0 20px rgba(239, 68, 68, 0.5);
         }
-        
         .logo-icon {
             width: 45px; 
             height: 60px; 
@@ -117,7 +109,6 @@
             position: relative; 
             z-index: 2;
         }
-        
         .logo-icon::before {
             content: ""; 
             position: absolute; 
@@ -129,7 +120,6 @@
             border-radius: 2px; 
             box-shadow: 0 8px 0 rgba(255,255,255,0.5), 0 16px 0 rgba(255,255,255,0.5);
         }
-        
         .loader-status { 
             font-size: 11px; 
             font-weight: 600; 
@@ -138,7 +128,6 @@
             letter-spacing: 0.3em; 
             margin-bottom: 25px;
         }
-        
         .error-container {
             display: none;
             flex-direction: column;
@@ -148,11 +137,7 @@
             width: 100%;
             max-width: 280px;
         }
-        
-        .error-container.visible {
-            display: flex;
-        }
-        
+        .error-container.visible { display: flex; }
         .error-message {
             font-size: 13px;
             font-weight: 500;
@@ -160,7 +145,6 @@
             text-align: center;
             margin-bottom: 20px;
         }
-        
         .retry-button {
             background: rgba(255, 255, 255, 0.08);
             border: 1px solid rgba(255, 255, 255, 0.15);
@@ -171,7 +155,6 @@
             font-size: 14px;
             cursor: pointer;
         }
-        
         .copyright {
             position: absolute;
             bottom: 25px;
@@ -184,23 +167,23 @@
             50% { transform: scale(1.02); }
             100% { transform: scale(0.98); }
         }
-        
         @keyframes breatheIcon {
             0% { transform: scale(0.97); opacity: 0.85; }
             50% { transform: scale(1.03); opacity: 1; }
             100% { transform: scale(0.97); opacity: 0.85; }
         }
-        
         @keyframes breatheIconError {
             0% { transform: scale(0.97); opacity: 0.85; }
             50% { transform: scale(1.03); opacity: 1; }
             100% { transform: scale(0.97); opacity: 0.85; }
         }
-        
         @keyframes spin { 
             0% { transform: rotate(0deg); } 
             100% { transform: rotate(360deg); } 
         }
+        @keyframes spinRing { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px) scale(0.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
         #main-content { 
             opacity: 0; 
@@ -212,13 +195,533 @@
             opacity: 1;
         }
         
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        .tab-content.active { display: block; }
+
+        /* ============================================================
+           ДОКБАР
+           ============================================================ */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(15, 23, 42, 0.92);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-top: 1px solid rgba(255,255,255,0.06);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 6px 0 env(safe-area-inset-bottom) 0;
+            z-index: 1000;
+            height: 64px;
+        }
+        .bottom-nav .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            cursor: pointer;
+            padding: 4px 16px;
+            border: none;
+            background: transparent;
+            color: var(--tab-inactive);
+            transition: color 0.2s ease;
+            position: relative;
+            flex: 1;
+        }
+        .bottom-nav .nav-item:active { transform: scale(0.95); }
+        .bottom-nav .nav-item.active { color: var(--accent); }
+        .bottom-nav .nav-item .nav-icon {
+            width: 24px;
+            height: 24px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        .bottom-nav .nav-item .nav-label {
+            font-size: 9px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+        }
+
+        /* ============================================================
+           СТИЛИ ДЛЯ РАСПИСАНИЯ
+           ============================================================ */
+        .schedule-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .schedule-header h2 {
+            font-size: 18px;
+            font-weight: 700;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .schedule-header h2 span { font-size: 22px; }
+        .schedule-header .group-label {
+            background: rgba(56, 189, 248, 0.12);
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--accent);
+            border: 1px solid rgba(56, 189, 248, 0.15);
+        }
+        .schedule-header .week-label {
+            font-size: 11px;
+            color: var(--muted);
+            font-weight: 400;
+            width: 100%;
+        }
+        .schedule-header .week-type {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--gold);
+            background: rgba(251, 191, 36, 0.12);
+            padding: 2px 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(251, 191, 36, 0.15);
+        }
+        .schedule-header .status-badge {
+            font-size: 9px;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+            background: rgba(255,255,255,0.06);
+            color: var(--muted);
+        }
+        .schedule-header .status-badge.success {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+        }
+        .schedule-header .status-badge.error {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--error);
+        }
+        .schedule-header .status-badge.loading {
+            background: rgba(56, 189, 248, 0.12);
+            color: var(--accent);
+        }
+        .schedule-header .admin-test-btn {
+            font-size: 10px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            border: 1px solid var(--admin);
+            color: var(--admin);
+            background: rgba(139, 92, 246, 0.1);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+        }
+        .schedule-header .admin-test-btn:active {
+            transform: scale(0.95);
+            background: rgba(139, 92, 246, 0.2);
+        }
+
+        .schedule-controls {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        .schedule-controls button {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 10px;
+            padding: 6px 14px;
+            color: var(--muted);
+            font-size: 11px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.2s;
+        }
+        .schedule-controls button:active {
+            transform: scale(0.95);
+            background: rgba(255,255,255,0.08);
+        }
+        .schedule-controls button svg {
+            width: 14px;
+            height: 14px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+        }
+        .schedule-controls button.active {
+            color: var(--accent);
+            border-color: rgba(56, 189, 248, 0.3);
+            background: rgba(56, 189, 248, 0.08);
+        }
+
+        .schedule-loader {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--muted);
+            font-size: 13px;
+        }
+        .schedule-loader .spinner {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 3px solid rgba(255,255,255,0.06);
+            border-top-color: var(--accent);
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 12px;
+        }
+
+        .schedule-error {
+            text-align: center;
+            padding: 30px 20px;
+            color: var(--error);
+            font-size: 13px;
+        }
+        .schedule-error .error-icon {
+            font-size: 28px;
+            display: block;
+            margin-bottom: 8px;
+        }
+        .schedule-error .retry-btn {
+            margin-top: 12px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 8px 24px;
+            border-radius: 20px;
+            color: var(--text);
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .schedule-error .retry-btn:active { transform: scale(0.95); }
+
+        .schedule-day {
+            margin-bottom: 14px;
+            background: rgba(56, 189, 248, 0.06);
+            border-radius: 14px;
+            border: 1px solid rgba(56, 189, 248, 0.12);
+            overflow: hidden;
+        }
+        .schedule-day-header {
+            padding: 12px 16px 10px;
+            background: rgba(56, 189, 248, 0.04);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid rgba(56, 189, 248, 0.12);
+            flex-wrap: wrap;
+        }
+        .schedule-day-header .day-name {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text);
+        }
+        .schedule-day-header .day-date {
+            font-size: 11px;
+            color: var(--muted);
+            font-weight: 400;
+        }
+        .schedule-day-header .day-badge {
+            margin-left: auto;
+            font-size: 10px;
+            padding: 2px 10px;
+            border-radius: 12px;
+            background: rgba(56, 189, 248, 0.12);
+            color: var(--accent);
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .schedule-day-header .day-badge.today {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+        }
+        .schedule-day-header .day-badge.weekend {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--error);
+        }
+
+        .schedule-lesson {
+            padding: 10px 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            transition: background 0.15s;
+        }
+        .schedule-lesson:last-child { border-bottom: none; }
+        .schedule-lesson:active { background: rgba(255,255,255,0.03); }
+
+        .schedule-lesson .lesson-time {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--accent);
+            min-width: 36px;
+            padding-top: 2px;
+        }
+        .schedule-lesson .lesson-info {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .schedule-lesson .lesson-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+            line-height: 1.3;
+        }
+        .schedule-lesson .lesson-subgroup {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--gold);
+            background: rgba(251, 191, 36, 0.12);
+            padding: 1px 8px;
+            border-radius: 10px;
+            display: inline-block;
+            margin-left: 6px;
+        }
+        .schedule-lesson .lesson-meta-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 6px;
+        }
+        .schedule-lesson .lesson-meta-row .room-badge {
+            font-size: 9px;
+            padding: 1px 8px;
+            border-radius: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            background: rgba(16, 185, 129, 0.12);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.15);
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .schedule-lesson .lesson-meta-row .room-badge .icon { font-size: 10px; }
+        .schedule-lesson .lesson-meta-row .type-badge {
+            font-size: 9px;
+            padding: 1px 8px;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.06);
+            color: var(--muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+        .schedule-lesson .lesson-meta-row .type-badge.lecture {
+            background: rgba(56, 189, 248, 0.12);
+            color: var(--accent);
+            border-color: rgba(56, 189, 248, 0.15);
+        }
+        .schedule-lesson .lesson-meta-row .type-badge.practice {
+            background: rgba(251, 191, 36, 0.12);
+            color: var(--gold);
+            border-color: rgba(251, 191, 36, 0.15);
+        }
+        .schedule-lesson .lesson-meta-row .type-badge.lab {
+            background: rgba(244, 114, 182, 0.12);
+            color: #f472b6;
+            border-color: rgba(244, 114, 182, 0.15);
+        }
+
+        .schedule-lesson .lesson-teachers {
+            font-size: 12px;
+            color: var(--muted);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 1px;
+        }
+        .schedule-lesson .lesson-teachers .teacher-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 9px;
+            padding: 1px 8px;
+            border-radius: 10px;
+            font-weight: 600;
+            background: rgba(139, 92, 246, 0.12);
+            color: #a5b4fc;
+            border: 1px solid rgba(139, 92, 246, 0.15);
+            text-transform: none;
+            letter-spacing: 0.3px;
+        }
+        .schedule-lesson .lesson-teachers .teacher-item .teacher-icon { font-size: 10px; opacity: 0.7; }
+        .schedule-lesson .lesson-teachers .teacher-item .teacher-name { font-weight: 400; }
+
+        .schedule-empty {
+            text-align: center;
+            padding: 20px;
+            color: var(--muted);
+            font-size: 13px;
+        }
+        .schedule-empty .empty-icon {
+            font-size: 24px;
+            display: block;
+            margin-bottom: 4px;
+            opacity: 0.5;
+        }
+
+        /* ============================================================
+           АДМИН-ПАНЕЛЬ
+           ============================================================ */
+        .admin-panel {
+            display: none;
+            position: fixed;
+            bottom: 30px;
+            left: 16px;
+            right: 16px;
+            background: var(--card);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid var(--admin);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+            z-index: 1002;
+            animation: slideUp 0.3s ease;
+            backdrop-filter: blur(20px);
+            background: rgba(30, 41, 59, 0.95);
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+        .admin-panel.open { display: block; }
+        .admin-panel .admin-title {
+            color: var(--admin);
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .admin-panel .admin-title .close-admin {
+            margin-left: auto;
+            color: var(--muted);
+            cursor: pointer;
+            font-size: 20px;
+        }
+        .admin-panel .admin-template-btn {
+            width: 100%;
+            padding: 10px 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            background: rgba(139, 92, 246, 0.08);
+            color: var(--admin);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 10px;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .admin-panel .admin-template-btn:active {
+            transform: scale(0.97);
+            background: rgba(139, 92, 246, 0.2);
+        }
+        .admin-panel .admin-input {
+            width: 100%;
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 12px 16px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.05);
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+            margin-bottom: 10px;
+            resize: vertical;
+            min-height: 80px;
+            font-family: inherit;
+        }
+        .admin-panel .admin-input:focus { border-color: var(--admin); }
+        .admin-panel .admin-select {
+            width: 100%;
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 12px 16px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.05);
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+            margin-bottom: 10px;
+            appearance: none;
+            -webkit-appearance: none;
+        }
+        .admin-panel .admin-select:focus { border-color: var(--admin); }
+        .admin-panel .admin-select option {
+            background: var(--card);
+            color: #fff;
+        }
+        .admin-panel .admin-actions { display: flex; gap: 10px; }
+        .admin-panel .admin-actions button {
+            flex: 1;
+            padding: 12px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .admin-panel .admin-actions button:active { transform: scale(0.96); }
+        .admin-panel .admin-actions .btn-send { background: var(--admin); color: white; }
+        .admin-panel .admin-actions .btn-cancel { background: rgba(255,255,255,0.08); color: var(--text); }
+        .admin-panel .admin-status {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 8px;
+            text-align: center;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .admin-panel .admin-status.success { color: var(--success); }
+        .admin-panel .admin-status.error { color: var(--error); }
+
+        .admin-fab {
+            display: none;
+            position: fixed;
+            bottom: 85px;
+            right: 16px;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            align-items: center;
+            justify-content: center;
+            z-index: 998;
+            cursor: pointer;
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+        }
+        .admin-fab:active { transform: scale(0.92); }
+        .admin-fab.visible { display: flex; }
+        .admin-fab svg { width: 22px; height: 22px; stroke: white; fill: none; stroke-width: 2; }
+
+        /* ============================================================
+           ЖУРНАЛ (БЕЗ ИЗМЕНЕНИЙ)
+           ============================================================ */
         .header {
             display: flex;
             align-items: center;
             justify-content: space-between;
             margin-bottom: 4px;
         }
-        
         .header-title {
             font-size: 22px;
             font-weight: 700;
@@ -226,7 +729,6 @@
             display: flex;
             align-items: center;
         }
-        
         .header-logo {
             display: inline-flex;
             align-items: center;
@@ -234,7 +736,6 @@
             margin-right: 8px;
             vertical-align: middle;
         }
-        
         .mini-journal-icon {
             width: 28px;
             height: 36px;
@@ -243,7 +744,6 @@
             position: relative;
             display: inline-block;
         }
-        
         .mini-journal-icon::before {
             content: "";
             position: absolute;
@@ -255,7 +755,6 @@
             border-radius: 1px;
             box-shadow: 0 7px 0 rgba(255,255,255,0.6), 0 14px 0 rgba(255,255,255,0.6);
         }
-        
         .profile-btn {
             width: 44px;
             height: 44px;
@@ -285,8 +784,6 @@
             transition: opacity 0.5s ease;
         }
         .profile-btn.active .ring { opacity: 1; animation: spinRing 3s linear infinite; }
-        @keyframes spinRing { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
         .profile-btn .profile-icon {
             width: 24px;
             height: 24px;
@@ -304,7 +801,6 @@
             transition: all 0.3s ease;
         }
         .profile-btn.active .profile-icon { color: #38bdf8; filter: drop-shadow(0 0 8px rgba(56,189,248,0.3)); }
-        
         .profile-btn .mode-label {
             display: none;
             position: absolute;
@@ -314,58 +810,48 @@
             letter-spacing: 0.3px;
             white-space: nowrap;
         }
-        .profile-btn.active .mode-label {
-            display: block;
+        .profile-btn.active .mode-label { display: block; }
+        .header-sub {
+            font-size: 11px;
+            color: var(--muted);
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
-
-        .header-sub { 
-            font-size: 11px; 
-            color: var(--muted); 
-            margin-bottom: 16px; 
-            text-transform: uppercase; 
-            letter-spacing: 0.5px; 
+        #search {
+            width: 100%;
+            border: 1px solid rgba(255,255,255,0.08);
+            padding: 12px 16px;
+            border-radius: 14px;
+            background: rgba(255,255,255,0.04);
+            color: #fff;
+            font-size: 15px;
+            outline: none;
+            margin-bottom: 16px;
         }
-        
-        #search { 
-            width: 100%; 
-            border: 1px solid rgba(255,255,255,0.08); 
-            padding: 12px 16px; 
-            border-radius: 14px; 
-            background: rgba(255,255,255,0.04); 
-            color: #fff; 
-            font-size: 15px; 
-            outline: none; 
-            margin-bottom: 16px; 
-        }
-        #search:focus { 
-            border-color: var(--accent); 
-        }
-        
-        .card { 
-            background: var(--card); 
-            border-radius: 18px; 
-            padding: 14px; 
-            margin-bottom: 10px; 
-            border: 1px solid rgba(255,255,255,0.05); 
+        #search:focus { border-color: var(--accent); }
+        .card {
+            background: var(--card);
+            border-radius: 18px;
+            padding: 14px;
+            margin-bottom: 10px;
+            border: 1px solid rgba(255,255,255,0.05);
             cursor: pointer;
         }
-        .card:active { 
-            transform: scale(0.98); 
+        .card:active { transform: scale(0.98); }
+        .student-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-        .student-header { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
+        .student-name {
+            font-size: 15px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
         }
-        .student-name { 
-            font-size: 15px; 
-            font-weight: 600; 
-            display: flex; 
-            align-items: center; 
-            gap: 6px; 
-            flex-wrap: wrap; 
-        }
-        
         .abs-badge {
             font-size: 9px;
             font-weight: 600;
@@ -378,34 +864,30 @@
             align-items: center;
             gap: 3px;
         }
-        
-        .score-pill { 
-            font-size: 11px; 
-            font-weight: 700; 
-            padding: 3px 8px; 
-            border-radius: 7px; 
-            min-width: 36px; 
-            text-align: center; 
+        .score-pill {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 7px;
+            min-width: 36px;
+            text-align: center;
             display: inline-block;
         }
-        .m-low { background: #ef4444; color: white; } 
-        .m-warn { background: #f59e0b; color: white; } 
+        .m-low { background: #ef4444; color: white; }
+        .m-warn { background: #f59e0b; color: white; }
         .m-high { background: #10b981; color: white; }
         .m-gold { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #0f172a; }
         .m-none { background: rgba(255,255,255,0.08); color: var(--muted); }
-        
-        .subs-container { 
+        .subs-container {
             display: none;
-            padding-top: 12px; 
-            margin-top: 12px; 
-            border-top: 1px solid rgba(255,255,255,0.05); 
+            padding-top: 12px;
+            margin-top: 12px;
+            border-top: 1px solid rgba(255,255,255,0.05);
         }
-        .subs-container.open { 
-            display: block; 
-        }
-        .sub-item { 
-            margin-bottom: 10px; 
-            cursor: pointer; 
+        .subs-container.open { display: block; }
+        .sub-item {
+            margin-bottom: 10px;
+            cursor: pointer;
             padding: 8px 10px;
             border-radius: 10px;
             transition: background 0.2s;
@@ -415,15 +897,13 @@
             background: var(--exam-bg);
             border-left: 3px solid var(--exam-color);
         }
-        .sub-item.exam-subject:active {
-            background: rgba(244, 114, 182, 0.2);
-        }
-        .sub-row { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            margin-bottom: 6px; 
-            font-size: 13px; 
+        .sub-item.exam-subject:active { background: rgba(244, 114, 182, 0.2); }
+        .sub-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+            font-size: 13px;
         }
         .subject-name-wrapper {
             display: flex;
@@ -462,21 +942,15 @@
             cursor: pointer;
             transition: opacity 0.2s;
         }
-        .exam-tooltip.open {
-            display: block;
-        }
+        .exam-tooltip.open { display: block; }
         .exam-tooltip .tooltip-title {
             color: var(--exam-color);
             font-weight: 600;
             font-size: 12px;
             margin-bottom: 4px;
         }
-        .exam-tooltip .tooltip-text {
-            color: var(--muted);
-        }
-        .exam-tooltip .tooltip-text strong {
-            color: var(--text);
-        }
+        .exam-tooltip .tooltip-text { color: var(--muted); }
+        .exam-tooltip .tooltip-text strong { color: var(--text); }
         .exam-tooltip .tooltip-hint {
             font-size: 9px;
             color: rgba(255,255,255,0.25);
@@ -485,34 +959,30 @@
             border-top: 1px solid rgba(255,255,255,0.05);
             padding-top: 6px;
         }
-        
-        .marks-box { 
-            display: none; 
-            background: rgba(0,0,0,0.25); 
-            padding: 10px; 
-            border-radius: 10px; 
-            margin-top: 6px; 
+        .marks-box {
+            display: none;
+            background: rgba(0,0,0,0.25);
+            padding: 10px;
+            border-radius: 10px;
+            margin-top: 6px;
         }
-        .marks-box.open { 
-            display: block; 
+        .marks-box.open { display: block; }
+        .marks-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
         }
-        .marks-row { 
-            display: flex; 
-            flex-wrap: wrap; 
-            gap: 4px; 
+        .mark {
+            width: 26px;
+            height: 26px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 7px;
+            font-size: 10px;
+            font-weight: 700;
+            margin-right: 2px;
         }
-        .mark { 
-            width: 26px; 
-            height: 26px; 
-            display: inline-flex; 
-            align-items: center; 
-            justify-content: center; 
-            border-radius: 7px; 
-            font-size: 10px; 
-            font-weight: 700; 
-            margin-right: 2px; 
-        }
-
         .card-overlay {
             display: none;
             position: fixed;
@@ -528,8 +998,6 @@
         }
         .card-overlay.open { display: flex; align-items: flex-start; justify-content: center; }
         .card-overlay .card-wrapper { max-width: 420px; width: 100%; margin: auto; animation: slideUp 0.3s ease; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px) scale(0.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
-
         .student-card {
             background: var(--card);
             border-radius: 20px;
@@ -547,7 +1015,6 @@
             background: linear-gradient(90deg, #38bdf8, #f472b6, #fbbf24);
             opacity: 0.6;
         }
-
         .card-close {
             position: absolute;
             top: 12px;
@@ -565,7 +1032,6 @@
             background: rgba(255,255,255,0.04);
         }
         .card-close:active { transform: scale(0.92); background: rgba(255,255,255,0.08); }
-
         .card-header {
             padding: 24px 20px 18px;
             background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
@@ -583,7 +1049,6 @@
             border-radius: 50%;
         }
         .card-header::before { content: '📚'; position: absolute; bottom: -10px; right: 20px; font-size: 48px; opacity: 0.06; }
-
         .card-user {
             display: flex;
             align-items: center;
@@ -604,7 +1069,6 @@
         }
         .card-user-meta { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
         .card-user-meta .tag { background: rgba(255,255,255,0.06); padding: 2px 12px; border-radius: 20px; font-size: 10px; }
-
         .card-stats {
             display: flex;
             align-items: center;
@@ -642,16 +1106,13 @@
         .stat-circle.green { background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.1)); color: #10b981; }
         .stat-circle.orange { background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(217, 119, 6, 0.1)); color: #f59e0b; }
         .stat-circle.red { background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(220, 38, 38, 0.1)); color: #ef4444; }
-
         .stat-info { flex: 1; }
         .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
         .stat-value { font-size: 14px; font-weight: 600; color: var(--text); }
         .stat-value span { color: var(--muted); font-weight: 400; font-size: 12px; }
-
         .card-body { padding: 18px 20px 20px; }
         .card-body-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
         .card-body-title .count { font-size: 10px; font-weight: 400; color: var(--muted); background: rgba(255,255,255,0.04); padding: 1px 10px; border-radius: 20px; }
-
         .subject-row {
             display: flex;
             align-items: center;
@@ -689,7 +1150,6 @@
         .subject-row .subject-score.gray { color: #475569; }
         .subject-row.exam { background: rgba(244, 114, 182, 0.08); border-left: 3px solid #f472b6; border-radius: 0 12px 12px 0; padding-left: 11px; }
         .subject-row.exam .exam-badge { font-size: 8px; font-weight: 700; text-transform: uppercase; color: #f472b6; background: rgba(244, 114, 182, 0.15); padding: 1px 8px; border-radius: 10px; margin-left: 6px; }
-
         .subject-marks-container {
             display: none;
             margin: 6px 0 10px 0;
@@ -713,7 +1173,6 @@
             color: white;
         }
         .subject-marks-container .no-marks { color: var(--muted); font-size: 12px; padding: 4px 0; width: 100%; text-align: center; }
-
         .identity-popup {
             display: none;
             position: fixed;
@@ -746,7 +1205,6 @@
         .identity-popup .actions button:active { transform: scale(0.96); }
         .identity-popup .btn-yes { background: var(--success); color: white; }
         .identity-popup .btn-no { background: rgba(255,255,255,0.08); color: var(--text); }
-
         .student-select-list { max-height: 250px; overflow-y: auto; margin: 8px 0; }
         .student-select-list .student-item {
             padding: 12px 16px;
@@ -761,7 +1219,6 @@
         .student-select-list .student-item:active { transform: scale(0.97); background: rgba(255,255,255,0.06); }
         .student-select-list .student-item .s-name { font-size: 14px; font-weight: 500; color: var(--text); }
         .student-select-list .student-item .s-group { font-size: 11px; color: var(--muted); margin-left: auto; }
-
         .empty-state { text-align: center; padding: 40px 20px; color: var(--muted); font-size: 13px; }
         .footer { text-align: center; padding: 16px; color: rgba(255,255,255,0.08); font-size: 9px; }
         .fab-update {
@@ -787,173 +1244,9 @@
             display: none;
         }
 
-        /* ============================================================
-           АДМИН-ПАНЕЛЬ
-           ============================================================ */
-        .admin-panel {
-            display: none;
-            position: fixed;
-            bottom: 30px;
-            left: 16px;
-            right: 16px;
-            background: var(--card);
-            border-radius: 16px;
-            padding: 20px;
-            border: 1px solid var(--admin);
-            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
-            z-index: 1002;
-            animation: slideUp 0.3s ease;
-            backdrop-filter: blur(20px);
-            background: rgba(30, 41, 59, 0.95);
-            max-height: 85vh;
-            overflow-y: auto;
-        }
-        .admin-panel.open {
-            display: block;
-        }
-        .admin-panel .admin-title {
-            color: var(--admin);
-            font-size: 16px;
-            font-weight: 700;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .admin-panel .admin-title .close-admin {
-            margin-left: auto;
-            color: var(--muted);
-            cursor: pointer;
-            font-size: 20px;
-        }
-        
-        .admin-panel .admin-template-btn {
-            width: 100%;
-            padding: 10px 16px;
-            border-radius: 12px;
-            border: 1px solid rgba(139, 92, 246, 0.3);
-            background: rgba(139, 92, 246, 0.08);
-            color: var(--admin);
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-bottom: 10px;
-            transition: all 0.2s;
-            text-align: center;
-        }
-        .admin-panel .admin-template-btn:active {
-            transform: scale(0.97);
-            background: rgba(139, 92, 246, 0.2);
-        }
-        
-        .admin-panel .admin-input {
-            width: 100%;
-            border: 1px solid rgba(255,255,255,0.1);
-            padding: 12px 16px;
-            border-radius: 12px;
-            background: rgba(255,255,255,0.05);
-            color: #fff;
-            font-size: 14px;
-            outline: none;
-            margin-bottom: 10px;
-            resize: vertical;
-            min-height: 80px;
-            font-family: inherit;
-        }
-        .admin-panel .admin-input:focus {
-            border-color: var(--admin);
-        }
-        .admin-panel .admin-select {
-            width: 100%;
-            border: 1px solid rgba(255,255,255,0.1);
-            padding: 12px 16px;
-            border-radius: 12px;
-            background: rgba(255,255,255,0.05);
-            color: #fff;
-            font-size: 14px;
-            outline: none;
-            margin-bottom: 10px;
-            appearance: none;
-            -webkit-appearance: none;
-        }
-        .admin-panel .admin-select:focus {
-            border-color: var(--admin);
-        }
-        .admin-panel .admin-select option {
-            background: var(--card);
-            color: #fff;
-        }
-        
-        .admin-panel .admin-actions {
-            display: flex;
-            gap: 10px;
-        }
-        .admin-panel .admin-actions button {
-            flex: 1;
-            padding: 12px;
-            border-radius: 12px;
-            border: none;
-            font-weight: 600;
-            font-size: 14px;
-            cursor: pointer;
-        }
-        .admin-panel .admin-actions button:active {
-            transform: scale(0.96);
-        }
-        .admin-panel .admin-actions .btn-send {
-            background: var(--admin);
-            color: white;
-        }
-        .admin-panel .admin-actions .btn-cancel {
-            background: rgba(255,255,255,0.08);
-            color: var(--text);
-        }
-        .admin-panel .admin-status {
-            font-size: 12px;
-            color: var(--muted);
-            margin-top: 8px;
-            text-align: center;
-        }
-        .admin-panel .admin-status.success {
-            color: var(--success);
-        }
-        .admin-panel .admin-status.error {
-            color: var(--error);
-        }
-
-        /* Кнопка админа */
-        .admin-fab {
-            display: none;
-            position: fixed;
-            bottom: 85px;
-            right: 16px;
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
-            border: 1px solid rgba(139, 92, 246, 0.3);
-            align-items: center;
-            justify-content: center;
-            z-index: 998;
-            cursor: pointer;
-            box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
-        }
-        .admin-fab:active {
-            transform: scale(0.92);
-        }
-        .admin-fab.visible {
-            display: flex;
-        }
-        .admin-fab svg {
-            width: 22px;
-            height: 22px;
-            stroke: white;
-            fill: none;
-            stroke-width: 2;
-        }
-
         @supports (padding-bottom: env(safe-area-inset-bottom)) {
-            body { padding-bottom: calc(30px + env(safe-area-inset-bottom)); }
+            body { padding-bottom: calc(80px + env(safe-area-inset-bottom)); }
+            .bottom-nav { padding-bottom: env(safe-area-inset-bottom); }
             .fab-update { bottom: calc(30px + env(safe-area-inset-bottom)); }
             .identity-popup { bottom: calc(30px + env(safe-area-inset-bottom)); }
             .admin-panel { bottom: calc(30px + env(safe-area-inset-bottom)); }
@@ -979,81 +1272,135 @@
     </div>
 
     <div id="main-content">
-        <div class="header">
-            <div class="header-title">
-                <span class="header-logo"><span class="mini-journal-icon"></span></span>
-                Журнал 86РТК
+        
+        <!-- ВКЛАДКА: ЖУРНАЛ -->
+        <div class="tab-content active" id="tabJournal">
+            <div class="header">
+                <div class="header-title">
+                    <span class="header-logo"><span class="mini-journal-icon"></span></span>
+                    Журнал 86РТК
+                </div>
+                <div class="profile-btn" id="profileBtn">
+                    <span class="ring"></span>
+                    <span class="profile-icon" id="profileIcon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                            <circle cx="12" cy="7" r="4"/>
+                        </svg>
+                    </span>
+                    <span class="mode-label" id="modeLabel">ЖУРНАЛ</span>
+                </div>
             </div>
-            <div class="profile-btn" id="profileBtn">
-                <span class="ring"></span>
-                <span class="profile-icon" id="profileIcon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                        <circle cx="12" cy="7" r="4"/>
-                    </svg>
-                </span>
-                <span class="mode-label" id="modeLabel">ЖУРНАЛ</span>
+            <div class="header-sub">Электронный журнал успеваемости</div>
+            <input type="text" id="search" placeholder="Поиск по фамилии" autocomplete="off">
+            <div id="list"></div>
+            <div class="footer">by @skwared</div>
+        </div>
+
+        <!-- ВКЛАДКА: РАСПИСАНИЕ -->
+        <div class="tab-content" id="tabSchedule">
+            <div class="schedule-header">
+                <div>
+                    <h2><span>📅</span> Расписание</h2>
+                    <span class="week-label" id="scheduleWeekLabel">Загрузка...</span>
+                    <span class="week-type" id="scheduleWeekType">⏳</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span class="group-label">Группа 86</span>
+                    <span class="status-badge loading" id="scheduleStatusBadge">⏳ Загрузка...</span>
+                    <button class="admin-test-btn" id="adminTestBtn" style="display:none;">📤 Тест</button>
+                </div>
+            </div>
+
+            <div class="schedule-controls">
+                <button id="schedulePrevWeek">
+                    <svg viewBox="0 0 24 24" width="14" height="14"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    <span>Пред.</span>
+                </button>
+                <button id="scheduleCurrentWeek" class="active">
+                    <span>Текущая</span>
+                </button>
+                <button id="scheduleNextWeek">
+                    <span>След.</span>
+                    <svg viewBox="0 0 24 24" width="14" height="14"><path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+                <button id="scheduleRefreshBtn">
+                    <svg viewBox="0 0 24 24"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                    <span>Обновить</span>
+                </button>
+            </div>
+
+            <div id="scheduleContent">
+                <div class="schedule-loader">
+                    <div class="spinner"></div>
+                    <span>Загрузка расписания...</span>
+                </div>
             </div>
         </div>
-        
-        <div class="header-sub">Электронный журнал успеваемости</div>
-        <input type="text" id="search" placeholder="Поиск по фамилии" autocomplete="off">
-        <div id="list"></div>
-        <div class="footer">by @skwared</div>
-    </div>
 
-    <!-- Кнопка админа (видна только владельцу) -->
-    <div class="admin-fab" id="adminFab">
-        <svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-            <path d="M8 10h.01"/>
-            <path d="M12 10h.01"/>
-            <path d="M16 10h.01"/>
-        </svg>
-    </div>
-
-    <!-- Админ-панель -->
-    <div class="admin-panel" id="adminPanel">
-        <div class="admin-title">
-            👑 Админ-панель
-            <span class="close-admin" id="closeAdmin">✕</span>
+        <!-- Кнопка админа -->
+        <div class="admin-fab" id="adminFab">
+            <svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                <path d="M8 10h.01"/>
+                <path d="M12 10h.01"/>
+                <path d="M16 10h.01"/>
+            </svg>
         </div>
-        
-        <!-- Один шаблон -->
-        <button class="admin-template-btn" id="templateNewScores">
-            📊 Новые баллы
+
+        <!-- Админ-панель -->
+        <div class="admin-panel" id="adminPanel">
+            <div class="admin-title">
+                👑 Админ-панель
+                <span class="close-admin" id="closeAdmin">✕</span>
+            </div>
+            <button class="admin-template-btn" id="templateNewScores">📊 Новые баллы</button>
+            <textarea class="admin-input" id="adminMessage" placeholder="Введите сообщение для рассылки..."></textarea>
+            <select class="admin-select" id="adminRecipient">
+                <option value="all">📢 Всем студентам</option>
+            </select>
+            <div class="admin-actions">
+                <button class="btn-send" id="adminSend">📨 Отправить</button>
+                <button class="btn-cancel" id="adminCancel">Отмена</button>
+            </div>
+            <div class="admin-status" id="adminStatus"></div>
+        </div>
+
+        <!-- Попапы -->
+        <div class="identity-popup" id="identityPopup">
+            <div class="title">👤 Это вы?</div>
+            <div class="sub" id="popupSubText">Выберите свою фамилию из списка:</div>
+            <div class="student-select-list" id="studentSelectList"></div>
+            <div class="actions">
+                <button class="btn-yes" id="btnIdentityYes">Да, это я</button>
+                <button class="btn-no" id="btnIdentityNo">Нет</button>
+            </div>
+        </div>
+
+        <div class="card-overlay" id="cardOverlay">
+            <div class="card-wrapper" id="cardWrapper"></div>
+        </div>
+
+        <!-- Кнопка обновления -->
+        <div class="fab-update" id="fabUpdate">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+            </svg>
+        </div>
+
+    </div>
+
+    <!-- ДОКБАР -->
+    <nav class="bottom-nav" id="bottomNav">
+        <button class="nav-item active" data-tab="tabJournal">
+            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="11" x2="14" y2="11"/><line x1="8" y1="15" x2="12" y2="15"/></svg>
+            <span class="nav-label">Журнал</span>
         </button>
-        
-        <textarea class="admin-input" id="adminMessage" placeholder="Введите сообщение для рассылки..."></textarea>
-        <select class="admin-select" id="adminRecipient">
-            <option value="all">📢 Всем студентам</option>
-        </select>
-        <div class="admin-actions">
-            <button class="btn-send" id="adminSend">📨 Отправить</button>
-            <button class="btn-cancel" id="adminCancel">Отмена</button>
-        </div>
-        <div class="admin-status" id="adminStatus"></div>
-    </div>
-
-    <div class="identity-popup" id="identityPopup">
-        <div class="title">👤 Это вы?</div>
-        <div class="sub" id="popupSubText">Выберите свою фамилию из списка:</div>
-        <div class="student-select-list" id="studentSelectList"></div>
-        <div class="actions">
-            <button class="btn-yes" id="btnIdentityYes">Да, это я</button>
-            <button class="btn-no" id="btnIdentityNo">Нет</button>
-        </div>
-    </div>
-
-    <div class="card-overlay" id="cardOverlay">
-        <div class="card-wrapper" id="cardWrapper"></div>
-    </div>
-
-    <div class="fab-update" id="fabUpdate">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
-        </svg>
-    </div>
+        <button class="nav-item" data-tab="tabSchedule">
+            <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/><path d="M8 18h.01"/><path d="M12 18h.01"/><path d="M16 18h.01"/></svg>
+            <span class="nav-label">Расписание</span>
+        </button>
+    </nav>
 
     <script>
         // ============================================================
@@ -1063,7 +1410,17 @@
         const API_ABSENCES = 'https://script.google.com/macros/s/AKfycbyux4wfN_lVoodDq-JHHjbYAGuJys_DsZ2mADyUGdw1MERG-iZK833dN0tSzI7lq_QeZg/exec';
         const BOT_TOKEN = '8559243948:AAFAW1LdoTmE1a0I1pTgOvv6c9jDLz_1nnI';
         const OWNER_CHAT_ID = '5753985995';
-        
+        const PROXY_URL = 'https://schedule-proxy.arsenijbro5.workers.dev/';
+        const DAYS_RU = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
+        const TYPE_MAP = {
+            'Лек': 'лекция',
+            'ЛР': 'лабораторная',
+            'ПР': 'практика',
+            'Лекция': 'лекция',
+            'Лабораторная': 'лабораторная',
+            'Практика': 'практика'
+        };
+
         // ============================================================
         // 2. ПРИВЯЗКА СТУДЕНТОВ
         // ============================================================
@@ -1082,7 +1439,7 @@
             '986867638' : 'Дроздов',
             '1236220960' : 'Песецкий'
         };
-        
+
         // ============================================================
         // 3. ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ
         // ============================================================
@@ -1095,13 +1452,17 @@
         let isDataLoaded = false;
         let isAdmin = false;
         
-        const CACHE_KEY = 'journal_86rtk_v31';
+        let scheduleRawHTML = null;
+        let scheduleBlocks = [];
+        let scheduleOffset = 0;
+
+        const CACHE_KEY = 'journal_86rtk_v32';
         const EXAM_SUBJECTS = [
             'Цифровая и микропроцессорная техника',
             'Промышленная электроника и микроэлектроника',
             'Автоматизация производства'
         ];
-        
+
         // ============================================================
         // 4. Telegram WebApp
         // ============================================================
@@ -1119,13 +1480,14 @@
                     if (isAdmin) {
                         console.log('👑 Админ режим активирован');
                         document.getElementById('adminFab').classList.add('visible');
+                        document.getElementById('adminTestBtn').style.display = 'inline-block';
                     }
                 }
             }
         } catch(e) {
             console.warn('Telegram WebApp не доступен:', e);
         }
-        
+
         // ============================================================
         // 5. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
         // ============================================================
@@ -1232,62 +1594,28 @@
             errorContainer.classList.remove('visible');
             document.getElementById('loaderStatus').textContent = 'Загрузка журнала';
         }
-        
+
         // ============================================================
-        // 6. ОТПРАВКА УВЕДОМЛЕНИЙ
-        // ============================================================
-        function notifyOwner(userId, studentName) {
-            const message = '🔔 <b>Новая привязка!</b>\n\n' +
-                '👤 Студент: <b>' + escapeHtml(studentName) + '</b>\n' +
-                '🆔 Telegram ID: <code>' + userId + '</code>\n\n' +
-                'Для привязки добавьте в BINDINGS:\n' +
-                '<code>\'' + userId + '\' : \'' + escapeHtml(studentName) + '\'</code>';
-            
-            const url = 'https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage';
-            fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    chat_id: OWNER_CHAT_ID,
-                    text: message,
-                    parse_mode: 'HTML'
-                })
-            }).then(r => r.json()).then(data => {
-                if (data.ok) {
-                    console.log('✅ Уведомление отправлено');
-                } else {
-                    console.error('❌ Ошибка:', data);
-                }
-            }).catch(e => console.error('❌ Ошибка:', e));
-        }
-        
-        // ============================================================
-        // 7. АДМИН-ФУНКЦИИ
+        // 6. АДМИН-ФУНКЦИИ (ДЛЯ РАССЫЛКИ)
         // ============================================================
         function updateAdminRecipients() {
             const select = document.getElementById('adminRecipient');
             const currentValue = select.value;
             select.innerHTML = '<option value="all">📢 Всем студентам</option>';
-            
             const boundStudents = Object.keys(BINDINGS).map(id => ({
                 id: id,
                 name: BINDINGS[id]
             }));
-            
             boundStudents.sort((a, b) => a.name.localeCompare(b.name));
-            
             boundStudents.forEach(s => {
                 const option = document.createElement('option');
                 option.value = s.name;
                 option.textContent = '👤 ' + s.name;
                 select.appendChild(option);
             });
-            
-            if (currentValue) {
-                select.value = currentValue;
-            }
+            if (currentValue) select.value = currentValue;
         }
-        
+
         function sendMessageToStudents(text, recipient) {
             const statusEl = document.getElementById('adminStatus');
             statusEl.textContent = '⏳ Отправка...';
@@ -1306,7 +1634,6 @@
                 }
             }
             
-            // Фильтруем владельца
             students = students.filter(s => s.id !== OWNER_CHAT_ID);
             
             if (students.length === 0) {
@@ -1315,7 +1642,6 @@
                 return;
             }
             
-            // Убираем "Объявление от преподавателя"
             const msg = '📢 ' + escapeHtml(text) + '\n\n━━━━━━━━━━━━━━\n📱 Журнал 86РТК';
             
             let sent = 0;
@@ -1363,9 +1689,34 @@
                 }, 3000);
             });
         }
-        
+
+        function sendScheduleToOwner(scheduleHTML) {
+            if (!tg || !isAdmin) return;
+            
+            const msg = '📅 <b>Тестовое расписание</b>\n\n' + scheduleHTML;
+            
+            const url = 'https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage';
+            fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: OWNER_CHAT_ID,
+                    text: msg,
+                    parse_mode: 'HTML'
+                })
+            }).then(r => r.json()).then(data => {
+                if (data.ok) {
+                    tg.showAlert('✅ Расписание отправлено!');
+                } else {
+                    tg.showAlert('❌ Ошибка отправки');
+                }
+            }).catch(() => {
+                tg.showAlert('❌ Ошибка сети');
+            });
+        }
+
         // ============================================================
-        // 8. КАРТОЧКА СТУДЕНТА
+        // 7. КАРТОЧКА СТУДЕНТА (СОКРАЩЕНО)
         // ============================================================
         function toggleMarks(id) {
             const el = document.getElementById(id);
@@ -1490,9 +1841,9 @@
             document.body.classList.remove('search-hidden');
             updateProfileButton();
         }
-        
+
         // ============================================================
-        // 9. РЕНДЕРИНГ ЖУРНАЛА
+        // 8. РЕНДЕРИНГ ЖУРНАЛА
         // ============================================================
         function renderJournal() {
             const container = document.getElementById('list');
@@ -1626,9 +1977,9 @@
             
             updateProfileButton();
         }
-        
+
         // ============================================================
-        // 10. КНОПКА ПРОФИЛЯ
+        // 9. КНОПКА ПРОФИЛЯ
         // ============================================================
         function updateProfileButton() {
             const btn = document.getElementById('profileBtn');
@@ -1647,9 +1998,9 @@
                 label.textContent = '';
             }
         }
-        
+
         // ============================================================
-        // 11. ВЫБОР СТУДЕНТА
+        // 10. ВЫБОР СТУДЕНТА
         // ============================================================
         function showStudentSelect() {
             const popup = document.getElementById('identityPopup');
@@ -1689,9 +2040,9 @@
             popup.classList.add('open');
             if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
         }
-        
+
         // ============================================================
-        // 12. ЗАГРУЗКА ДАННЫХ
+        // 11. ЗАГРУЗКА ДАННЫХ (ЖУРНАЛ)
         // ============================================================
         function loadData() {
             if (isLoading) return;
@@ -1705,7 +2056,6 @@
             hideError();
             loaderStatus.textContent = 'Загрузка журнала';
             
-            // Сначала проверяем кеш
             try {
                 const cached = localStorage.getItem(CACHE_KEY);
                 if (cached) {
@@ -1728,7 +2078,6 @@
                 console.warn('Ошибка чтения кеша:', e);
             }
             
-            // Загружаем свежие данные с сервера
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 8000);
             
@@ -1823,9 +2172,554 @@
                 mainContent.classList.add('visible');
             }, 400);
         }
-        
+
         // ============================================================
-        // 13. ОБРАБОТЧИКИ
+        // 12. РАСПИСАНИЕ — ПАРСИНГ И ОТОБРАЖЕНИЕ
+        // ============================================================
+        function cleanDiscipline(name) {
+            if (!name) return '';
+            let cleaned = name.trim();
+            cleaned = cleaned.replace(/\([^)]*\)/g, '').trim();
+            cleaned = cleaned.replace(/\([кКнН]\)$/, '').trim();
+            cleaned = cleaned.replace(/[.,\s]+$/, '').trim();
+            return cleaned;
+        }
+
+        function extractTeacherFromText(text) {
+            const patterns = [
+                /([А-Я][а-я]+\s+[А-Я]\.\s*[А-Я]\.)/,
+                /([А-Я][а-я]+\s+[А-Я]\.\s*[А-Я]\.)/,
+                /([А-Я][а-я]+\s+[А-Я][а-я]+\s+[А-Я][а-я]+)/
+            ];
+            for (const pattern of patterns) {
+                const match = text.match(pattern);
+                if (match) return match[0].trim();
+            }
+            return null;
+        }
+
+        function parseLessonText(text, pairNum) {
+            if (!text || text.trim() === '' || text.trim() === '-') return null;
+            
+            let content = text.trim();
+            let subgroup = '';
+            let lessonType = '';
+            let room = '';
+            let teachers = [];
+            
+            const subMatch = content.match(/^(\d+)\./);
+            if (subMatch) {
+                subgroup = subMatch[1];
+                content = content.replace(/^\d+\.\s*/, '').trim();
+            }
+            
+            const roomMatch = content.match(/(Кн\.?\s*[\d\-()]+|[\d\-]+\(?[к\)]?)/i);
+            if (roomMatch) {
+                room = roomMatch[0].trim();
+                content = content.replace(roomMatch[0], '').trim();
+            }
+            
+            const kMatch = content.match(/\([кКнН]\)/);
+            if (kMatch) {
+                const kText = kMatch[0];
+                if (!room) room = kText;
+                else room = room + ' ' + kText;
+                content = content.replace(kMatch[0], '').trim();
+            }
+            
+            const typeMatch = content.match(/\(([^)]+)\)/);
+            if (typeMatch) {
+                const type = typeMatch[1].trim();
+                lessonType = TYPE_MAP[type] || type;
+                content = content.replace(typeMatch[0], '').trim();
+            }
+            
+            let discipline = '';
+            let tempContent = content;
+            let isFizra = false;
+            
+            if (tempContent.includes('ФЗКиЗ')) {
+                isFizra = true;
+                const teacherPatterns = [
+                    /Усикова\s+[А-Я]\.\s*[А-Я]\./,
+                    /Анципов\s+[А-Я]\.\s*[А-Я]\./
+                ];
+                
+                for (const pattern of teacherPatterns) {
+                    const match = tempContent.match(pattern);
+                    if (match) {
+                        teachers.push(match[0].trim());
+                        tempContent = tempContent.replace(match[0], '').trim();
+                    }
+                }
+                
+                if (teachers.length > 0) {
+                    discipline = 'ФЗКиЗ';
+                }
+            }
+            
+            if (!discipline) {
+                const teacher = extractTeacherFromText(tempContent);
+                if (teacher) {
+                    teachers.push(teacher);
+                    tempContent = tempContent.replace(teacher, '').trim();
+                }
+                discipline = cleanDiscipline(tempContent);
+                if (!discipline) discipline = 'Без названия';
+            }
+            
+            if (isFizra) {
+                subgroup = '';
+                if (room === '2' || room === '--' || room === '-') {
+                    room = '';
+                }
+            }
+            
+            return {
+                pair: pairNum,
+                discipline: discipline,
+                type: lessonType,
+                teachers: teachers,
+                room: room,
+                subgroup: subgroup
+            };
+        }
+
+        function mergeLessonsInPair(lessons) {
+            if (!lessons || lessons.length === 0) return [];
+            
+            const grouped = {};
+            
+            for (const lesson of lessons) {
+                const key = lesson.pair + '|' + lesson.discipline + '|' + lesson.type + '|' + lesson.room;
+                if (!grouped[key]) {
+                    grouped[key] = {
+                        pair: lesson.pair,
+                        discipline: lesson.discipline,
+                        type: lesson.type,
+                        room: lesson.room,
+                        teachers: [],
+                        subgroups: []
+                    };
+                }
+                if (lesson.teachers && lesson.teachers.length > 0) {
+                    for (const teacher of lesson.teachers) {
+                        if (!grouped[key].teachers.includes(teacher)) {
+                            grouped[key].teachers.push(teacher);
+                        }
+                    }
+                }
+                if (lesson.subgroup && !grouped[key].subgroups.includes(lesson.subgroup)) {
+                    grouped[key].subgroups.push(lesson.subgroup);
+                }
+            }
+            
+            return Object.values(grouped);
+        }
+
+        function getWeekOffsetDate(offset) {
+            const today = new Date();
+            const day = today.getDay();
+            const diff = today.getDate() - day + (day === 0 ? -6 : 1);
+            const monday = new Date(today);
+            monday.setDate(diff + offset * 7);
+            return monday;
+        }
+
+        function formatDate(date) {
+            const d = String(date.getDate()).padStart(2, '0');
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const y = date.getFullYear();
+            return `${d}.${m}.${y}`;
+        }
+
+        function getWeekNumber(date) {
+            const d = new Date(date);
+            d.setHours(0, 0, 0, 0);
+            d.setDate(d.getDate() + 3 - (d.getDay() + 6) % 7);
+            const week1 = new Date(d.getFullYear(), 0, 4);
+            return 1 + Math.round(((d - week1) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
+        }
+
+        function extractScheduleBlocks(html) {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            
+            const blocks = [];
+            const headings = doc.querySelectorAll('h2');
+            
+            for (let i = 0; i < headings.length; i++) {
+                const h2 = headings[i];
+                if (h2.textContent.includes('Группа - 86')) {
+                    let table = null;
+                    let el = h2.nextElementSibling;
+                    while (el) {
+                        if (el.tagName === 'TABLE') {
+                            table = el;
+                            break;
+                        }
+                        el = el.nextElementSibling;
+                    }
+                    
+                    if (table) {
+                        const headerRow = table.querySelector('tr');
+                        let dates = [];
+                        if (headerRow) {
+                            const cells = headerRow.querySelectorAll('td, th');
+                            for (const cell of cells) {
+                                const text = cell.textContent.trim();
+                                const dateMatch = text.match(/(\d{2}\.\d{2}\.\d{4})/);
+                                if (dateMatch) {
+                                    dates.push(dateMatch[1]);
+                                }
+                            }
+                        }
+                        
+                        blocks.push({
+                            table: table,
+                            dates: dates,
+                            html: table.outerHTML
+                        });
+                    }
+                }
+            }
+            
+            return blocks;
+        }
+
+        function parseScheduleFromBlock(block) {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(block.html, 'text/html');
+            const table = doc.querySelector('table');
+            
+            if (!table) return null;
+            
+            const rows = table.querySelectorAll('tr');
+            if (rows.length < 4) return null;
+            
+            let headerRow = null;
+            let headerRowIndex = 0;
+            
+            for (let i = 0; i < Math.min(3, rows.length); i++) {
+                const cells = rows[i].querySelectorAll('td, th');
+                let hasDay = false;
+                for (const cell of cells) {
+                    const text = cell.textContent.trim();
+                    for (const day of DAYS_RU) {
+                        if (text.includes(day)) {
+                            hasDay = true;
+                            break;
+                        }
+                    }
+                    if (hasDay) break;
+                }
+                if (hasDay) {
+                    headerRow = rows[i];
+                    headerRowIndex = i;
+                    break;
+                }
+            }
+            
+            if (!headerRow) return null;
+            
+            const headerCells = headerRow.querySelectorAll('td, th');
+            const dayMap = {};
+            let currentCol = 0;
+            
+            for (const cell of headerCells) {
+                const text = cell.textContent.trim();
+                const colspan = parseInt(cell.getAttribute('colspan')) || 1;
+                
+                let foundDay = null;
+                for (const day of DAYS_RU) {
+                    if (text.includes(day)) {
+                        foundDay = day;
+                        break;
+                    }
+                }
+                
+                if (foundDay) {
+                    dayMap[foundDay] = {
+                        subjectCol: currentCol,
+                        roomCol: currentCol + 1,
+                        date: text
+                    };
+                }
+                
+                currentCol += colspan;
+            }
+            
+            if (Object.keys(dayMap).length === 0) {
+                for (let i = 0; i < 6; i++) {
+                    dayMap[DAYS_RU[i]] = {
+                        subjectCol: 1 + i * 2,
+                        roomCol: 2 + i * 2,
+                        date: ''
+                    };
+                }
+            }
+            
+            const schedule = {};
+            Object.keys(dayMap).forEach(day => { schedule[day] = []; });
+            
+            let totalPairs = 0;
+            const startRow = headerRowIndex + 2;
+            
+            for (let i = startRow; i < rows.length; i++) {
+                const cells = rows[i].querySelectorAll('td, th');
+                if (cells.length < 2) continue;
+                
+                const pairNum = cells[0].textContent.trim();
+                if (!pairNum || pairNum === '') continue;
+                
+                for (const [dayName, info] of Object.entries(dayMap)) {
+                    const subjCol = info.subjectCol;
+                    const roomCol = info.roomCol;
+                    
+                    let subject = '';
+                    let room = '';
+                    
+                    if (subjCol < cells.length) {
+                        subject = cells[subjCol].textContent.trim();
+                    }
+                    if (roomCol < cells.length) {
+                        room = cells[roomCol].textContent.trim();
+                    }
+                    
+                    if (!subject || subject === '' || subject === '-') continue;
+                    
+                    let fullText = subject;
+                    if (room && room !== '' && room !== '-') {
+                        fullText += ' ' + room;
+                    }
+                    
+                    const lesson = parseLessonText(fullText, pairNum);
+                    if (lesson) {
+                        if (!lesson.room && room && room !== '' && room !== '-') {
+                            lesson.room = room;
+                        }
+                        schedule[dayName].push(lesson);
+                        totalPairs++;
+                    }
+                }
+            }
+            
+            for (const day of Object.keys(schedule)) {
+                schedule[day] = mergeLessonsInPair(schedule[day]);
+            }
+            
+            return schedule;
+        }
+
+        function renderScheduleUI(schedule, weekOffset) {
+            const container = document.getElementById('scheduleContent');
+            const statusBadge = document.getElementById('scheduleStatusBadge');
+            const weekLabel = document.getElementById('scheduleWeekLabel');
+            const weekTypeEl = document.getElementById('scheduleWeekType');
+            
+            if (!schedule) {
+                container.innerHTML = `<div class="schedule-empty"><span class="empty-icon">📭</span><span>Расписание не найдено</span></div>`;
+                statusBadge.textContent = '❌ Ошибка';
+                statusBadge.className = 'status-badge error';
+                return;
+            }
+            
+            statusBadge.textContent = '✅ С сервера';
+            statusBadge.className = 'status-badge success';
+            
+            const mondayDate = getWeekOffsetDate(weekOffset);
+            const weekDates = [];
+            for (let i = 0; i < 7; i++) {
+                const d = new Date(mondayDate);
+                d.setDate(mondayDate.getDate() + i);
+                weekDates.push(d);
+            }
+            
+            const weekNum = getWeekNumber(mondayDate);
+            const isEvenWeek = weekNum % 2 === 0;
+            const weekType = isEvenWeek ? 'Числитель' : 'Знаменатель';
+            weekTypeEl.textContent = weekType;
+            
+            const start = weekDates[0].toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
+            const end = weekDates[6].toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
+            const offsetLabel = weekOffset === 0 ? '📌 Текущая' : weekOffset === 1 ? '➡️ Следующая' : '⬅️ Предыдущая';
+            weekLabel.textContent = `${start} — ${end} (${offsetLabel})`;
+            
+            const today = new Date();
+            const todayName = today.getDay() === 0 ? 'Воскресенье' : DAYS_RU[today.getDay() - 1];
+            
+            let html = '';
+            
+            for (let i = 0; i < 6; i++) {
+                const dayName = DAYS_RU[i];
+                const lessons = schedule[dayName] || [];
+                const isToday = dayName === todayName && weekOffset === 0;
+                const isWeekend = i === 5;
+                const dateStr = weekDates[i].toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
+                
+                html += `
+                    <div class="schedule-day">
+                        <div class="schedule-day-header">
+                            <span class="day-name">${dayName}</span>
+                            <span class="day-date">${dateStr}</span>
+                            <span class="day-badge ${isToday ? 'today' : ''} ${isWeekend ? 'weekend' : ''}">${isToday ? 'СЕГОДНЯ' : isWeekend ? 'СУББОТА' : lessons.length > 0 ? `${lessons.length} пар` : 'ВЫХОДНОЙ'}</span>
+                        </div>
+                `;
+                
+                if (lessons.length === 0) {
+                    html += `<div class="schedule-empty"><span class="empty-icon">📭</span><span>Нет занятий</span></div>`;
+                } else {
+                    lessons.sort((a, b) => parseInt(a.pair) - parseInt(b.pair));
+                    lessons.forEach(lesson => {
+                        const typeClass = lesson.type === 'лекция' ? 'lecture' : 
+                                        lesson.type === 'лабораторная' ? 'lab' : 
+                                        lesson.type === 'практика' ? 'practice' : '';
+                        const typeLabel = lesson.type ? lesson.type.charAt(0).toUpperCase() + lesson.type.slice(1) : '';
+                        
+                        let teachersHtml = '';
+                        if (lesson.teachers && lesson.teachers.length > 0) {
+                            teachersHtml = lesson.teachers.map(t => 
+                                `<span class="teacher-item">
+                                    <span class="teacher-icon">👨‍🏫</span>
+                                    <span class="teacher-name">${escapeHtml(t)}</span>
+                                </span>`
+                            ).join(' ');
+                        }
+                        
+                        let subgroupsHtml = '';
+                        if (lesson.subgroups && lesson.subgroups.length > 0) {
+                            subgroupsHtml = lesson.subgroups.map(s => 
+                                `${s} подгруппа`
+                            ).join(' / ');
+                        }
+                        
+                        html += `
+                            <div class="schedule-lesson">
+                                <span class="lesson-time">${lesson.pair}</span>
+                                <div class="lesson-info">
+                                    <div class="lesson-name">${escapeHtml(lesson.discipline)}</div>
+                                    ${subgroupsHtml ? `<div class="lesson-subgroup">${subgroupsHtml}</div>` : ''}
+                                    <div class="lesson-meta-row">
+                                        ${lesson.room ? `<span class="room-badge"><span class="icon">🏛️</span> ${escapeHtml(lesson.room)}</span>` : ''}
+                                        ${typeLabel ? `<span class="type-badge ${typeClass}">${typeLabel}</span>` : ''}
+                                    </div>
+                                    ${teachersHtml ? `<div class="lesson-teachers">${teachersHtml}</div>` : ''}
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+                
+                html += `</div>`;
+            }
+            
+            container.innerHTML = html;
+            updateScheduleButtons(weekOffset);
+        }
+
+        function updateScheduleButtons(offset) {
+            document.querySelectorAll('#tabSchedule .schedule-controls button').forEach(b => b.classList.remove('active'));
+            if (offset === 0) {
+                document.getElementById('scheduleCurrentWeek').classList.add('active');
+            } else if (offset === 1) {
+                document.getElementById('scheduleNextWeek').classList.add('active');
+            } else if (offset === -1) {
+                document.getElementById('schedulePrevWeek').classList.add('active');
+            }
+        }
+
+        function loadCurrentSchedule() {
+            if (!scheduleRawHTML || scheduleBlocks.length === 0) {
+                loadScheduleData();
+                return;
+            }
+            
+            const targetDate = getWeekOffsetDate(scheduleOffset);
+            const targetMondayStr = formatDate(targetDate);
+            
+            let targetBlock = null;
+            for (const block of scheduleBlocks) {
+                if (block.dates.includes(targetMondayStr)) {
+                    targetBlock = block;
+                    break;
+                }
+            }
+            
+            if (!targetBlock) {
+                targetBlock = scheduleBlocks[0];
+            }
+            
+            const schedule = parseScheduleFromBlock(targetBlock);
+            if (schedule) {
+                renderScheduleUI(schedule, scheduleOffset);
+            } else {
+                document.getElementById('scheduleContent').innerHTML = 
+                    `<div class="schedule-error"><span class="error-icon">⚠️</span><span>Ошибка парсинга</span></div>`;
+            }
+        }
+
+        async function loadScheduleData() {
+            const statusBadge = document.getElementById('scheduleStatusBadge');
+            const container = document.getElementById('scheduleContent');
+            
+            container.innerHTML = `<div class="schedule-loader"><div class="spinner"></div><span>Загрузка расписания...</span></div>`;
+            statusBadge.textContent = '⏳ Загрузка...';
+            statusBadge.className = 'status-badge loading';
+            
+            try {
+                const response = await fetch(PROXY_URL, { signal: AbortSignal.timeout(15000) });
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                
+                scheduleRawHTML = await response.text();
+                scheduleBlocks = extractScheduleBlocks(scheduleRawHTML);
+                
+                if (scheduleBlocks.length === 0) {
+                    throw new Error('Блоки расписания не найдены');
+                }
+                
+                scheduleOffset = 0;
+                loadCurrentSchedule();
+                
+            } catch(e) {
+                console.error('Ошибка загрузки расписания:', e);
+                container.innerHTML = `
+                    <div class="schedule-error">
+                        <span class="error-icon">⚠️</span>
+                        <span>Не удалось загрузить расписание</span>
+                        <br>
+                        <span style="font-size:11px;color:var(--muted);">Проверьте прокси-сервер</span>
+                        <br>
+                        <button class="retry-btn" onclick="loadScheduleData()">🔄 Попробовать снова</button>
+                    </div>
+                `;
+                statusBadge.textContent = '❌ Ошибка';
+                statusBadge.className = 'status-badge error';
+            }
+        }
+
+        // ============================================================
+        // 13. НАВИГАЦИЯ
+        // ============================================================
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            document.querySelector(`.nav-item[data-tab="${tabId}"]`).classList.add('active');
+            
+            if (tabId === 'tabSchedule') {
+                const container = document.getElementById('scheduleContent');
+                if (container.querySelector('.schedule-loader') || 
+                    container.querySelector('.schedule-error') || 
+                    container.innerHTML === '' ||
+                    container.querySelector('.schedule-empty')) {
+                    loadScheduleData();
+                }
+            }
+            if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+        }
+
+        // ============================================================
+        // 14. ОБРАБОТЧИКИ СОБЫТИЙ
         // ============================================================
         document.getElementById('profileBtn').addEventListener('click', function(e) {
             e.stopPropagation();
@@ -1850,9 +2744,46 @@
         document.getElementById('fabUpdate').addEventListener('click', forceUpdate);
         document.getElementById('retryButton').addEventListener('click', forceUpdate);
         
-        // ============================================================
-        // АДМИН-ОБРАБОТЧИКИ
-        // ============================================================
+        // Докбар
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const tabId = this.dataset.tab;
+                switchTab(tabId);
+            });
+        });
+
+        // Расписание — кнопки
+        document.getElementById('scheduleCurrentWeek').addEventListener('click', () => {
+            scheduleOffset = 0;
+            loadCurrentSchedule();
+        });
+
+        document.getElementById('scheduleNextWeek').addEventListener('click', () => {
+            scheduleOffset = 1;
+            loadCurrentSchedule();
+        });
+
+        document.getElementById('schedulePrevWeek').addEventListener('click', () => {
+            scheduleOffset = -1;
+            loadCurrentSchedule();
+        });
+
+        document.getElementById('scheduleRefreshBtn').addEventListener('click', () => {
+            scheduleRawHTML = null;
+            scheduleBlocks = [];
+            loadScheduleData();
+        });
+
+        // Тестовая кнопка для владельца
+        document.getElementById('adminTestBtn').addEventListener('click', function() {
+            if (!isAdmin) return;
+            // Формируем HTML-сообщение с расписанием
+            const container = document.getElementById('scheduleContent');
+            const scheduleHTML = container.innerHTML;
+            sendScheduleToOwner(scheduleHTML);
+        });
+
+        // Админ-панель
         document.getElementById('adminFab').addEventListener('click', function() {
             document.getElementById('adminPanel').classList.add('open');
             if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
@@ -1905,16 +2836,12 @@
             }
         });
         
-        // Шаблон "Новые баллы"
         document.getElementById('templateNewScores').addEventListener('click', function() {
-            const text = '📊 Выставлены новые баллы, проверьте журнал!';
-            document.getElementById('adminMessage').value = text;
+            document.getElementById('adminMessage').value = '📊 Выставлены новые баллы, проверьте журнал!';
             if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
         });
-        
-        // ============================================================
-        // АВТОРИЗАЦИЯ
-        // ============================================================
+
+        // Авторизация
         document.getElementById('btnIdentityYes').addEventListener('click', function() {
             if (!selectedStudentForIdentity) {
                 if (tg) {
@@ -1982,19 +2909,22 @@
                     closeCard();
                 } else if (document.getElementById('adminPanel').classList.contains('open')) {
                     document.getElementById('adminPanel').classList.remove('open');
+                } else if (document.getElementById('tabSchedule').classList.contains('active')) {
+                    switchTab('tabJournal');
                 } else {
                     tg.close();
                 }
             });
         }
-        
+
         // ============================================================
-        // 14. ЗАПУСК
+        // 15. ЗАПУСК
         // ============================================================
         window.openCard = openCard;
         window.closeCard = closeCard;
         window.toggleMarks = toggleMarks;
-        
+        window.loadScheduleData = loadScheduleData;
+
         loadData();
     </script>
 </body>
