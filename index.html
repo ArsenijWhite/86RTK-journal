@@ -1757,30 +1757,48 @@
             });
         }
 
-        function sendScheduleToOwner(scheduleHTML) {
-            if (!tg || !isAdmin) return;
-            
-            const msg = '📅 <b>Тестовое расписание</b>\n\n' + scheduleHTML;
-            
-            const url = 'https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage';
-            fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    chat_id: OWNER_CHAT_ID,
-                    text: msg,
-                    parse_mode: 'HTML'
-                })
-            }).then(r => r.json()).then(data => {
-                if (data.ok) {
-                    tg.showAlert('✅ Расписание отправлено!');
-                } else {
-                    tg.showAlert('❌ Ошибка отправки');
-                }
-            }).catch(() => {
-                tg.showAlert('❌ Ошибка сети');
-            });
+function sendScheduleToOwner(scheduleHTML) {
+    if (!tg || !isAdmin) return;
+    
+    // Создаем временный элемент для извлечения текста
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = scheduleHTML;
+    let textContent = tempDiv.textContent || tempDiv.innerText || '';
+    
+    // Очищаем текст от лишних пробелов
+    textContent = textContent.replace(/\s+/g, ' ').trim();
+    
+    // Формируем сообщение
+    let msg = '📅 <b>Расписание группы 86РТК</b>\n\n';
+    msg += textContent;
+    
+    // Обрезаем если слишком длинное (лимит Telegram 4096)
+    if (msg.length > 4000) {
+        msg = msg.substring(0, 3950) + '\n\n... (сообщение обрезано)';
+    }
+    
+    const url = 'https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage';
+    fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            chat_id: OWNER_CHAT_ID,
+            text: msg,
+            parse_mode: 'HTML'
+        })
+    }).then(r => r.json()).then(data => {
+        if (data.ok) {
+            if (tg) tg.showAlert('✅ Расписание отправлено!');
+            if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+        } else {
+            console.error('Ошибка отправки:', data);
+            if (tg) tg.showAlert('❌ Ошибка: ' + (data.description || 'неизвестная ошибка'));
         }
+    }).catch((err) => {
+        console.error('Ошибка сети:', err);
+        if (tg) tg.showAlert('❌ Ошибка сети, проверьте подключение');
+    });
+}
 
         // ============================================================
         // 7. КАРТОЧКА СТУДЕНТА
