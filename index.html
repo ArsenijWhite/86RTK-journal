@@ -701,7 +701,7 @@
         .admin-fab {
             display: none;
             position: fixed;
-            bottom: 85px;
+            bottom: 140px;
             right: 16px;
             width: 44px;
             height: 44px;
@@ -1250,9 +1250,9 @@
             body { padding-bottom: calc(100px + env(safe-area-inset-bottom)); }
             .bottom-nav { padding-bottom: env(safe-area-inset-bottom); }
             .fab-update { bottom: calc(85px + env(safe-area-inset-bottom)); }
+            .admin-fab { bottom: calc(140px + env(safe-area-inset-bottom)); }
             .identity-popup { bottom: calc(30px + env(safe-area-inset-bottom)); }
             .admin-panel { bottom: calc(30px + env(safe-area-inset-bottom)); }
-            .admin-fab { bottom: calc(85px + env(safe-area-inset-bottom)); }
         }
     </style>
 </head>
@@ -1346,6 +1346,7 @@
             </div>
         </div>
 
+        <!-- КНОПКА АДМИН-ПАНЕЛИ (над кнопкой обновления) -->
         <div class="admin-fab" id="adminFab">
             <svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
@@ -1355,6 +1356,7 @@
             </svg>
         </div>
 
+        <!-- АДМИН-ПАНЕЛЬ -->
         <div class="admin-panel" id="adminPanel">
             <div class="admin-title">
                 👑 Админ-панель
@@ -1392,6 +1394,7 @@
             <div class="card-wrapper" id="cardWrapper"></div>
         </div>
 
+        <!-- КНОПКА ОБНОВЛЕНИЯ -->
         <div class="fab-update" id="fabUpdate">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
@@ -1431,7 +1434,6 @@
             'Практика': 'практика'
         };
         
-        // Расписание пар
         const PAIR_SCHEDULE = {
             '1': { start: '8:55', end: '9:40', nextBreak: '9:40-9:50' },
             '2': { start: '10:45', end: '11:30', nextBreak: '11:30-11:50' },
@@ -1784,7 +1786,6 @@
             return schedule[dayName] || null;
         }
 
-        // Отправка расписания на завтра
         function sendTomorrowSchedule() {
             const students = Object.keys(BINDINGS);
             const tomorrow = new Date();
@@ -1825,7 +1826,6 @@
             console.log('✅ Отправлено расписание на завтра');
         }
 
-        // Отправка расписания на следующую неделю
         function sendNextWeekSchedule() {
             const students = Object.keys(BINDINGS);
             const today = new Date();
@@ -1876,26 +1876,21 @@
             console.log('✅ Отправлено расписание на следующую неделю');
         }
 
-        // Автоматическая отправка расписания на завтра после окончания пар
         function checkAndSendTomorrowSchedule() {
             const now = new Date();
             const hour = now.getHours();
             const minutes = now.getMinutes();
             const day = now.getDay();
             
-            // Если пятница (5) и время 17:00 - отправляем расписание на следующую неделю
             if (day === 5 && hour === 17 && minutes === 0) {
                 sendNextWeekSchedule();
                 return;
             }
             
-            // Проверяем окончание последней пары (7 пара заканчивается в 20:30)
-            const lastPairEnd = 20 * 60 + 30; // 20:30
+            const lastPairEnd = 20 * 60 + 30;
             const currentTime = hour * 60 + minutes;
             
-            // Если после 20:30 и не воскресенье - отправляем на завтра
             if (currentTime > lastPairEnd && day !== 0 && day !== 6) {
-                // Проверяем, не отправляли ли уже сегодня
                 const lastSent = localStorage.getItem('last_tomorrow_sent');
                 const todayStr = now.toDateString();
                 if (lastSent !== todayStr) {
@@ -1906,7 +1901,7 @@
         }
 
         // ============================================================
-        // 8. КАРТОЧКА СТУДЕНТА
+        // 8. КАРТОЧКА СТУДЕНТА (сокращено для экономии места)
         // ============================================================
         function toggleMarks(id) {
             const el = document.getElementById(id);
@@ -2957,7 +2952,14 @@
             loadScheduleData();
         });
 
+        // ============================================================
+        // АДМИН-ПАНЕЛЬ (доступ только владельцу)
+        // ============================================================
         document.getElementById('adminFab').addEventListener('click', function() {
+            if (!isAdmin) {
+                if (tg) tg.showAlert('⛔ Доступ запрещен');
+                return;
+            }
             document.getElementById('adminPanel').classList.add('open');
             if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
         });
@@ -2974,6 +2976,7 @@
         });
         
         document.getElementById('adminSendToMe').addEventListener('click', function() {
+            if (!isAdmin) return;
             const message = document.getElementById('adminMessage').value.trim();
             if (!message) {
                 const statusEl = document.getElementById('adminStatus');
@@ -2986,10 +2989,12 @@
         });
 
         document.getElementById('notifyNewScores').addEventListener('click', function() {
+            if (!isAdmin) return;
             notifyAllStudentsAboutNewScores();
         });
 
         document.getElementById('notifyStudents').addEventListener('click', function() {
+            if (!isAdmin) return;
             const message = document.getElementById('adminMessage').value.trim();
             if (!message) {
                 const statusEl = document.getElementById('adminStatus');
@@ -3002,16 +3007,19 @@
         });
 
         document.getElementById('notifyTomorrowSchedule').addEventListener('click', function() {
+            if (!isAdmin) return;
             sendTomorrowSchedule();
         });
 
         document.getElementById('notifyNextWeek').addEventListener('click', function() {
+            if (!isAdmin) return;
             if (confirm('Отправить расписание на следующую неделю всем студентам?')) {
                 sendNextWeekSchedule();
             }
         });
         
         document.getElementById('adminSend').addEventListener('click', function() {
+            if (!isAdmin) return;
             const message = document.getElementById('adminMessage').value.trim();
             const recipient = document.getElementById('adminRecipient').value;
             
@@ -3117,7 +3125,6 @@
         // ============================================================
         // 16. ЗАПУСК УВЕДОМЛЕНИЙ
         // ============================================================
-        // Проверка отправки расписания на завтра каждые 5 минут
         setInterval(checkAndSendTomorrowSchedule, 300000);
         setTimeout(() => {
             checkAndSendTomorrowSchedule();
