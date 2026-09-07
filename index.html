@@ -1447,7 +1447,9 @@
             '1466663890': 'Лазовиков',
             '6501621442': 'Колодяжный',
             '986867638' : 'Дроздов',
-            '1236220960' : 'Песецкий'
+            '1236220960': 'Песецкий',
+            '5369377365': 'Куродым',
+            '1881630825': 'Броновицкий'
         };
 
         // ============================================================
@@ -1605,7 +1607,7 @@
         }
 
         // ============================================================
-        // 6. АДМИН-ФУНКЦИИ
+        // 6. АДМИН-ФУНКЦИИ И УВЕДОМЛЕНИЯ
         // ============================================================
         function updateAdminRecipients() {
             const select = document.getElementById('adminRecipient');
@@ -1657,140 +1659,36 @@
             });
         }
 
-        // ============================================================
-        // 7. УВЕДОМЛЕНИЯ РАСПИСАНИЯ (ИСПРАВЛЕННАЯ ВЕРСИЯ)
-        // ============================================================
-        function getScheduleForDay(dayName, date) {
-            if (!scheduleBlocks || scheduleBlocks.length === 0) {
-                return null;
+        // Уведомление владельцу с юзернеймом
+        function notifyOwner(userId, studentName, username) {
+            let userInfo = '';
+            if (username) {
+                userInfo = '👤 Юзернейм: <b>@' + escapeHtml(username) + '</b>\n';
             }
             
-            // Если передана дата, ищем блок с этой датой
-            if (date) {
-                const dateStr = formatDate(date);
-                for (const block of scheduleBlocks) {
-                    if (block.dates && block.dates.includes(dateStr)) {
-                        const schedule = parseScheduleFromBlock(block);
-                        if (schedule) {
-                            return schedule[dayName] || null;
-                        }
-                    }
-                }
-            }
+            const message = '🔔 <b>Новая привязка!</b>\n\n' +
+                '👤 Студент: <b>' + escapeHtml(studentName) + '</b>\n' +
+                userInfo +
+                '🆔 Telegram ID: <code>' + userId + '</code>\n\n' +
+                'Для привязки добавьте в BINDINGS:\n' +
+                '<code>\'' + userId + '\' : \'' + escapeHtml(studentName) + '\'</code>';
             
-            // Если не нашли по дате, используем текущую неделю
-            const targetDate = getWeekOffsetDate(0);
-            const targetMondayStr = formatDate(targetDate);
-            
-            let targetBlock = null;
-            for (const block of scheduleBlocks) {
-                if (block.dates && block.dates.includes(targetMondayStr)) {
-                    targetBlock = block;
-                    break;
-                }
-            }
-            
-            if (!targetBlock) {
-                targetBlock = scheduleBlocks[0];
-            }
-            
-            const schedule = parseScheduleFromBlock(targetBlock);
-            if (!schedule) return null;
-            
-            return schedule[dayName] || null;
-        }
-
-        function sendTomorrowSchedule() {
-            const students = Object.keys(BINDINGS);
-            const tomorrow = new Date();
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            const dayName = tomorrow.getDay() === 0 ? 'Воскресенье' : DAYS_RU[tomorrow.getDay() - 1];
-            const dateStr = tomorrow.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
-            
-            // Передаем дату завтрашнего дня
-            const schedule = getScheduleForDay(dayName, tomorrow);
-            
-            let message = `📅 *Расписание на завтра*\n`;
-            message += `*${dayName}*, ${dateStr}\n\n`;
-            
-            if (!schedule || schedule.length === 0) {
-                message += '📭 Выходной! 🎉';
-            } else {
-                schedule.forEach(lesson => {
-                    message += `${lesson.pair}. ${lesson.discipline}`;
-                    if (lesson.type) message += ` (${lesson.type.slice(0, 3)})`;
-                    if (lesson.teachers && lesson.teachers.length > 0) {
-                        message += ` ${lesson.teachers.join(', ')}`;
-                    }
-                    message += '\n';
-                    if (lesson.room) {
-                        message += `${lesson.room}\n`;
-                    }
-                    message += '\n';
-                });
-            }
-            
-            let sent = 0;
-            students.forEach(id => {
-                sendMessageToUser(id, message);
-                sent++;
-            });
-            
-            const statusEl = document.getElementById('adminStatus');
-            statusEl.textContent = `✅ Расписание на завтра отправлено ${sent} получателям!`;
-            statusEl.className = 'admin-status success';
-            console.log('✅ Отправлено расписание на завтра');
-        }
-
-        function sendNextWeekSchedule() {
-            const students = Object.keys(BINDINGS);
-            const today = new Date();
-            const dayOfWeek = today.getDay();
-            const daysUntilMonday = dayOfWeek === 0 ? 1 : 8 - dayOfWeek;
-            const nextMonday = new Date(today);
-            nextMonday.setDate(today.getDate() + daysUntilMonday);
-            
-            let message = `📆 *Расписание на следующую неделю*\n\n`;
-            
-            for (let i = 0; i < 6; i++) {
-                const date = new Date(nextMonday);
-                date.setDate(nextMonday.getDate() + i);
-                const dayName = date.getDay() === 0 ? 'Воскресенье' : DAYS_RU[date.getDay() - 1];
-                const dateStr = date.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
-                
-                // Передаем дату для каждого дня
-                const schedule = getScheduleForDay(dayName, date);
-                
-                message += `*${dayName}*, ${dateStr}\n`;
-                if (!schedule || schedule.length === 0) {
-                    message += '📭 Выходной\n\n';
+            const url = 'https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage';
+            fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: OWNER_CHAT_ID,
+                    text: message,
+                    parse_mode: 'HTML'
+                })
+            }).then(r => r.json()).then(data => {
+                if (data.ok) {
+                    console.log('✅ Уведомление отправлено');
                 } else {
-                    schedule.forEach(lesson => {
-                        message += `${lesson.pair}. ${lesson.discipline}`;
-                        if (lesson.type) message += ` (${lesson.type.slice(0, 3)})`;
-                        if (lesson.teachers && lesson.teachers.length > 0) {
-                            message += ` ${lesson.teachers.join(', ')}`;
-                        }
-                        message += '\n';
-                        if (lesson.room) {
-                            message += `${lesson.room}\n`;
-                        }
-                        message += '\n';
-                    });
+                    console.error('❌ Ошибка:', data);
                 }
-                message += '━'.repeat(25) + '\n\n';
-            }
-            
-            let sent = 0;
-            students.forEach(id => {
-                sendMessageToUser(id, message);
-                sent++;
-            });
-            
-            const statusEl = document.getElementById('adminStatus');
-            statusEl.textContent = `✅ Расписание на следующую неделю отправлено ${sent} получателям!`;
-            statusEl.className = 'admin-status success';
-            console.log('✅ Отправлено расписание на следующую неделю');
+            }).catch(e => console.error('❌ Ошибка:', e));
         }
 
         function notifyAllStudentsAboutNewScores() {
@@ -1875,6 +1773,164 @@
             setTimeout(() => {
                 document.getElementById('adminMessage').value = '';
             }, 3000);
+        }
+
+        // ============================================================
+        // 7. УВЕДОМЛЕНИЯ РАСПИСАНИЯ
+        // ============================================================
+        function getScheduleForDay(dayName, date) {
+            if (!scheduleBlocks || scheduleBlocks.length === 0) {
+                return null;
+            }
+            
+            if (date) {
+                const dateStr = formatDate(date);
+                for (const block of scheduleBlocks) {
+                    if (block.dates && block.dates.includes(dateStr)) {
+                        const schedule = parseScheduleFromBlock(block);
+                        if (schedule) {
+                            return schedule[dayName] || null;
+                        }
+                    }
+                }
+            }
+            
+            const targetDate = getWeekOffsetDate(0);
+            const targetMondayStr = formatDate(targetDate);
+            
+            let targetBlock = null;
+            for (const block of scheduleBlocks) {
+                if (block.dates && block.dates.includes(targetMondayStr)) {
+                    targetBlock = block;
+                    break;
+                }
+            }
+            
+            if (!targetBlock) {
+                targetBlock = scheduleBlocks[0];
+            }
+            
+            const schedule = parseScheduleFromBlock(targetBlock);
+            if (!schedule) return null;
+            
+            return schedule[dayName] || null;
+        }
+
+        function sendTomorrowSchedule() {
+            const students = Object.keys(BINDINGS);
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const dayName = tomorrow.getDay() === 0 ? 'Воскресенье' : DAYS_RU[tomorrow.getDay() - 1];
+            const dateStr = tomorrow.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
+            
+            if (!scheduleBlocks || scheduleBlocks.length === 0) {
+                const statusEl = document.getElementById('adminStatus');
+                statusEl.textContent = '⏳ Загрузка расписания...';
+                statusEl.className = 'admin-status';
+                
+                loadScheduleData();
+                
+                setTimeout(() => {
+                    sendTomorrowSchedule();
+                }, 3000);
+                return;
+            }
+            
+            const schedule = getScheduleForDay(dayName, tomorrow);
+            
+            let message = `📅 *Расписание на завтра*\n`;
+            message += `*${dayName}*, ${dateStr}\n\n`;
+            
+            if (!schedule || schedule.length === 0) {
+                message += '📭 Выходной! 🎉';
+            } else {
+                schedule.forEach(lesson => {
+                    message += `${lesson.pair}. ${lesson.discipline}`;
+                    if (lesson.type) message += ` (${lesson.type.slice(0, 3)})`;
+                    if (lesson.teachers && lesson.teachers.length > 0) {
+                        message += ` ${lesson.teachers.join(', ')}`;
+                    }
+                    message += '\n';
+                    if (lesson.room) {
+                        message += `${lesson.room}\n`;
+                    }
+                    message += '\n';
+                });
+            }
+            
+            let sent = 0;
+            students.forEach(id => {
+                sendMessageToUser(id, message);
+                sent++;
+            });
+            
+            const statusEl = document.getElementById('adminStatus');
+            statusEl.textContent = `✅ Расписание на завтра отправлено ${sent} получателям!`;
+            statusEl.className = 'admin-status success';
+            console.log('✅ Отправлено расписание на завтра');
+        }
+
+        function sendNextWeekSchedule() {
+            const students = Object.keys(BINDINGS);
+            const today = new Date();
+            const dayOfWeek = today.getDay();
+            const daysUntilMonday = dayOfWeek === 0 ? 1 : 8 - dayOfWeek;
+            const nextMonday = new Date(today);
+            nextMonday.setDate(today.getDate() + daysUntilMonday);
+            
+            if (!scheduleBlocks || scheduleBlocks.length === 0) {
+                const statusEl = document.getElementById('adminStatus');
+                statusEl.textContent = '⏳ Загрузка расписания...';
+                statusEl.className = 'admin-status';
+                
+                loadScheduleData();
+                
+                setTimeout(() => {
+                    sendNextWeekSchedule();
+                }, 3000);
+                return;
+            }
+            
+            let message = `📆 *Расписание на следующую неделю*\n\n`;
+            
+            for (let i = 0; i < 6; i++) {
+                const date = new Date(nextMonday);
+                date.setDate(nextMonday.getDate() + i);
+                const dayName = date.getDay() === 0 ? 'Воскресенье' : DAYS_RU[date.getDay() - 1];
+                const dateStr = date.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
+                
+                const schedule = getScheduleForDay(dayName, date);
+                
+                message += `*${dayName}*, ${dateStr}\n`;
+                if (!schedule || schedule.length === 0) {
+                    message += '📭 Выходной\n\n';
+                } else {
+                    schedule.forEach(lesson => {
+                        message += `${lesson.pair}. ${lesson.discipline}`;
+                        if (lesson.type) message += ` (${lesson.type.slice(0, 3)})`;
+                        if (lesson.teachers && lesson.teachers.length > 0) {
+                            message += ` ${lesson.teachers.join(', ')}`;
+                        }
+                        message += '\n';
+                        if (lesson.room) {
+                            message += `${lesson.room}\n`;
+                        }
+                        message += '\n';
+                    });
+                }
+                message += '━'.repeat(25) + '\n\n';
+            }
+            
+            let sent = 0;
+            students.forEach(id => {
+                sendMessageToUser(id, message);
+                sent++;
+            });
+            
+            const statusEl = document.getElementById('adminStatus');
+            statusEl.textContent = `✅ Расписание на следующую неделю отправлено ${sent} получателям!`;
+            statusEl.className = 'admin-status success';
+            console.log('✅ Отправлено расписание на следующую неделю');
         }
 
         // ============================================================
@@ -3038,8 +3094,20 @@
                 return;
             }
             
-            const msg = `👤 *Запрос на привязку*\n\nПользователь ID: \`${userId}\`\nВыбрал: *${selectedStudentForIdentity}*`;
-            sendMessageToUser(OWNER_CHAT_ID, msg);
+            // Получаем юзернейм
+            let username = null;
+            try {
+                if (window.Telegram && window.Telegram.WebApp) {
+                    const user = window.Telegram.WebApp.initDataUnsafe?.user;
+                    if (user && user.username) {
+                        username = user.username;
+                    }
+                }
+            } catch(e) {
+                console.warn('Не удалось получить юзернейм:', e);
+            }
+            
+            notifyOwner(userId, selectedStudentForIdentity, username);
             
             if (tg) {
                 tg.HapticFeedback.notificationOccurred('success');
