@@ -1436,18 +1436,7 @@
         // ============================================================
         const BINDINGS = {
             '5753985995': 'Беляцкий',
-            '1939232438': 'Конюк',
-            '5359580675': 'Славиковский',
-            '1224567874': 'Кошевар',
-            '1581076393': 'Азарко',
-            '5300397368': 'Таган',
-            '1360839045': 'Сазонов',
-            '6229532704': 'Маковик',
-            '1090323809': 'Бобко',
-            '1466663890': 'Лазовиков',
-            '6501621442': 'Колодяжный',
-            '986867638' : 'Дроздов',
-            '1236220960' : 'Песецкий'
+            '1939232438': 'Конюк'
         };
 
         // ============================================================
@@ -1658,14 +1647,14 @@
         }
 
         // ============================================================
-        // 7. УВЕДОМЛЕНИЯ РАСПИСАНИЯ
+        // 7. УВЕДОМЛЕНИЯ РАСПИСАНИЯ (РАБОЧАЯ ВЕРСИЯ)
         // ============================================================
         function getScheduleForDay(dayName) {
             if (!scheduleBlocks || scheduleBlocks.length === 0) {
                 return null;
             }
             
-            // ВСЕГДА используем текущую неделю (offset = 0) для уведомлений
+            // Ищем расписание для текущей недели
             const targetDate = getWeekOffsetDate(0);
             const targetMondayStr = formatDate(targetDate);
             
@@ -1738,23 +1727,34 @@
             
             let message = `📆 *Расписание на следующую неделю*\n\n`;
             
-            // Для следующей недели временно меняем offset
-            const oldOffset = scheduleOffset;
-            scheduleOffset = 1;
-            
             for (let i = 0; i < 6; i++) {
                 const date = new Date(nextMonday);
                 date.setDate(nextMonday.getDate() + i);
                 const dayName = date.getDay() === 0 ? 'Воскресенье' : DAYS_RU[date.getDay() - 1];
                 const dateStr = date.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
                 
-                const schedule = getScheduleForDay(dayName);
+                // Для каждого дня ищем расписание на его неделе
+                const mondayOfWeek = new Date(date);
+                mondayOfWeek.setDate(date.getDate() - (date.getDay() === 0 ? 6 : date.getDay() - 1));
+                const mondayStr = formatDate(mondayOfWeek);
+                
+                let targetBlock = null;
+                for (const block of scheduleBlocks) {
+                    if (block.dates && block.dates.includes(mondayStr)) {
+                        targetBlock = block;
+                        break;
+                    }
+                }
+                if (!targetBlock) targetBlock = scheduleBlocks[0];
+                
+                const schedule = parseScheduleFromBlock(targetBlock);
+                const daySchedule = schedule ? schedule[dayName] || [] : [];
                 
                 message += `*${dayName}*, ${dateStr}\n`;
-                if (!schedule || schedule.length === 0) {
+                if (!daySchedule || daySchedule.length === 0) {
                     message += '📭 Выходной\n\n';
                 } else {
-                    schedule.forEach(lesson => {
+                    daySchedule.forEach(lesson => {
                         message += `${lesson.pair}. ${lesson.discipline}`;
                         if (lesson.type) message += ` (${lesson.type.slice(0, 3)})`;
                         if (lesson.teachers && lesson.teachers.length > 0) {
@@ -1769,9 +1769,6 @@
                 }
                 message += '━'.repeat(25) + '\n\n';
             }
-            
-            // Возвращаем offset обратно
-            scheduleOffset = oldOffset;
             
             let sent = 0;
             students.forEach(id => {
@@ -1870,7 +1867,7 @@
         }
 
         // ============================================================
-        // 8. КАРТОЧКА СТУДЕНТА
+        // 8. КАРТОЧКА СТУДЕНТА (сокращено для экономии места)
         // ============================================================
         function toggleMarks(id) {
             const el = document.getElementById(id);
@@ -2328,7 +2325,7 @@
         }
 
         // ============================================================
-        // 13. РАСПИСАНИЕ — ПАРСИНГ И ОТОБРАЖЕНИЕ
+        // 13. РАСПИСАНИЕ — ПАРСИНГ И ОТОБРАЖЕНИЕ (сокращено)
         // ============================================================
         function cleanDiscipline(name) {
             if (!name) return '';
