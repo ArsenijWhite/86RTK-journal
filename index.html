@@ -1346,7 +1346,6 @@
             </div>
         </div>
 
-        <!-- КНОПКА АДМИН-ПАНЕЛИ (над кнопкой обновления) -->
         <div class="admin-fab" id="adminFab">
             <svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
@@ -1356,7 +1355,6 @@
             </svg>
         </div>
 
-        <!-- АДМИН-ПАНЕЛЬ -->
         <div class="admin-panel" id="adminPanel">
             <div class="admin-title">
                 👑 Админ-панель
@@ -1394,7 +1392,6 @@
             <div class="card-wrapper" id="cardWrapper"></div>
         </div>
 
-        <!-- КНОПКА ОБНОВЛЕНИЯ -->
         <div class="fab-update" id="fabUpdate">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
@@ -1433,34 +1430,13 @@
             'Лабораторная': 'лабораторная',
             'Практика': 'практика'
         };
-        
-        const PAIR_SCHEDULE = {
-            '1': { start: '8:55', end: '9:40', nextBreak: '9:40-9:50' },
-            '2': { start: '10:45', end: '11:30', nextBreak: '11:30-11:50' },
-            '3': { start: '12:45', end: '13:30', nextBreak: '13:30-13:40' },
-            '4': { start: '14:35', end: '15:20', nextBreak: '15:20-15:40' },
-            '5': { start: '15:40', end: '17:10', nextBreak: '' },
-            '6': { start: '17:20', end: '18:50', nextBreak: '' },
-            '7': { start: '19:00', end: '20:30', nextBreak: '' }
-        };
 
         // ============================================================
-        // 2. ПРИВЯЗКА СТУДЕНТОВ
+        // 2. ПРИВЯЗКА СТУДЕНТОВ (временная для теста)
         // ============================================================
         const BINDINGS = {
             '5753985995': 'Беляцкий',
-            '1939232438': 'Конюк',
-            '5359580675': 'Славиковский',
-            '1224567874': 'Кошевар',
-            '1581076393': 'Азарко',
-            '5300397368': 'Таган',
-            '1360839045': 'Сазонов',
-            '6229532704': 'Маковик',
-            '1090323809': 'Бобко',
-            '1466663890': 'Лазовиков',
-            '6501621442': 'Колодяжный',
-            '986867638' : 'Дроздов',
-            '1236220960' : 'Песецкий'
+            '1939232438': 'Конюк'
         };
 
         // ============================================================
@@ -1670,95 +1646,8 @@
             });
         }
 
-        function notifyAllStudentsAboutNewScores() {
-            const students = Object.keys(BINDINGS);
-            const message = '📊 *Новые оценки!*\n\nПроверьте журнал успеваемости.\n\n📱 Журнал 86РТК';
-            
-            let sent = 0;
-            students.forEach(id => {
-                if (id !== OWNER_CHAT_ID) {
-                    sendMessageToUser(id, message);
-                    sent++;
-                }
-            });
-            
-            const statusEl = document.getElementById('adminStatus');
-            statusEl.textContent = `✅ Уведомление о новых оценках отправлено ${sent} студентам!`;
-            statusEl.className = 'admin-status success';
-            
-            if (tg && tg.HapticFeedback) {
-                tg.HapticFeedback.notificationOccurred('success');
-            }
-        }
-
-        function sendMessageToStudents(text) {
-            const students = Object.keys(BINDINGS);
-            const msg = '📢 ' + escapeHtml(text) + '\n\n━━━━━━━━━━━━━━\n📱 Журнал 86РТК';
-            
-            let sent = 0;
-            let failed = 0;
-            const promises = students.map(id => {
-                if (id === OWNER_CHAT_ID) return Promise.resolve();
-                const url = 'https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage';
-                return fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        chat_id: id,
-                        text: msg,
-                        parse_mode: 'HTML'
-                    })
-                }).then(r => r.json()).then(data => {
-                    if (data.ok) {
-                        sent++;
-                        console.log('✅ Отправлено:', BINDINGS[id]);
-                    } else {
-                        failed++;
-                        console.error('❌ Ошибка отправки:', BINDINGS[id], data);
-                    }
-                }).catch(() => {
-                    failed++;
-                    console.error('❌ Ошибка сети:', BINDINGS[id]);
-                });
-            });
-            
-            Promise.all(promises).then(() => {
-                const statusEl = document.getElementById('adminStatus');
-                if (failed === 0) {
-                    statusEl.textContent = `✅ Отправлено ${sent} студентам!`;
-                    statusEl.className = 'admin-status success';
-                    if (tg && tg.HapticFeedback) {
-                        tg.HapticFeedback.notificationOccurred('success');
-                    }
-                } else {
-                    statusEl.textContent = `⚠️ Отправлено ${sent}, ошибок: ${failed}`;
-                    statusEl.className = 'admin-status error';
-                }
-                setTimeout(() => {
-                    document.getElementById('adminMessage').value = '';
-                }, 3000);
-            });
-        }
-
-        function sendToMe(text) {
-            const statusEl = document.getElementById('adminStatus');
-            statusEl.textContent = '⏳ Отправка себе...';
-            statusEl.className = 'admin-status';
-            
-            sendMessageToUser(OWNER_CHAT_ID, '📢 ' + text + '\n\n━━━━━━━━━━━━━━\n📱 Журнал 86РТК');
-            
-            statusEl.textContent = '✅ Отправлено вам!';
-            statusEl.className = 'admin-status success';
-            if (tg && tg.HapticFeedback) {
-                tg.HapticFeedback.notificationOccurred('success');
-            }
-            setTimeout(() => {
-                document.getElementById('adminMessage').value = '';
-            }, 3000);
-        }
-
         // ============================================================
-        // 7. УВЕДОМЛЕНИЯ РАСПИСАНИЯ
+        // 7. УВЕДОМЛЕНИЯ РАСПИСАНИЯ (ОТПРАВЛЯЮТСЯ ВСЕМ, ВКЛЮЧАЯ ВЛАДЕЛЬЦА)
         // ============================================================
         function getScheduleForDay(dayName) {
             if (!scheduleBlocks || scheduleBlocks.length === 0) {
@@ -1798,9 +1687,10 @@
             let message = `📅 *Расписание на завтра*\n`;
             message += `*${dayName}* (${dateStr})\n\n`;
             
-            if (!schedule || schedule.length === 0) {
-                message += '📭 Выходной! 🎉';
-            } else {
+            // Проверяем, есть ли занятия
+            let hasLessons = false;
+            if (schedule && schedule.length > 0) {
+                hasLessons = true;
                 schedule.forEach(lesson => {
                     message += `${lesson.pair}. ${lesson.discipline}`;
                     if (lesson.type) message += ` (${lesson.type})`;
@@ -1812,16 +1702,19 @@
                 });
             }
             
+            if (!hasLessons) {
+                message += '📭 Выходной! 🎉';
+            }
+            
+            // Отправляем ВСЕМ, включая владельца
             let sent = 0;
             students.forEach(id => {
-                if (id !== OWNER_CHAT_ID) {
-                    sendMessageToUser(id, message);
-                    sent++;
-                }
+                sendMessageToUser(id, message);
+                sent++;
             });
             
             const statusEl = document.getElementById('adminStatus');
-            statusEl.textContent = `✅ Расписание на завтра отправлено ${sent} студентам!`;
+            statusEl.textContent = `✅ Расписание на завтра отправлено ${sent} получателям!`;
             statusEl.className = 'admin-status success';
             console.log('✅ Отправлено расписание на завтра');
         }
@@ -1862,42 +1755,101 @@
                 }
             }
             
+            // Отправляем ВСЕМ, включая владельца
             let sent = 0;
             students.forEach(id => {
-                if (id !== OWNER_CHAT_ID) {
-                    sendMessageToUser(id, message);
-                    sent++;
-                }
+                sendMessageToUser(id, message);
+                sent++;
             });
             
             const statusEl = document.getElementById('adminStatus');
-            statusEl.textContent = `✅ Расписание на следующую неделю отправлено ${sent} студентам!`;
+            statusEl.textContent = `✅ Расписание на следующую неделю отправлено ${sent} получателям!`;
             statusEl.className = 'admin-status success';
             console.log('✅ Отправлено расписание на следующую неделю');
         }
 
-        function checkAndSendTomorrowSchedule() {
-            const now = new Date();
-            const hour = now.getHours();
-            const minutes = now.getMinutes();
-            const day = now.getDay();
+        function notifyAllStudentsAboutNewScores() {
+            const students = Object.keys(BINDINGS);
+            const message = '📊 *Новые оценки!*\n\nПроверьте журнал успеваемости.\n\n📱 Журнал 86РТК';
             
-            if (day === 5 && hour === 17 && minutes === 0) {
-                sendNextWeekSchedule();
-                return;
+            let sent = 0;
+            students.forEach(id => {
+                sendMessageToUser(id, message);
+                sent++;
+            });
+            
+            const statusEl = document.getElementById('adminStatus');
+            statusEl.textContent = `✅ Уведомление о новых оценках отправлено ${sent} получателям!`;
+            statusEl.className = 'admin-status success';
+            
+            if (tg && tg.HapticFeedback) {
+                tg.HapticFeedback.notificationOccurred('success');
             }
+        }
+
+        function sendMessageToStudents(text) {
+            const students = Object.keys(BINDINGS);
+            const msg = '📢 ' + escapeHtml(text) + '\n\n━━━━━━━━━━━━━━\n📱 Журнал 86РТК';
             
-            const lastPairEnd = 20 * 60 + 30;
-            const currentTime = hour * 60 + minutes;
+            let sent = 0;
+            let failed = 0;
+            const promises = students.map(id => {
+                const url = 'https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage';
+                return fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chat_id: id,
+                        text: msg,
+                        parse_mode: 'HTML'
+                    })
+                }).then(r => r.json()).then(data => {
+                    if (data.ok) {
+                        sent++;
+                        console.log('✅ Отправлено:', BINDINGS[id]);
+                    } else {
+                        failed++;
+                        console.error('❌ Ошибка отправки:', BINDINGS[id], data);
+                    }
+                }).catch(() => {
+                    failed++;
+                    console.error('❌ Ошибка сети:', BINDINGS[id]);
+                });
+            });
             
-            if (currentTime > lastPairEnd && day !== 0 && day !== 6) {
-                const lastSent = localStorage.getItem('last_tomorrow_sent');
-                const todayStr = now.toDateString();
-                if (lastSent !== todayStr) {
-                    sendTomorrowSchedule();
-                    localStorage.setItem('last_tomorrow_sent', todayStr);
+            Promise.all(promises).then(() => {
+                const statusEl = document.getElementById('adminStatus');
+                if (failed === 0) {
+                    statusEl.textContent = `✅ Отправлено ${sent} получателям!`;
+                    statusEl.className = 'admin-status success';
+                    if (tg && tg.HapticFeedback) {
+                        tg.HapticFeedback.notificationOccurred('success');
+                    }
+                } else {
+                    statusEl.textContent = `⚠️ Отправлено ${sent}, ошибок: ${failed}`;
+                    statusEl.className = 'admin-status error';
                 }
+                setTimeout(() => {
+                    document.getElementById('adminMessage').value = '';
+                }, 3000);
+            });
+        }
+
+        function sendToMe(text) {
+            const statusEl = document.getElementById('adminStatus');
+            statusEl.textContent = '⏳ Отправка себе...';
+            statusEl.className = 'admin-status';
+            
+            sendMessageToUser(OWNER_CHAT_ID, '📢 ' + text + '\n\n━━━━━━━━━━━━━━\n📱 Журнал 86РТК');
+            
+            statusEl.textContent = '✅ Отправлено вам!';
+            statusEl.className = 'admin-status success';
+            if (tg && tg.HapticFeedback) {
+                tg.HapticFeedback.notificationOccurred('success');
             }
+            setTimeout(() => {
+                document.getElementById('adminMessage').value = '';
+            }, 3000);
         }
 
         // ============================================================
@@ -2359,7 +2311,7 @@
         }
 
         // ============================================================
-        // 13. РАСПИСАНИЕ — ПАРСИНГ И ОТОБРАЖЕНИЕ
+        // 13. РАСПИСАНИЕ — ПАРСИНГ И ОТОБРАЖЕНИЕ (сокращено)
         // ============================================================
         function cleanDiscipline(name) {
             if (!name) return '';
@@ -2952,9 +2904,6 @@
             loadScheduleData();
         });
 
-        // ============================================================
-        // АДМИН-ПАНЕЛЬ (доступ только владельцу)
-        // ============================================================
         document.getElementById('adminFab').addEventListener('click', function() {
             if (!isAdmin) {
                 if (tg) tg.showAlert('⛔ Доступ запрещен');
@@ -3123,16 +3072,7 @@
         }
 
         // ============================================================
-        // 16. ЗАПУСК УВЕДОМЛЕНИЙ
-        // ============================================================
-        setInterval(checkAndSendTomorrowSchedule, 300000);
-        setTimeout(() => {
-            checkAndSendTomorrowSchedule();
-            console.log('🔔 Система уведомлений запущена');
-        }, 10000);
-
-        // ============================================================
-        // 17. ЗАПУСК
+        // 16. ЗАПУСК
         // ============================================================
         window.openCard = openCard;
         window.closeCard = closeCard;
