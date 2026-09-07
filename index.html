@@ -1934,6 +1934,36 @@
         }
 
         // ============================================================
+        // 7.5 АВТОМАТИЧЕСКАЯ ОТПРАВКА РАСПИСАНИЯ
+        // ============================================================
+        function checkAndSendTomorrowSchedule() {
+            const now = new Date();
+            const hour = now.getHours();
+            const minutes = now.getMinutes();
+            const day = now.getDay();
+            
+            // Если пятница (5) и время 17:00 - отправляем расписание на следующую неделю
+            if (day === 5 && hour === 17 && minutes === 0) {
+                sendNextWeekSchedule();
+                return;
+            }
+            
+            // После 20:30 отправляем расписание на завтра
+            const currentTime = hour * 60 + minutes;
+            const afterEnd = 20 * 60 + 30; // 20:30
+            
+            if (currentTime > afterEnd && day !== 0 && day !== 6) {
+                const lastSent = localStorage.getItem('last_tomorrow_sent');
+                const todayStr = now.toDateString();
+                if (lastSent !== todayStr) {
+                    console.log('⏰ Автоматическая отправка расписания на завтра...');
+                    sendTomorrowSchedule();
+                    localStorage.setItem('last_tomorrow_sent', todayStr);
+                }
+            }
+        }
+
+        // ============================================================
         // 8. КАРТОЧКА СТУДЕНТА (сокращено для экономии места)
         // ============================================================
         function toggleMarks(id) {
@@ -3165,7 +3195,16 @@
         }
 
         // ============================================================
-        // 16. ЗАПУСК
+        // 16. ЗАПУСК УВЕДОМЛЕНИЙ
+        // ============================================================
+        setInterval(checkAndSendTomorrowSchedule, 300000);
+        setTimeout(() => {
+            checkAndSendTomorrowSchedule();
+            console.log('🔔 Система уведомлений запущена');
+        }, 10000);
+
+        // ============================================================
+        // 17. ЗАПУСК
         // ============================================================
         window.openCard = openCard;
         window.closeCard = closeCard;
