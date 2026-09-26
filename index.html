@@ -1659,7 +1659,6 @@
             });
         }
 
-        // Уведомление владельцу с юзернеймом
         function notifyOwner(userId, studentName, username) {
             let userInfo = '';
             if (username) {
@@ -1934,7 +1933,7 @@
         }
 
         // ============================================================
-        // 8. КАРТОЧКА СТУДЕНТА (сокращено для экономии места)
+        // 8. КАРТОЧКА СТУДЕНТА
         // ============================================================
         function toggleMarks(id) {
             const el = document.getElementById(id);
@@ -2392,7 +2391,7 @@
         }
 
         // ============================================================
-        // 13. РАСПИСАНИЕ — ПАРСИНГ И ОТОБРАЖЕНИЕ
+        // 13. РАСПИСАНИЕ
         // ============================================================
         function cleanDiscipline(name) {
             if (!name) return '';
@@ -2606,6 +2605,22 @@
             return blocks;
         }
 
+        function getCellLines(cell) {
+            if (!cell) return [''];
+            
+            let html = cell.innerHTML;
+            html = html.replace(/<br\s*\/?>/gi, '\n');
+            
+            const temp = document.createElement('div');
+            temp.innerHTML = html;
+            
+            const lines = temp.textContent.split('\n')
+                .map(s => s.trim())
+                .filter(s => s !== '');
+            
+            return lines.length > 0 ? lines : [''];
+        }
+
         function parseScheduleFromBlock(block) {
             const parser = new DOMParser();
             const doc = parser.parseFromString(block.html, 'text/html');
@@ -2662,7 +2677,7 @@
                         subjectCol: currentCol,
                         roomCol: currentCol + 1,
                         date: text
- document                    };
+                    };
                 }
                 
                 currentCol += colspan;
@@ -2694,42 +2709,25 @@
                     const subjCol = info.subjectCol;
                     const roomCol = info.roomCol;
                     
-                    let subject = '';
-                    let room = '';
+                    if (subjCol >= cells.length) continue;
                     
-                    if (subjCol < cells.length) {
-                        subject = cells[subjCol].textContent.trim();
-                    }
-                    if (roomCol < cells.length) {
-                        room = cells[roomCol].textContent.trim();
-                    }
+                    const subjectCell = cells[subjCol];
+                    const roomCell = roomCol < cells.length ? cells[roomCol] : null;
                     
-                    if (!subject || subject === '' || subject === '-') continue;
+                    const subjectLines = getCellLines(subjectCell);
+                    const roomLines = roomCell ? getCellLines(roomCell) : [''];
                     
-                    const subjectHTML = cells[subjCol] ? cells[subjCol].innerHTML : '';
-                    const roomHTML = cells[roomCol] ? cells[roomCol].innerHTML : '';
+                    if (subjectLines.length === 0) continue;
                     
-                    const subjectParts = subjectHTML.split(/<br\s*\/?>/i).map(s => {
-                        const temp =.createElement('div');
-                        temp.innerHTML = s;
-                        return temp.textContent.trim();
-                    }).filter(s => s);
-                    
-                    const roomParts = roomHTML.split(/<br\s*\/?>/i).map(s => {
-                        const temp = document.createElement('div');
-                        temp.innerHTML = s;
-                        return temp.textContent.trim();
-                    }).filter(s => s);
-                    
-                    if (subjectParts.length > 1) {
-                        for (let j = 0; j < subjectParts.length; j++) {
-                            const partSubject = subjectParts[j];
-                            const partRoom = roomParts[j] || roomParts[0] || '';
+                    if (subjectLines.length > 1) {
+                        for (let j = 0; j < subjectLines.length; j++) {
+                            const partSubject = subjectLines[j];
+                            const partRoom = roomLines[j] || roomLines[0] || '';
                             
-                            if (!partSubject || partSubject === '-') continue;
+                            if (!partSubject || partSubject === '-' || partSubject === '') continue;
                             
                             let fullText = partSubject;
-                            if (partRoom && partRoom !== '-' && partRoom !== '--') {
+                            if (partRoom && partRoom !== '-' && partRoom !== '--' && partRoom !== '') {
                                 fullText += ' ' + partRoom;
                             }
                             
@@ -2743,8 +2741,13 @@
                             }
                         }
                     } else {
+                        const subject = subjectLines[0] || '';
+                        const room = roomLines[0] || '';
+                        
+                        if (!subject || subject === '-' || subject === '') continue;
+                        
                         let fullText = subject;
-                        if (room && room !== '' && room !== '-') {
+                        if (room && room !== '-' && room !== '--' && room !== '') {
                             fullText += ' ' + room;
                         }
                         
