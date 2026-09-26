@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Журнал 86РТК</title>
-    <script src="https://telegram.org/js/telegram-web-app.js?56"></script>
     <style>
         :root {
             --bg: #0f172a;
@@ -1303,7 +1302,7 @@
             right: 0;
             bottom: 0;
             background: rgba(0,0,0,0.7);
-            z-index: 2200;
+            z-index: 2500;
             backdrop-filter: blur(10px);
             padding: 20px;
             overflow-y: auto;
@@ -1432,7 +1431,7 @@
                 <button class="retry-button" id="retryButton">Повторить</button>
             </div>
         </div>
-        <button class="loader-report-btn" id="loaderReportBtn">
+        <button class="loader-report-btn" id="loaderReportBtn" type="button">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
                 <line x1="12" y1="9" x2="12" y2="13"/>
@@ -1587,7 +1586,7 @@
                     <div class="report-info">
                         Если вы заметили неисправность в работе бота, отправьте отчёт. 
                         В отчёт автоматически включается ваш <strong>юзернейм</strong>, <strong>ID</strong>, 
-                        <strong>версия приложения</strong>, <strong>лог ошибок</strong> и <strong>состояние загрузки</strong>.
+                        <strong>версия приложения</strong>, <strong>лог ошибок</strong>, <strong>состояние загрузки</strong> и <strong>среда</strong>.
                     </div>
                     <textarea class="report-textarea" id="reportText" placeholder="Опишите проблему (необязательно)..."></textarea>
                     <div class="report-actions">
@@ -1612,31 +1611,252 @@
         </button>
     </nav>
 
+    <!-- ============================================================
+         СКРИПТ 1: Модуль отчёта и определение среды (работает независимо от Telegram)
+         ============================================================ -->
     <script>
-        // ============================================================
-        // 0. КОНСТАНТЫ (объявлены в самом начале, чтобы отчёт работал сразу)
-        // ============================================================
-        const APP_VERSION = '3.4.2';
-        const BOT_TOKEN = '8559243948:AAFAW1LdoTmE1a0I1pTgOvv6c9jDLz_1nnI';
-        const OWNER_CHAT_ID = '5753985995';
-        const API_JOURNAL = 'https://script.google.com/macros/s/AKfycbwtV3eFenNotdiVr3u1DQPJdOLn2fieHDsvWUwlsQquKURzkLkW4wuTiLqkNFnWCH0v/exec';
-        const API_ABSENCES = 'https://script.google.com/macros/s/AKfycbyux4wfN_lVoodDq-JHHjbYAGuJys_DsZ2mADyUGdw1MERG-iZK833dN0tSzI7lq_QeZg/exec';
-        const PROXY_URL = 'https://schedule-proxy.arsenijbro5.workers.dev/';
-        const DAYS_RU = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
-        const MONTHS_RU = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
-        const TYPE_MAP = {
-            'Лек': 'лекция',
-            'ЛР': 'лабораторная',
-            'ПР': 'практика',
-            'Лекция': 'лекция',
-            'Лабораторная': 'лабораторная',
-            'Практика': 'практика'
+        // Глобальное пространство для отчёта
+        window.__reportState = {
+            version: '3.4.2',
+            botToken: '8559243948:AAFAW1LdoTmE1a0I1pTgOvv6c9jDLz_1nnI',
+            ownerChatId: '5753985995',
+            userId: null,
+            username: null,
+            studentName: null,
+            loadStage: 'Инициализация',
+            dataLoaded: false,
+            scheduleLoaded: false,
+            tgAvailable: false,
+            env: 'Browser', // 'Telegram Mini App' или 'Browser'
+            envDetails: '',
+            errorLog: [],
+            maxLogSize: 10
         };
 
-        // ============================================================
-        // 1. ПРИВЯЗКА СТУДЕНТОВ
-        // ============================================================
-        const BINDINGS = {
+        // Определение среды (Telegram Mini App или Browser)
+        function detectEnvironment() {
+            var state = window.__reportState;
+            try {
+                if (window.Telegram && window.Telegram.WebApp) {
+                    var initData = window.Telegram.WebApp.initData;
+                    var platform = window.Telegram.WebApp.platform || 'unknown';
+                    if (initData && initData.length > 0) {
+                        state.env = 'Telegram Mini App';
+                        state.envDetails = 'Платформа: ' + platform;
+                        state.tgAvailable = true;
+                        console.log('✅ Среда: Telegram Mini App (' + platform + ')');
+                    } else {
+                        state.env = 'Browser (Telegram WebApp без initData)';
+                        state.envDetails = 'Telegram.WebApp доступен, но initData пустой. Платформа: ' + platform;
+                        state.tgAvailable = true;
+                        console.warn('⚠️ Telegram.WebApp доступен, но initData пустой — возможно, открыто в обычном браузере');
+                    }
+                } else {
+                    state.env = 'Browser';
+                    state.envDetails = 'Telegram.WebApp не загружен';
+                    state.tgAvailable = false;
+                    console.warn('⚠️ Среда: Browser (Telegram.WebApp недоступен)');
+                }
+            } catch(e) {
+                state.env = 'Browser (ошибка определения)';
+                state.envDetails = 'Ошибка: ' + e.message;
+                state.tgAvailable = false;
+            }
+        }
+
+        // Логирование ошибок
+        window.logError = function(source, message, details) {
+            details = details || '';
+            var entry = {
+                time: new Date().toLocaleString('ru-RU'),
+                source: source,
+                message: message,
+                details: details
+            };
+            window.__reportState.errorLog.push(entry);
+            if (window.__reportState.errorLog.length > window.__reportState.maxLogSize) {
+                window.__reportState.errorLog.shift();
+            }
+            console.warn('🚨 Лог ошибки:', entry);
+        };
+
+        window.addEventListener('error', function(e) {
+            window.logError('window.onerror', e.message, (e.filename || '') + ':' + (e.lineno || ''));
+        });
+        window.addEventListener('unhandledrejection', function(e) {
+            window.logError('Promise', (e.reason && e.reason.message) || String(e.reason), '');
+        });
+
+        function escapeHtmlReport(str) {
+            if (!str) return '';
+            return String(str).replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        function openReportDialog() {
+            var overlay = document.getElementById('reportOverlay');
+            var statusEl = document.getElementById('reportStatus');
+            var textEl = document.getElementById('reportText');
+            if (!overlay) return;
+            // Обновляем определение среды на момент открытия
+            detectEnvironment();
+            if (textEl) textEl.value = '';
+            if (statusEl) {
+                statusEl.textContent = '';
+                statusEl.className = 'report-status';
+            }
+            overlay.classList.add('open');
+        }
+
+        function closeReportDialog() {
+            var overlay = document.getElementById('reportOverlay');
+            if (overlay) overlay.classList.remove('open');
+        }
+
+        function sendReport() {
+            var statusEl = document.getElementById('reportStatus');
+            var textEl = document.getElementById('reportText');
+            var userComment = textEl ? textEl.value.trim() : '';
+            var state = window.__reportState;
+
+            // Ещё раз определяем среду (на всякий случай, если Telegram догрузился позже)
+            detectEnvironment();
+
+            if (statusEl) {
+                statusEl.textContent = '⏳ Отправка...';
+                statusEl.className = 'report-status';
+            }
+
+            var msg = '🚨 <b>ОТЧЁТ О ПРОБЛЕМЕ</b>\n\n';
+            msg += '📱 <b>Версия:</b> v' + state.version + '\n';
+            msg += '🌍 <b>Среда:</b> ' + escapeHtmlReport(state.env) + '\n';
+            if (state.envDetails) {
+                msg += '   <i>' + escapeHtmlReport(state.envDetails) + '</i>\n';
+            }
+            msg += '👤 <b>Юзернейм:</b> ' + (state.username ? '@' + escapeHtmlReport(state.username) : '❌ отсутствует') + '\n';
+            msg += '🆔 <b>Telegram ID:</b> <code>' + escapeHtmlReport(state.userId || 'не определён') + '</code>\n';
+            msg += '👨‍🎓 <b>Студент:</b> ' + escapeHtmlReport(state.studentName || 'не привязан') + '\n';
+            msg += '🕒 <b>Время:</b> ' + new Date().toLocaleString('ru-RU') + '\n';
+            msg += '📂 <b>Активная вкладка:</b> ' + (document.querySelector('.tab-content.active') ? document.querySelector('.tab-content.active').id : 'загрузка') + '\n';
+            msg += '⏳ <b>Этап загрузки:</b> ' + escapeHtmlReport(state.loadStage) + '\n';
+            msg += '📱 <b>Telegram WebApp:</b> ' + (state.tgAvailable ? '✅ доступен' : '❌ НЕ доступен') + '\n';
+            msg += '💾 <b>Данные загружены:</b> ' + (state.dataLoaded ? '✅' : '❌') + '\n';
+            msg += '📅 <b>Расписание загружено:</b> ' + (state.scheduleLoaded ? '✅' : '❌') + '\n';
+            msg += '💻 <b>User Agent:</b> <code>' + escapeHtmlReport(navigator.userAgent || 'неизвестно') + '</code>\n';
+            msg += '🖥️ <b>Платформа:</b> ' + escapeHtmlReport(navigator.platform || 'неизвестно') + '\n';
+            msg += '📐 <b>Экран:</b> ' + (typeof screen !== 'undefined' ? screen.width + 'x' + screen.height : 'неизвестно') + '\n';
+            msg += '🌐 <b>Язык:</b> ' + escapeHtmlReport(navigator.language || 'неизвестно') + '\n\n';
+            msg += '💬 <b>Комментарий:</b>\n' + escapeHtmlReport(userComment || '(без комментария)') + '\n\n';
+
+            if (state.errorLog && state.errorLog.length > 0) {
+                msg += '📋 <b>Лог ошибок (' + state.errorLog.length + '):</b>\n';
+                state.errorLog.slice(-5).forEach(function(e, i) {
+                    msg += '<b>' + (i + 1) + '.</b> [' + e.time + '] <i>' + escapeHtmlReport(e.source) + '</i>\n';
+                    msg += '   ' + escapeHtmlReport(e.message) + '\n';
+                    if (e.details) msg += '   <code>' + escapeHtmlReport(e.details) + '</code>\n';
+                });
+            } else {
+                msg += '📋 <b>Лог ошибок:</b> пуст\n';
+            }
+
+            var url = 'https://api.telegram.org/bot' + state.botToken + '/sendMessage';
+            fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: state.ownerChatId,
+                    text: msg,
+                    parse_mode: 'HTML'
+                })
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.ok) {
+                    if (statusEl) {
+                        statusEl.textContent = '✅ Отчёт отправлен! Спасибо за обратную связь.';
+                        statusEl.className = 'report-status success';
+                    }
+                    setTimeout(closeReportDialog, 2500);
+                } else {
+                    if (statusEl) {
+                        statusEl.textContent = '❌ Ошибка отправки: ' + (data.description || 'неизвестно');
+                        statusEl.className = 'report-status error';
+                    }
+                    window.logError('Report', 'Ошибка API: ' + (data.description || ''));
+                }
+            })
+            .catch(function(err) {
+                if (statusEl) {
+                    statusEl.textContent = '❌ Ошибка сети. Попробуйте позже.';
+                    statusEl.className = 'report-status error';
+                }
+                window.logError('Report', 'Ошибка сети: ' + err.message);
+            });
+        }
+
+        // Делегирование событий для кнопок отчёта
+        document.addEventListener('click', function(e) {
+            var target = e.target;
+            var reportBtn = target.closest ? target.closest('#loaderReportBtn, #fabReport') : null;
+            if (reportBtn) {
+                e.preventDefault();
+                e.stopPropagation();
+                openReportDialog();
+                return;
+            }
+            var closeBtn = target.closest ? target.closest('#reportClose, #reportCancel') : null;
+            if (closeBtn) {
+                e.preventDefault();
+                closeReportDialog();
+                return;
+            }
+            var sendBtn = target.closest ? target.closest('#reportSend') : null;
+            if (sendBtn) {
+                e.preventDefault();
+                sendReport();
+                return;
+            }
+            if (target.id === 'reportOverlay') {
+                closeReportDialog();
+            }
+        });
+
+        // Определяем среду сразу при загрузке модуля
+        detectEnvironment();
+
+        console.log('✅ Модуль отчёта загружен. Среда:', window.__reportState.env);
+    </script>
+
+    <!-- ============================================================
+         СКРИПТ 2: Telegram WebApp (асинхронно)
+         ============================================================ -->
+    <script async src="https://telegram.org/js/telegram-web-app.js?56" onload="window.__tgLoaded = true; window.detectEnvironment(); console.log('✅ Telegram WebApp скрипт загружен');"></script>
+
+    <!-- ============================================================
+         СКРИПТ 3: Основная логика приложения
+         ============================================================ -->
+    <script>
+    (function() {
+        'use strict';
+        
+        var API_JOURNAL = 'https://script.google.com/macros/s/AKfycbwtV3eFenNotdiVr3u1DQPJdOLn2fieHDsvWUwlsQquKURzkLkW4wuTiLqkNFnWCH0v/exec';
+        var API_ABSENCES = 'https://script.google.com/macros/s/AKfycbyux4wfN_lVoodDq-JHHjbYAGuJys_DsZ2mADyUGdw1MERG-iZK833dN0tSzI7lq_QeZg/exec';
+        var PROXY_URL = 'https://schedule-proxy.arsenijbro5.workers.dev/';
+        var BOT_TOKEN = '8559243948:AAFAW1LdoTmE1a0I1pTgOvv6c9jDLz_1nnI';
+        var OWNER_CHAT_ID = '5753985995';
+        var APP_VERSION = '3.4.2';
+        var DAYS_RU = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
+        var MONTHS_RU = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
+        var TYPE_MAP = {
+            'Лек': 'лекция', 'ЛР': 'лабораторная', 'ПР': 'практика',
+            'Лекция': 'лекция', 'Лабораторная': 'лабораторная', 'Практика': 'практика'
+        };
+
+        var BINDINGS = {
             '5753985995': 'Беляцкий',
             '1939232438': 'Конюк',
             '5359580675': 'Славиковский',
@@ -1654,286 +1874,24 @@
             '1881630825': 'Броновицкий'
         };
 
-        // ============================================================
-        // 2. ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ
-        // ============================================================
-        let tg = null;
-        let userId = null;
-        let username = null;
-        let isCardMode = false;
-        let ALL_DATA = { journal: [], absences: {} };
-        let isLoading = false;
-        let selectedStudentForIdentity = null;
-        let isDataLoaded = false;
-        let isAdmin = false;
-        
-        let scheduleRawHTML = null;
-        let scheduleBlocks = [];
-        let scheduleOffset = 0;
+        var ALL_DATA = { journal: [], absences: {} };
+        var isLoading = false;
+        var isDataLoaded = false;
+        var isCardMode = false;
+        var selectedStudentForIdentity = null;
+        var scheduleRawHTML = null;
+        var scheduleBlocks = [];
+        var scheduleOffset = 0;
+        var isAdmin = false;
+        var tg = null;
 
-        // Состояние загрузки (для отчёта)
-        let loadStage = 'Инициализация';
-
-        // Лог ошибок
-        let errorLog = [];
-        const MAX_LOG_SIZE = 10;
-
-        const CACHE_KEY = 'journal_86rtk_v32';
-        const EXAM_SUBJECTS = [
+        var CACHE_KEY = 'journal_86rtk_v32';
+        var EXAM_SUBJECTS = [
             'Цифровая и микропроцессорная техника',
             'Промышленная электроника и микроэлектроника',
             'Автоматизация производства'
         ];
 
-        // ============================================================
-        // 3. ЛОГИРОВАНИЕ ОШИБОК
-        // ============================================================
-        function logError(source, message, details = '') {
-            const entry = {
-                time: new Date().toLocaleString('ru-RU'),
-                source: source,
-                message: message,
-                details: details
-            };
-            errorLog.push(entry);
-            if (errorLog.length > MAX_LOG_SIZE) {
-                errorLog.shift();
-            }
-            console.warn('🚨 Лог ошибки:', entry);
-        }
-
-        window.addEventListener('error', function(e) {
-            logError('window.onerror', e.message, `${e.filename}:${e.lineno}`);
-        });
-        window.addEventListener('unhandledrejection', function(e) {
-            logError('Promise', e.reason?.message || String(e.reason), '');
-        });
-
-        // ============================================================
-        // 4. ОТПРАВКА ОТЧЁТА (РАБОТАЕТ ДАЖЕ БЕЗ TELEGRAM)
-        // ============================================================
-        function openReportDialog() {
-            const overlay = document.getElementById('reportOverlay');
-            const statusEl = document.getElementById('reportStatus');
-            const textEl = document.getElementById('reportText');
-            
-            if (!overlay) return;
-            
-            textEl.value = '';
-            statusEl.textContent = '';
-            statusEl.className = 'report-status';
-            overlay.classList.add('open');
-            
-            try {
-                if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
-            } catch(e) {}
-        }
-
-        function closeReportDialog() {
-            const overlay = document.getElementById('reportOverlay');
-            if (overlay) overlay.classList.remove('open');
-        }
-
-        function sendReport() {
-            const statusEl = document.getElementById('reportStatus');
-            const textEl = document.getElementById('reportText');
-            const userComment = textEl.value.trim();
-            
-            statusEl.textContent = '⏳ Отправка...';
-            statusEl.className = 'report-status';
-            
-            // Собираем данные
-            const reportData = {
-                version: APP_VERSION,
-                userId: userId || 'не определён',
-                username: username || 'отсутствует',
-                studentName: getBoundStudent ? (getBoundStudent() || 'не привязан') : 'не привязан',
-                userAgent: navigator.userAgent || 'неизвестно',
-                platform: navigator.platform || 'неизвестно',
-                screen: (typeof screen !== 'undefined') ? `${screen.width}x${screen.height}` : 'неизвестно',
-                timestamp: new Date().toLocaleString('ru-RU'),
-                comment: userComment || '(без комментария)',
-                loadStage: loadStage,
-                errors: errorLog.length > 0 ? errorLog : 'Ошибок не зафиксировано',
-                currentTab: document.querySelector('.tab-content.active')?.id || 'загрузка',
-                dataLoaded: isDataLoaded,
-                scheduleLoaded: scheduleBlocks && scheduleBlocks.length > 0,
-                tgAvailable: !!tg
-            };
-            
-            // Формируем сообщение
-            let msg = '🚨 <b>ОТЧЁТ О ПРОБЛЕМЕ</b>\n\n';
-            msg += '📱 <b>Версия:</b> v' + reportData.version + '\n';
-            msg += '👤 <b>Юзернейм:</b> ' + (username ? '@' + escapeHtml(username) : '❌ отсутствует') + '\n';
-            msg += '🆔 <b>Telegram ID:</b> <code>' + escapeHtml(reportData.userId) + '</code>\n';
-            msg += '👨‍🎓 <b>Студент:</b> ' + escapeHtml(reportData.studentName) + '\n';
-            msg += '🕒 <b>Время:</b> ' + reportData.timestamp + '\n';
-            msg += '📂 <b>Активная вкладка:</b> ' + reportData.currentTab + '\n';
-            msg += '⏳ <b>Этап загрузки:</b> ' + escapeHtml(reportData.loadStage) + '\n';
-            msg += '📱 <b>Telegram WebApp:</b> ' + (reportData.tgAvailable ? '✅ доступен' : '❌ НЕ доступен') + '\n';
-            msg += '💾 <b>Данные загружены:</b> ' + (reportData.dataLoaded ? '✅' : '❌') + '\n';
-            msg += '📅 <b>Расписание загружено:</b> ' + (reportData.scheduleLoaded ? '✅' : '❌') + '\n';
-            msg += '💻 <b>Платформа:</b> ' + escapeHtml(reportData.platform) + '\n';
-            msg += '📐 <b>Экран:</b> ' + reportData.screen + '\n\n';
-            msg += '💬 <b>Комментарий:</b>\n' + escapeHtml(reportData.comment) + '\n\n';
-            
-            if (errorLog.length > 0) {
-                msg += '📋 <b>Лог ошибок (' + errorLog.length + '):</b>\n';
-                errorLog.slice(-5).forEach((e, i) => {
-                    msg += `<b>${i+1}.</b> [${e.time}] <i>${escapeHtml(e.source)}</i>\n`;
-                    msg += `   ${escapeHtml(e.message)}\n`;
-                    if (e.details) msg += `   <code>${escapeHtml(e.details)}</code>\n`;
-                });
-            } else {
-                msg += '📋 <b>Лог ошибок:</b> пуст\n';
-            }
-            
-            // Отправка
-            const url = 'https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage';
-            fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    chat_id: OWNER_CHAT_ID,
-                    text: msg,
-                    parse_mode: 'HTML'
-                })
-            })
-            .then(r => r.json())
-            .then(data => {
-                if (data.ok) {
-                    statusEl.textContent = '✅ Отчёт отправлен! Спасибо за обратную связь.';
-                    statusEl.className = 'report-status success';
-                    try {
-                        if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-                    } catch(e) {}
-                    setTimeout(() => {
-                        closeReportDialog();
-                    }, 2500);
-                } else {
-                    statusEl.textContent = '❌ Ошибка отправки: ' + (data.description || 'неизвестно');
-                    statusEl.className = 'report-status error';
-                    logError('Report', 'Ошибка API: ' + (data.description || ''));
-                }
-            })
-            .catch(err => {
-                statusEl.textContent = '❌ Ошибка сети. Попробуйте позже.';
-                statusEl.className = 'report-status error';
-                logError('Report', 'Ошибка сети: ' + err.message);
-            });
-        }
-
-        // ============================================================
-        // 5. ПОДКЛЮЧАЕМ ОБРАБОТЧИКИ ОТЧЁТА СРАЗУ (ДО TELEGRAM И ЗАГРУЗКИ)
-        // ============================================================
-        (function initReportHandlers() {
-            // Ждём, пока DOM загрузится, но не ждём Telegram
-            function attachHandlers() {
-                const loaderBtn = document.getElementById('loaderReportBtn');
-                const fabBtn = document.getElementById('fabReport');
-                const closeBtn = document.getElementById('reportClose');
-                const cancelBtn = document.getElementById('reportCancel');
-                const sendBtn = document.getElementById('reportSend');
-                const overlay = document.getElementById('reportOverlay');
-                
-                if (loaderBtn) loaderBtn.addEventListener('click', openReportDialog);
-                if (fabBtn) fabBtn.addEventListener('click', openReportDialog);
-                if (closeBtn) closeBtn.addEventListener('click', closeReportDialog);
-                if (cancelBtn) cancelBtn.addEventListener('click', closeReportDialog);
-                if (sendBtn) sendBtn.addEventListener('click', sendReport);
-                if (overlay) {
-                    overlay.addEventListener('click', function(e) {
-                        if (e.target === this) closeReportDialog();
-                    });
-                }
-                console.log('✅ Обработчики отчёта подключены');
-            }
-            
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', attachHandlers);
-            } else {
-                attachHandlers();
-            }
-        })();
-
-        // ============================================================
-        // 6. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
-        // ============================================================
-        function getBoundStudent() {
-            if (!userId) return null;
-            return BINDINGS[userId] || null;
-        }
-        
-        function findStudentByName(name) {
-            if (!name) return null;
-            let found = ALL_DATA.journal.find(s => s.studentName === name);
-            if (found) return found;
-            const lastName = name.split(' ')[0];
-            found = ALL_DATA.journal.find(s => s.studentName && s.studentName.startsWith(lastName));
-            return found || null;
-        }
-        
-        function isExamSubject(subjectName) {
-            if (!subjectName) return false;
-            const name = subjectName.toLowerCase().trim();
-            return EXAM_SUBJECTS.some(exam => name.includes(exam.toLowerCase()) || exam.toLowerCase().includes(name));
-        }
-        
-        function calculateAverage(marks) {
-            if (!marks || marks.length === 0) return null;
-            let sum = 0;
-            let count = 0;
-            for (const m of marks) {
-                const val = parseFloat(String(m).replace(',', '.'));
-                if (!isNaN(val) && val > 0) {
-                    sum += val;
-                    count++;
-                }
-            }
-            if (count === 0) return null;
-            const avg = sum / count;
-            return avg.toFixed(1).replace('.', ',');
-        }
-        
-        function calculateTotalAverage(subjects) {
-            if (!subjects || subjects.length === 0) return null;
-            let sum = 0;
-            let count = 0;
-            for (const sub of subjects) {
-                if (sub.avg && sub.avg !== '—') {
-                    const val = parseFloat(String(sub.avg).replace(',', '.'));
-                    if (!isNaN(val) && val > 0) {
-                        sum += val;
-                        count++;
-                    }
-                }
-            }
-            if (count === 0) return null;
-            const avg = sum / count;
-            return avg.toFixed(1).replace('.', ',');
-        }
-        
-        function getStyleForScore(score) {
-            if (!score || score === '—' || score === '0,0') return 'm-none';
-            const v = parseFloat(String(score).replace(',', '.'));
-            if (isNaN(v)) return 'm-none';
-            if (v >= 9.5) return 'm-gold';
-            if (v >= 7.5) return 'm-high';
-            if (v >= 5) return 'm-warn';
-            return 'm-low';
-        }
-        
-        function getInitials(name) {
-            if (!name) return '?';
-            const parts = name.trim().split(' ');
-            if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
-            return (parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase();
-        }
-        
-        function getGroup(name) {
-            return '86РТК';
-        }
-        
         function escapeHtml(str) {
             if (!str) return '';
             return String(str).replace(/[&<>]/g, function(m) {
@@ -1943,290 +1901,336 @@
                 return m;
             });
         }
-        
+
+        function getBoundStudent() {
+            var uid = window.__reportState.userId;
+            if (!uid) return null;
+            return BINDINGS[uid] || null;
+        }
+
+        function findStudentByName(name) {
+            if (!name) return null;
+            var found = ALL_DATA.journal.find(function(s) { return s.studentName === name; });
+            if (found) return found;
+            var lastName = name.split(' ')[0];
+            found = ALL_DATA.journal.find(function(s) { return s.studentName && s.studentName.indexOf(lastName) === 0; });
+            return found || null;
+        }
+
+        function isExamSubject(subjectName) {
+            if (!subjectName) return false;
+            var name = subjectName.toLowerCase().trim();
+            return EXAM_SUBJECTS.some(function(exam) {
+                return name.indexOf(exam.toLowerCase()) !== -1 || exam.toLowerCase().indexOf(name) !== -1;
+            });
+        }
+
+        function calculateAverage(marks) {
+            if (!marks || marks.length === 0) return null;
+            var sum = 0, count = 0;
+            for (var i = 0; i < marks.length; i++) {
+                var val = parseFloat(String(marks[i]).replace(',', '.'));
+                if (!isNaN(val) && val > 0) { sum += val; count++; }
+            }
+            if (count === 0) return null;
+            return (sum / count).toFixed(1).replace('.', ',');
+        }
+
+        function calculateTotalAverage(subjects) {
+            if (!subjects || subjects.length === 0) return null;
+            var sum = 0, count = 0;
+            for (var i = 0; i < subjects.length; i++) {
+                var sub = subjects[i];
+                if (sub.avg && sub.avg !== '—') {
+                    var val = parseFloat(String(sub.avg).replace(',', '.'));
+                    if (!isNaN(val) && val > 0) { sum += val; count++; }
+                }
+            }
+            if (count === 0) return null;
+            return (sum / count).toFixed(1).replace('.', ',');
+        }
+
+        function getStyleForScore(score) {
+            if (!score || score === '—' || score === '0,0') return 'm-none';
+            var v = parseFloat(String(score).replace(',', '.'));
+            if (isNaN(v)) return 'm-none';
+            if (v >= 9.5) return 'm-gold';
+            if (v >= 7.5) return 'm-high';
+            if (v >= 5) return 'm-warn';
+            return 'm-low';
+        }
+
+        function getInitials(name) {
+            if (!name) return '?';
+            var parts = name.trim().split(' ');
+            if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+            return (parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase();
+        }
+
+        function getGroup() { return '86РТК'; }
+
         function showError(message) {
-            const loader = document.getElementById('loader');
-            const loaderStatus = document.getElementById('loaderStatus');
-            const errorContainer = document.getElementById('errorContainer');
-            const errorMessage = document.getElementById('errorMessage');
+            var loader = document.getElementById('loader');
+            var loaderStatus = document.getElementById('loaderStatus');
+            var errorContainer = document.getElementById('errorContainer');
+            var errorMessage = document.getElementById('errorMessage');
             loader.classList.add('error-mode');
             loaderStatus.textContent = 'Ошибка соединения';
             errorMessage.textContent = message || 'Не удалось подключиться к серверу';
             errorContainer.classList.add('visible');
-            loadStage = 'Ошибка: ' + message;
-            logError('UI', 'Показана ошибка: ' + message);
+            window.__reportState.loadStage = 'Ошибка: ' + message;
+            window.logError('UI', 'Показана ошибка: ' + message);
         }
-        
+
         function hideError() {
-            const loader = document.getElementById('loader');
-            const errorContainer = document.getElementById('errorContainer');
+            var loader = document.getElementById('loader');
+            var errorContainer = document.getElementById('errorContainer');
             loader.classList.remove('error-mode');
             errorContainer.classList.remove('visible');
             document.getElementById('loaderStatus').textContent = 'Загрузка журнала';
         }
 
-        // ============================================================
-        // 7. Telegram WebApp
-        // ============================================================
-        loadStage = 'Инициализация Telegram WebApp';
-        try {
+        function initTelegram() {
             if (window.Telegram && window.Telegram.WebApp) {
                 tg = window.Telegram.WebApp;
-                tg.ready();
-                tg.expand();
+                try { tg.ready(); tg.expand(); } catch(e) {}
                 
-                const user = tg.initDataUnsafe?.user;
+                var user = tg.initDataUnsafe && tg.initDataUnsafe.user;
                 if (user) {
-                    userId = String(user.id);
-                    username = user.username || null;
-                    console.log('👤 Пользователь ID:', userId, '| @' + (username || 'без юзернейма'));
-                    isAdmin = (userId === OWNER_CHAT_ID);
+                    window.__reportState.userId = String(user.id);
+                    window.__reportState.username = user.username || null;
+                    window.__reportState.tgAvailable = true;
+                    isAdmin = (String(user.id) === OWNER_CHAT_ID);
                     if (isAdmin) {
-                        console.log('👑 Админ режим активирован');
-                        document.getElementById('adminFab').classList.add('visible');
+                        var fab = document.getElementById('adminFab');
+                        if (fab) fab.classList.add('visible');
                     }
-                } else {
-                    console.warn('⚠️ Данные пользователя не получены');
-                    loadStage = 'Telegram WebApp доступен, но данные пользователя не получены';
                 }
+                // Определяем среду
+                window.detectEnvironment();
+                console.log('✅ Telegram WebApp инициализирован');
             } else {
-                console.warn('⚠️ Telegram WebApp не доступен (возможно, открыто вне Telegram)');
-                loadStage = 'Telegram WebApp НЕ доступен';
-            }
-        } catch(e) {
-            console.warn('Telegram WebApp не доступен:', e);
-            logError('Telegram WebApp', e.message);
-            loadStage = 'Ошибка Telegram WebApp: ' + e.message;
-        }
-
-        // ============================================================
-        // 8. АДМИН-ФУНКЦИИ
-        // ============================================================
-        function updateAdminRecipients() {
-            const select = document.getElementById('adminRecipient');
-            if (!select) return;
-            const currentValue = select.value;
-            select.innerHTML = '<option value="all">📢 Всем студентам</option>';
-            
-            const boundStudents = Object.keys(BINDINGS).map(id => ({
-                id: id,
-                name: BINDINGS[id]
-            }));
-            
-            boundStudents.sort((a, b) => a.name.localeCompare(b.name));
-            
-            boundStudents.forEach(s => {
-                const option = document.createElement('option');
-                if (s.id === OWNER_CHAT_ID) {
-                    option.value = s.id;
-                    option.textContent = '👑 ' + s.name + ' (я)';
-                } else {
-                    option.value = s.name;
-                    option.textContent = '👤 ' + s.name;
-                }
-                select.appendChild(option);
-            });
-            
-            if (currentValue) {
-                select.value = currentValue;
+                window.__reportState.loadStage = 'Telegram WebApp НЕ доступен';
+                console.log('⚠️ Telegram WebApp не доступен');
             }
         }
 
-        function sendMessageToUser(chatId, text) {
-            const url = 'https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage';
-            fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    chat_id: chatId,
-                    text: text,
-                    parse_mode: 'Markdown'
-                })
-            }).then(r => r.json()).then(data => {
-                if (!data.ok) {
-                    console.error('❌ Ошибка отправки:', data);
-                    logError('SendMessage', 'Ошибка: ' + data.description, 'chat_id=' + chatId);
-                }
-            }).catch(err => {
-                console.error('❌ Ошибка сети:', err);
-                logError('SendMessage', 'Ошибка сети: ' + err.message);
-            });
-        }
-
-        function notifyOwner(uid, studentName, uname) {
-            let userInfo = '';
-            if (uname) {
-                userInfo = '👤 Юзернейм: <b>@' + escapeHtml(uname) + '</b>\n';
-            }
-            
-            const message = '🔔 <b>Новая привязка!</b>\n\n' +
-                '👤 Студент: <b>' + escapeHtml(studentName) + '</b>\n' +
-                userInfo +
-                '🆔 Telegram ID: <code>' + uid + '</code>\n\n' +
-                'Для привязки добавьте в BINDINGS:\n' +
-                '<code>\'' + uid + '\' : \'' + escapeHtml(studentName) + '\'</code>';
-            
-            const url = 'https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage';
-            fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    chat_id: OWNER_CHAT_ID,
-                    text: message,
-                    parse_mode: 'HTML'
-                })
-            }).then(r => r.json()).then(data => {
-                if (data.ok) {
-                    console.log('✅ Уведомление отправлено');
-                } else {
-                    console.error('❌ Ошибка:', data);
-                }
-            }).catch(e => console.error('❌ Ошибка:', e));
-        }
-
-        function notifyAllStudentsAboutNewScores() {
-            const students = Object.keys(BINDINGS);
-            const message = '📊 *Новые оценки!*\n\nПроверьте журнал успеваемости.\n\n📱 Журнал 86РТК v' + APP_VERSION;
-            
-            let sent = 0;
-            students.forEach(id => {
-                sendMessageToUser(id, message);
-                sent++;
-            });
-            
-            const statusEl = document.getElementById('adminStatus');
-            statusEl.textContent = `✅ Уведомление о новых оценках отправлено ${sent} получателям!`;
-            statusEl.className = 'admin-status success';
-            
-            if (tg && tg.HapticFeedback) {
-                tg.HapticFeedback.notificationOccurred('success');
-            }
-        }
-
-        function sendMessageToStudents(text) {
-            const students = Object.keys(BINDINGS);
-            const msg = '📢 ' + escapeHtml(text) + '\n\n━━━━━━━━━━━━━━\n📱 Журнал 86РТК v' + APP_VERSION;
-            
-            let sent = 0;
-            let failed = 0;
-            const promises = students.map(id => {
-                const url = 'https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage';
-                return fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        chat_id: id,
-                        text: msg,
-                        parse_mode: 'HTML'
-                    })
-                }).then(r => r.json()).then(data => {
-                    if (data.ok) {
-                        sent++;
-                    } else {
-                        failed++;
-                        logError('SendAll', 'Ошибка: ' + data.description, 'chat_id=' + id);
+        function waitForTelegram(callback) {
+            if (window.Telegram && window.Telegram.WebApp) {
+                callback();
+            } else {
+                var attempts = 0;
+                var interval = setInterval(function() {
+                    attempts++;
+                    if (window.Telegram && window.Telegram.WebApp) {
+                        clearInterval(interval);
+                        callback();
+                    } else if (attempts > 40) {
+                        clearInterval(interval);
+                        callback();
                     }
-                }).catch(() => {
-                    failed++;
+                }, 100);
+            }
+        }
+
+        function renderJournal() {
+            var container = document.getElementById('list');
+            if (!container) return;
+            container.innerHTML = '';
+            var query = (document.getElementById('search') ? document.getElementById('search').value.toLowerCase().trim() : '');
+
+            if (!ALL_DATA.journal || ALL_DATA.journal.length === 0) {
+                container.innerHTML = '<div class="empty-state">Нет данных</div>';
+                return;
+            }
+
+            var filteredStudents = ALL_DATA.journal.filter(function(s) { return s && s.studentName; });
+
+            var sortedByTotal = filteredStudents.slice().sort(function(a, b) {
+                var avgA = parseFloat(String(a.totalAverage).replace(',', '.'));
+                var avgB = parseFloat(String(b.totalAverage).replace(',', '.'));
+                if (isNaN(avgA)) return 1;
+                if (isNaN(avgB)) return -1;
+                return avgB - avgA;
+            });
+            var topNames = sortedByTotal.slice(0, 3).map(function(s) { return s.studentName; });
+            var crowns = ['🥇', '🥈', '🥉'];
+
+            var list = filteredStudents
+                .filter(function(s) { return s && s.studentName && s.studentName.toLowerCase().indexOf(query) !== -1; })
+                .sort(function(a, b) { return a.studentName.localeCompare(b.studentName); });
+
+            if (list.length === 0) {
+                container.innerHTML = '<div class="empty-state">Ничего не найдено</div>';
+                return;
+            }
+
+            list.forEach(function(s) {
+                var card = document.createElement('div');
+                card.className = 'card';
+                var absCount = ALL_DATA.absences[s.studentName] || '0';
+                var tIdx = topNames.indexOf(s.studentName);
+                var isBoundToMe = window.__reportState.userId && getBoundStudent() === s.studentName;
+
+                var subsHtml = '';
+                if (s.subjects && Array.isArray(s.subjects)) {
+                    subsHtml = s.subjects.map(function(sub) {
+                        var isExam = isExamSubject(sub.subject);
+                        var marksHtml = '';
+                        if (sub.marks && Array.isArray(sub.marks) && sub.marks.length > 0) {
+                            marksHtml = sub.marks.map(function(m) {
+                                return '<div class="mark ' + getStyleForScore(m) + '">' + m + '</div>';
+                            }).join('');
+                        } else {
+                            marksHtml = '<div style="font-size:10px; opacity:0.4; padding:6px;">Нет отметок</div>';
+                        }
+
+                        var avgDisplay = sub.avg && sub.avg !== '—' ? sub.avg : '—';
+                        var examClass = isExam ? 'exam-subject' : '';
+                        var tooltipId = 'tooltip_' + Math.random().toString(36).substr(2, 9);
+                        var examIcon = isExam ? '<span class="exam-icon">!</span>' : '';
+                        var tooltipHtml = isExam ?
+                            '<div class="exam-tooltip" id="' + tooltipId + '">' +
+                                '<div class="tooltip-title">📝 Экзаменационный предмет</div>' +
+                                '<div class="tooltip-text">Итоговая отметка может <strong>отличаться</strong> от текущей успеваемости.</div>' +
+                                '<div class="tooltip-hint">Нажмите, чтобы скрыть</div>' +
+                            '</div>' : '';
+
+                        return '<div class="sub-item ' + examClass + '" data-tooltip="' + tooltipId + '" data-tooltip-shown="false">' +
+                            '<div class="sub-row">' +
+                                '<div class="subject-name-wrapper">' +
+                                    '<span>' + escapeHtml(sub.subject || 'Без названия') + '</span>' +
+                                    examIcon +
+                                '</div>' +
+                                '<span class="score-pill ' + getStyleForScore(avgDisplay) + '">' + avgDisplay + '</span>' +
+                            '</div>' +
+                            '<div class="marks-box">' +
+                                '<div class="marks-row">' + marksHtml + '</div>' +
+                            '</div>' +
+                            tooltipHtml +
+                        '</div>';
+                    }).join('');
+                } else {
+                    subsHtml = '<div style="font-size:11px; opacity:0.4; text-align:center; padding:10px;">Нет предметов</div>';
+                }
+
+                var totalDisplay = s.totalAverage && s.totalAverage !== '—' ? s.totalAverage : '—';
+                var identityBadge = isBoundToMe ?
+                    '<span style="font-size:9px;background:var(--success);color:white;padding:1px 8px;border-radius:10px;margin-left:6px;">✅ Вы</span>' : '';
+
+                card.innerHTML =
+                    '<div class="student-header">' +
+                        '<span class="student-name">' +
+                            escapeHtml(s.studentName) + ' ' + (tIdx !== -1 ? crowns[tIdx] : '') +
+                            '<span class="abs-badge">⏳ ' + absCount + '</span>' +
+                            identityBadge +
+                        '</span>' +
+                        '<span class="score-pill ' + getStyleForScore(totalDisplay) + '">' + totalDisplay + '</span>' +
+                    '</div>' +
+                    '<div class="subs-container">' + subsHtml + '</div>';
+
+                card.onclick = (function(name) {
+                    return function(e) {
+                        e.stopPropagation();
+                        openCard(name);
+                    };
+                })(s.studentName);
+
+                container.appendChild(card);
+            });
+
+            document.querySelectorAll('.sub-item').forEach(function(item) {
+                item.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    var marksBox = this.querySelector('.marks-box');
+                    if (marksBox) marksBox.classList.toggle('open');
+
+                    if (this.classList.contains('exam-subject')) {
+                        var tooltipId = this.dataset.tooltip;
+                        var tooltip = document.getElementById(tooltipId);
+                        if (tooltip && this.dataset.tooltipShown === 'false') {
+                            tooltip.classList.add('open');
+                            this.dataset.tooltipShown = 'true';
+                            tooltip.onclick = function(e) {
+                                e.stopPropagation();
+                                this.classList.remove('open');
+                            };
+                        }
+                    }
                 });
             });
-            
-            Promise.all(promises).then(() => {
-                const statusEl = document.getElementById('adminStatus');
-                if (failed === 0) {
-                    statusEl.textContent = `✅ Отправлено ${sent} получателям!`;
-                    statusEl.className = 'admin-status success';
-                    if (tg && tg.HapticFeedback) {
-                        tg.HapticFeedback.notificationOccurred('success');
-                    }
-                } else {
-                    statusEl.textContent = `⚠️ Отправлено ${sent}, ошибок: ${failed}`;
-                    statusEl.className = 'admin-status error';
-                }
-                setTimeout(() => {
-                    document.getElementById('adminMessage').value = '';
-                }, 3000);
-            });
+
+            updateProfileButton();
         }
 
-        function sendToMe(text) {
-            const statusEl = document.getElementById('adminStatus');
-            statusEl.textContent = '⏳ Отправка себе...';
-            statusEl.className = 'admin-status';
-            
-            sendMessageToUser(OWNER_CHAT_ID, '📢 ' + text + '\n\n━━━━━━━━━━━━━━\n📱 Журнал 86РТК v' + APP_VERSION);
-            
-            statusEl.textContent = '✅ Отправлено вам!';
-            statusEl.className = 'admin-status success';
-            if (tg && tg.HapticFeedback) {
-                tg.HapticFeedback.notificationOccurred('success');
-            }
-            setTimeout(() => {
-                document.getElementById('adminMessage').value = '';
-            }, 3000);
+        function openCard(name) {
+            if (!ALL_DATA.journal || ALL_DATA.journal.length === 0) return;
+            if (document.getElementById('cardOverlay').classList.contains('open')) return;
+            isCardMode = true;
+            document.body.classList.add('search-hidden');
+            document.getElementById('cardOverlay').classList.add('open');
+            renderCard(name);
+            updateProfileButton();
         }
 
-        // ============================================================
-        // 9. КАРТОЧКА СТУДЕНТА
-        // ============================================================
-        function toggleMarks(id) {
-            const el = document.getElementById(id);
-            if (el) el.classList.toggle('open');
+        function closeCard() {
+            document.getElementById('cardOverlay').classList.remove('open');
+            isCardMode = false;
+            document.body.classList.remove('search-hidden');
+            updateProfileButton();
         }
-        
+
         function renderCard(studentName) {
-            const container = document.getElementById('cardWrapper');
+            var container = document.getElementById('cardWrapper');
             if (!studentName) {
                 container.innerHTML = '<div class="student-card"><div class="card-close" onclick="closeCard()">✕</div><div style="text-align:center;padding:40px 20px;color:var(--muted);">Выберите студента</div></div>';
                 return;
             }
-            
-            const student = findStudentByName(studentName);
+            var student = findStudentByName(studentName);
             if (!student) {
                 container.innerHTML = '<div class="student-card"><div class="card-close" onclick="closeCard()">✕</div><div style="text-align:center;padding:40px 20px;color:var(--muted);">Студент не найден</div></div>';
                 return;
             }
-            
-            const isBound = userId && getBoundStudent() === student.studentName;
-            const absCount = ALL_DATA.absences[student.studentName] || '0';
-            const totalAvg = student.totalAverage || '—';
-            const avgNum = parseFloat(String(totalAvg).replace(',', '.'));
-            let avgClass = 'gold';
+            var isBound = window.__reportState.userId && getBoundStudent() === student.studentName;
+            var absCount = ALL_DATA.absences[student.studentName] || '0';
+            var totalAvg = student.totalAverage || '—';
+            var avgNum = parseFloat(String(totalAvg).replace(',', '.'));
+            var avgClass = 'gold';
             if (isNaN(avgNum)) avgClass = 'gold';
             else if (avgNum >= 7.5) avgClass = 'gold';
             else if (avgNum >= 5) avgClass = 'orange';
             else avgClass = 'red';
-            
-            const sorted = ALL_DATA.journal.filter(s => s && s.studentName).sort((a, b) => a.studentName.localeCompare(b.studentName));
-            const idx = sorted.findIndex(s => s.studentName === student.studentName) + 1;
-            const studentId = String(idx).padStart(3, '0');
-            
-            const icons = ['📐','💻','⚡','🔌','🏭','📡','🔧','📊','🎯','🧮','📈','🔬'];
-            const colors = ['blue','pink','purple','green','orange','blue','pink','purple','green','orange','blue','pink'];
-            
-            let subjectsHtml = '';
+
+            var sorted = ALL_DATA.journal.filter(function(s) { return s && s.studentName; }).sort(function(a, b) { return a.studentName.localeCompare(b.studentName); });
+            var idx = sorted.findIndex(function(s) { return s.studentName === student.studentName; }) + 1;
+            var studentId = String(idx).padStart(3, '0');
+
+            var icons = ['📐','💻','⚡','🔌','🏭','📡','🔧','📊','🎯','🧮','📈','🔬'];
+            var colors = ['blue','pink','purple','green','orange','blue','pink','purple','green','orange','blue','pink'];
+
+            var subjectsHtml = '';
             if (student.subjects && Array.isArray(student.subjects)) {
-                student.subjects.forEach((sub, i) => {
-                    const isExam = isExamSubject(sub.subject);
-                    const avg = sub.avg || '—';
-                    const num = parseFloat(String(avg).replace(',', '.'));
-                    let sc = 'gray';
+                student.subjects.forEach(function(sub, i) {
+                    var isExam = isExamSubject(sub.subject);
+                    var avg = sub.avg || '—';
+                    var num = parseFloat(String(avg).replace(',', '.'));
+                    var sc = 'gray';
                     if (!isNaN(num)) { if (num >= 7.5) sc = 'gold'; else if (num >= 5) sc = 'orange'; else sc = 'red'; }
-                    
-                    let marksHtml = '';
+
+                    var marksHtml = '';
                     if (sub.marks && sub.marks.length) {
-                        marksHtml = sub.marks.map(m => {
-                            const n = parseFloat(String(m).replace(',', '.'));
-                            let bg = '#475569';
+                        marksHtml = sub.marks.map(function(m) {
+                            var n = parseFloat(String(m).replace(',', '.'));
+                            var bg = '#475569';
                             if (!isNaN(n)) { if (n >= 7.5) bg = '#10b981'; else if (n >= 5) bg = '#f59e0b'; else bg = '#ef4444'; }
                             return '<span class="mark-item" style="background:' + bg + ';">' + m + '</span>';
                         }).join('');
                     } else {
                         marksHtml = '<span class="no-marks">Нет оценок</span>';
                     }
-                    
-                    const id = 'm_' + i + '_' + Math.random().toString(36).substr(2, 4);
-                    subjectsHtml += 
+
+                    var id = 'm_' + i + '_' + Math.random().toString(36).substr(2, 4);
+                    subjectsHtml +=
                         '<div class="subject-row ' + (isExam ? 'exam' : '') + '" onclick="toggleMarks(\'' + id + '\')">' +
                             '<div class="subject-icon ' + colors[i % colors.length] + '">' + icons[i % icons.length] + '</div>' +
                             '<div class="subject-info"><div class="subject-name">' + escapeHtml(sub.subject || 'Без названия') + (isExam ? ' <span class="exam-badge">📝 Экзамен</span>' : '') + '</div></div>' +
@@ -2235,12 +2239,12 @@
                         '<div class="subject-marks-container" id="' + id + '">' + marksHtml + '</div>';
                 });
             }
-            
-            const subjectsCount = student.subjects ? student.subjects.length : 0;
-            const statusText = avgNum >= 9 ? '🏆 Отлично' : avgNum >= 7.5 ? '✅ Хорошо' : avgNum >= 5 ? '⚠️ Удовлетворительно' : '❌ Требуется внимание';
-            const badge = isBound ? '<span class="card-user-badge">✅ Вы</span>' : '';
-            
-            container.innerHTML = 
+
+            var subjectsCount = student.subjects ? student.subjects.length : 0;
+            var statusText = avgNum >= 9 ? '🏆 Отлично' : avgNum >= 7.5 ? '✅ Хорошо' : avgNum >= 5 ? '⚠️ Удовлетворительно' : '❌ Требуется внимание';
+            var badge = isBound ? '<span class="card-user-badge">✅ Вы</span>' : '';
+
+            container.innerHTML =
                 '<div class="student-card">' +
                     '<div class="card-close" onclick="closeCard()">✕</div>' +
                     '<div class="card-header">' +
@@ -2248,7 +2252,7 @@
                             '<div class="card-user-info">' +
                                 '<div class="card-user-name">' + escapeHtml(student.studentName) + ' ' + badge + '</div>' +
                                 '<div class="card-user-meta">' +
-                                    '<span class="tag">' + getGroup(student.studentName) + '</span>' +
+                                    '<span class="tag">' + getGroup() + '</span>' +
                                     '<span>• ID: #' + studentId + '</span>' +
                                     '<span>• ' + subjectsCount + ' предметов</span>' +
                                 '</div>' +
@@ -2268,179 +2272,16 @@
                     '</div>' +
                 '</div>';
         }
-        
-        function openCard(name) {
-            if (!ALL_DATA.journal || ALL_DATA.journal.length === 0) {
-                console.log('Данные не загружены');
-                return;
-            }
-            
-            if (document.getElementById('cardOverlay').classList.contains('open')) {
-                return;
-            }
-            
-            isCardMode = true;
-            document.body.classList.add('search-hidden');
-            document.getElementById('cardOverlay').classList.add('open');
-            renderCard(name);
-            updateProfileButton();
-        }
-        
-        function closeCard() {
-            document.getElementById('cardOverlay').classList.remove('open');
-            isCardMode = false;
-            document.body.classList.remove('search-hidden');
-            updateProfileButton();
-        }
 
-        // ============================================================
-        // 10. РЕНДЕРИНГ ЖУРНАЛА
-        // ============================================================
-        function renderJournal() {
-            const container = document.getElementById('list');
-            if (!container) return;
-            container.innerHTML = '';
-            const query = document.getElementById('search')?.value.toLowerCase().trim() || '';
-            
-            if (!ALL_DATA.journal || ALL_DATA.journal.length === 0) {
-                container.innerHTML = '<div class="empty-state">Нет данных</div>';
-                return;
-            }
-            
-            const filteredStudents = ALL_DATA.journal.filter(s => s && s.studentName);
-            
-            const sortedByTotal = [...filteredStudents].sort((a, b) => {
-                const avgA = parseFloat(String(a.totalAverage).replace(',', '.'));
-                const avgB = parseFloat(String(b.totalAverage).replace(',', '.'));
-                if (isNaN(avgA)) return 1;
-                if (isNaN(avgB)) return -1;
-                return avgB - avgA;
-            });
-            const topNames = sortedByTotal.slice(0, 3).map(s => s.studentName);
-            const crowns = ['🥇', '🥈', '🥉'];
-            
-            const list = filteredStudents
-                .filter(s => s && s.studentName && s.studentName.toLowerCase().includes(query))
-                .sort((a, b) => a.studentName.localeCompare(b.studentName));
-            
-            if (list.length === 0) {
-                container.innerHTML = '<div class="empty-state">Ничего не найдено</div>';
-                return;
-            }
-            
-            list.forEach(s => {
-                const card = document.createElement('div');
-                card.className = 'card';
-                const absCount = ALL_DATA.absences[s.studentName] || '0';
-                const tIdx = topNames.indexOf(s.studentName);
-                const isBoundToMe = userId && getBoundStudent() === s.studentName;
-                
-                let subsHtml = '';
-                if (s.subjects && Array.isArray(s.subjects)) {
-                    subsHtml = s.subjects.map(sub => {
-                        const isExam = isExamSubject(sub.subject);
-                        
-                        let marksHtml = '';
-                        if (sub.marks && Array.isArray(sub.marks) && sub.marks.length > 0) {
-                            marksHtml = sub.marks.map(m => '<div class="mark ' + getStyleForScore(m) + '">' + m + '</div>').join('');
-                        } else {
-                            marksHtml = '<div style="font-size:10px; opacity:0.4; padding:6px;">Нет отметок</div>';
-                        }
-                        
-                        const avgDisplay = sub.avg && sub.avg !== '—' ? sub.avg : '—';
-                        const examClass = isExam ? 'exam-subject' : '';
-                        const tooltipId = 'tooltip_' + Math.random().toString(36).substr(2, 9);
-                        const examIcon = isExam ? '<span class="exam-icon">!</span>' : '';
-                        const tooltipHtml = isExam ? 
-                            '<div class="exam-tooltip" id="' + tooltipId + '">' +
-                                '<div class="tooltip-title">📝 Экзаменационный предмет</div>' +
-                                '<div class="tooltip-text">Итоговая отметка может <strong>отличаться</strong> от текущей успеваемости и выставляется по результатам экзамена.</div>' +
-                                '<div class="tooltip-hint">Нажмите на подсказку, чтобы скрыть</div>' +
-                            '</div>' : '';
-                        
-                        return '<div class="sub-item ' + examClass + '" data-tooltip="' + tooltipId + '" data-tooltip-shown="false">' +
-                            '<div class="sub-row">' +
-                                '<div class="subject-name-wrapper">' +
-                                    '<span>' + escapeHtml(sub.subject || 'Без названия') + '</span>' +
-                                    examIcon +
-                                '</div>' +
-                                '<span class="score-pill ' + getStyleForScore(avgDisplay) + '">' + avgDisplay + '</span>' +
-                            '</div>' +
-                            '<div class="marks-box">' +
-                                '<div class="marks-row">' + marksHtml + '</div>' +
-                            '</div>' +
-                            tooltipHtml +
-                        '</div>';
-                    }).join('');
-                } else {
-                    subsHtml = '<div style="font-size:11px; opacity:0.4; text-align:center; padding:10px;">Нет предметов</div>';
-                }
-                
-                const totalDisplay = s.totalAverage && s.totalAverage !== '—' ? s.totalAverage : '—';
-                const identityBadge = isBoundToMe ? 
-                    '<span style="font-size:9px;background:var(--success);color:white;padding:1px 8px;border-radius:10px;margin-left:6px;">✅ Вы</span>' : '';
-                
-                card.innerHTML = 
-                    '<div class="student-header">' +
-                        '<span class="student-name">' +
-                            escapeHtml(s.studentName) + ' ' + (tIdx !== -1 ? crowns[tIdx] : '') +
-                            '<span class="abs-badge">⏳ ' + absCount + '</span>' +
-                            identityBadge +
-                        '</span>' +
-                        '<span class="score-pill ' + getStyleForScore(totalDisplay) + '">' + totalDisplay + '</span>' +
-                    '</div>' +
-                    '<div class="subs-container">' + subsHtml + '</div>';
-                
-                card.onclick = (function(name) {
-                    return function(e) {
-                        e.stopPropagation();
-                        openCard(name);
-                    };
-                })(s.studentName);
-                
-                container.appendChild(card);
-            });
-            
-            document.querySelectorAll('.sub-item').forEach(item => {
-                item.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    const marksBox = this.querySelector('.marks-box');
-                    if (marksBox) marksBox.classList.toggle('open');
-                    
-                    if (this.classList.contains('exam-subject')) {
-                        const tooltipId = this.dataset.tooltip;
-                        const tooltip = document.getElementById(tooltipId);
-                        if (tooltip && this.dataset.tooltipShown === 'false') {
-                            tooltip.classList.add('open');
-                            this.dataset.tooltipShown = 'true';
-                            
-                            tooltip.onclick = function(e) {
-                                e.stopPropagation();
-                                this.classList.remove('open');
-                                if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
-                            };
-                            
-                            if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
-                        }
-                    }
-                });
-            });
-            
-            updateProfileButton();
-        }
-
-        // ============================================================
-        // 11. КНОПКА ПРОФИЛЯ
-        // ============================================================
         function updateProfileButton() {
-            const btn = document.getElementById('profileBtn');
-            const icon = document.getElementById('profileIcon');
-            const label = document.getElementById('modeLabel');
-            const boundStudent = getBoundStudent();
-            
+            var btn = document.getElementById('profileBtn');
+            var icon = document.getElementById('profileIcon');
+            var label = document.getElementById('modeLabel');
+            var boundStudent = getBoundStudent();
+
             if (boundStudent) {
                 btn.classList.add('active');
-                const initials = getInitials(boundStudent);
+                var initials = getInitials(boundStudent);
                 icon.innerHTML = '<span style="font-size:16px;font-weight:700;color:white;">' + initials + '</span>';
                 label.textContent = isCardMode ? 'ЖУРНАЛ' : 'МОЯ КАРТОЧКА';
             } else {
@@ -2450,281 +2291,208 @@
             }
         }
 
-        // ============================================================
-        // 12. ВЫБОР СТУДЕНТА
-        // ============================================================
-        function showStudentSelect() {
-            const popup = document.getElementById('identityPopup');
-            const list = document.getElementById('studentSelectList');
-            const sub = document.getElementById('popupSubText');
-            
-            sub.textContent = 'Выберите свою фамилию из списка:';
-            list.innerHTML = '';
-            
-            const sorted = ALL_DATA.journal.filter(s => s && s.studentName).sort((a, b) => a.studentName.localeCompare(b.studentName));
-            
-            if (sorted.length === 0) {
-                list.innerHTML = '<div style="padding:20px;text-align:center;color:var(--muted);">Нет студентов</div>';
-                popup.classList.add('open');
-                return;
-            }
-            
-            sorted.forEach(s => {
-                const item = document.createElement('div');
-                item.className = 'student-item';
-                item.innerHTML = '<span class="s-name">' + escapeHtml(s.studentName) + '</span><span class="s-group">' + getGroup(s.studentName) + '</span>';
-                item.onclick = (function(name) {
-                    return function() {
-                        selectedStudentForIdentity = name;
-                        document.querySelectorAll('.student-item').forEach(el => {
-                            el.style.background = 'transparent';
-                            el.style.border = 'none';
-                        });
-                        this.style.background = 'rgba(56, 189, 248, 0.1)';
-                        this.style.border = '1px solid rgba(56, 189, 248, 0.2)';
-                        document.getElementById('popupSubText').textContent = '✅ Вы выбрали: ' + name;
-                    };
-                })(s.studentName);
-                list.appendChild(item);
-            });
-            
-            popup.classList.add('open');
-            if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
-        }
-
-        // ============================================================
-        // 13. ЗАГРУЗКА ДАННЫХ (ЖУРНАЛ)
-        // ============================================================
         function loadData() {
             if (isLoading) return;
             isLoading = true;
             isDataLoaded = false;
-            loadStage = 'Загрузка журнала';
-            
-            const loader = document.getElementById('loader');
-            const loaderStatus = document.getElementById('loaderStatus');
+            window.__reportState.loadStage = 'Загрузка журнала';
+
+            var loader = document.getElementById('loader');
+            var loaderStatus = document.getElementById('loaderStatus');
             loader.style.display = 'flex';
             loader.style.opacity = '1';
             hideError();
             loaderStatus.textContent = 'Загрузка журнала';
-            
+
             try {
-                const cached = localStorage.getItem(CACHE_KEY);
+                var cached = localStorage.getItem(CACHE_KEY);
                 if (cached) {
-                    const data = JSON.parse(cached);
+                    var data = JSON.parse(cached);
                     if (data.journal && data.journal.length > 0) {
                         ALL_DATA = data;
                         processAllAverages();
                         isDataLoaded = true;
+                        window.__reportState.dataLoaded = true;
                         renderJournal();
                         updateProfileButton();
-                        if (isAdmin) {
-                            updateAdminRecipients();
-                        }
+                        if (isAdmin) updateAdminRecipients();
                         hideLoader();
                         isLoading = false;
-                        loadStage = 'Загружено из кеша';
-                        console.log('✅ Загружено из кеша');
+                        window.__reportState.loadStage = 'Загружено из кеша';
                     }
                 }
             } catch(e) {
-                console.warn('Ошибка чтения кеша:', e);
-                logError('Cache', 'Ошибка чтения: ' + e.message);
+                window.logError('Cache', 'Ошибка чтения: ' + e.message);
             }
-            
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 8000);
-            
-            loadStage = 'Запрос к API журнала';
+
+            var controller = new AbortController();
+            var timeoutId = setTimeout(function() { controller.abort(); }, 8000);
+
+            window.__reportState.loadStage = 'Запрос к API журнала';
             Promise.all([
-                fetch(API_JOURNAL, { signal: controller.signal }).then(r => r.json()),
-                fetch(API_ABSENCES, { signal: controller.signal }).then(r => r.json())
-            ]).then(([resJ, resA]) => {
+                fetch(API_JOURNAL, { signal: controller.signal }).then(function(r) { return r.json(); }),
+                fetch(API_ABSENCES, { signal: controller.signal }).then(function(r) { return r.json(); })
+            ]).then(function(results) {
                 clearTimeout(timeoutId);
-                
-                const absMap = {};
+                var resJ = results[0], resA = results[1];
+
+                var absMap = {};
                 if (Array.isArray(resA)) {
-                    resA.forEach(a => { 
-                        if (a && a.name) absMap[a.name.trim()] = a.count || '0'; 
+                    resA.forEach(function(a) {
+                        if (a && a.name) absMap[a.name.trim()] = a.count || '0';
                     });
                 }
-                
-                let journalData = [];
+
+                var journalData = [];
                 if (Array.isArray(resJ)) journalData = resJ;
                 else if (resJ && resJ.journal && Array.isArray(resJ.journal)) journalData = resJ.journal;
                 else if (resJ && !resJ.error) journalData = resJ;
-                
+
                 if (!journalData.length) throw new Error('Нет данных');
-                
+
                 ALL_DATA = { journal: journalData, absences: absMap };
                 processAllAverages();
                 localStorage.setItem(CACHE_KEY, JSON.stringify(ALL_DATA));
                 isDataLoaded = true;
-                
+                window.__reportState.dataLoaded = true;
+
                 renderJournal();
                 updateProfileButton();
-                if (isAdmin) {
-                    updateAdminRecipients();
-                }
-                
-                if (loader.style.display !== 'none') {
-                    hideLoader();
-                }
-                
-                if (tg && tg.HapticFeedback) {
-                    tg.HapticFeedback.notificationOccurred('success');
-                }
-                
-                loadStage = 'Данные загружены';
-                console.log('✅ Загружено с сервера');
+                if (isAdmin) updateAdminRecipients();
+
+                if (loader.style.display !== 'none') hideLoader();
+                window.__reportState.loadStage = 'Данные загружены';
                 isLoading = false;
-                
-            }).catch(e => {
+
+            }).catch(function(e) {
                 clearTimeout(timeoutId);
-                console.error('Ошибка загрузки с сервера:', e);
-                logError('API', 'Ошибка загрузки журнала: ' + e.message, 'API_JOURNAL');
-                loadStage = 'Ошибка загрузки журнала: ' + e.message;
-                
+                window.logError('API', 'Ошибка загрузки журнала: ' + e.message, 'API_JOURNAL');
+                window.__reportState.loadStage = 'Ошибка загрузки журнала: ' + e.message;
+
                 if (isDataLoaded && ALL_DATA.journal.length > 0) {
-                    console.log('📦 Использую кеш');
                     isLoading = false;
                     return;
                 }
-                
+
                 showError('Проверьте подключение к интернету');
                 isLoading = false;
             });
         }
-        
+
         function processAllAverages() {
-            ALL_DATA.journal.forEach(student => {
+            ALL_DATA.journal.forEach(function(student) {
                 if (student.subjects && Array.isArray(student.subjects)) {
-                    student.subjects.forEach(subject => {
-                        const calculatedAvg = calculateAverage(subject.marks);
-                        subject.avg = calculatedAvg || '—';
+                    student.subjects.forEach(function(subject) {
+                        subject.avg = calculateAverage(subject.marks) || '—';
                     });
-                    const totalAvg = calculateTotalAverage(student.subjects);
-                    student.totalAverage = totalAvg || '—';
+                    student.totalAverage = calculateTotalAverage(student.subjects) || '—';
                 }
             });
         }
-        
+
         function forceUpdate() {
             localStorage.removeItem(CACHE_KEY);
-            if (document.getElementById('cardOverlay').classList.contains('open')) {
-                closeCard();
-            }
-            const loader = document.getElementById('loader');
+            if (document.getElementById('cardOverlay').classList.contains('open')) closeCard();
+            var loader = document.getElementById('loader');
             loader.style.display = 'flex';
             loader.style.opacity = '1';
             document.getElementById('main-content').classList.remove('visible');
             loadData();
         }
-        
+
         function hideLoader() {
-            const loader = document.getElementById('loader');
-            const mainContent = document.getElementById('main-content');
+            var loader = document.getElementById('loader');
+            var mainContent = document.getElementById('main-content');
             loader.style.opacity = '0';
-            setTimeout(() => {
+            setTimeout(function() {
                 loader.style.display = 'none';
                 mainContent.classList.add('visible');
             }, 400);
         }
 
-        // ============================================================
-        // 14. РАСПИСАНИЕ — ПАРСИНГ И ОТОБРАЖЕНИЕ
-        // ============================================================
         function getWeekOffsetDate(offset) {
-            const today = new Date();
-            const day = today.getDay();
-            const diff = today.getDate() - day + (day === 0 ? -6 : 1);
-            const monday = new Date(today);
+            var today = new Date();
+            var day = today.getDay();
+            var diff = today.getDate() - day + (day === 0 ? -6 : 1);
+            var monday = new Date(today);
             monday.setDate(diff + offset * 7);
             return monday;
         }
 
         function formatDate(date) {
-            const d = String(date.getDate()).padStart(2, '0');
-            const m = String(date.getMonth() + 1).padStart(2, '0');
-            const y = date.getFullYear();
-            return `${d}.${m}.${y}`;
+            var d = String(date.getDate()).padStart(2, '0');
+            var m = String(date.getMonth() + 1).padStart(2, '0');
+            var y = date.getFullYear();
+            return d + '.' + m + '.' + y;
         }
 
         function cleanHtmlEntities(str) {
             if (!str) return '';
-            return str
-                .replace(/&nbsp;/gi, ' ')
-                .replace(/&mdash;/gi, '—')
-                .replace(/&ndash;/gi, '–')
-                .replace(/&laquo;/gi, '«')
-                .replace(/&raquo;/gi, '»')
-                .replace(/&quot;/gi, '"')
-                .replace(/&amp;/gi, '&')
-                .replace(/&lt;/gi, '<')
-                .replace(/&gt;/gi, '>')
-                .replace(/\u00a0/g, ' ');
+            return str.replace(/&nbsp;/gi, ' ').replace(/&mdash;/gi, '—').replace(/&ndash;/gi, '–').replace(/&laquo;/gi, '«').replace(/&raquo;/gi, '»').replace(/&quot;/gi, '"').replace(/&amp;/gi, '&').replace(/&lt;/gi, '<').replace(/&gt;/gi, '>').replace(/\u00a0/g, ' ');
         }
 
         function splitByNumbers(text) {
             if (!text) return [];
-            const parts = text.split(/(?=(?:^|\s)\d+\.)/);
-            return parts.map(p => p.trim()).filter(p => p.length > 0);
+            var parts = text.split(/(?=(?:^|\s)\d+\.)/);
+            return parts.map(function(p) { return p.trim(); }).filter(function(p) { return p.length > 0; });
         }
 
         function extractRooms(text) {
             if (!text) return [];
-            const roomRegex = /(Кн\.?\s*\d+[-–]\d+\(?[кК]?\)?|\d+[-–]\d+\(?[кК]?\)?|\d+\([кК]\)|\(\d+[кК]\))/g;
-            const matches = text.match(roomRegex);
+            var roomRegex = /(Кн\.?\s*\d+[-–]\d+\(?[кК]?\)?|\d+[-–]\d+\(?[кК]?\)?|\d+\([кК]\)|\(\d+[кК]\))/g;
+            var matches = text.match(roomRegex);
             if (!matches) return [];
-            return matches.map(m => m.replace(/\s+/g, ' ').trim());
+            return matches.map(function(m) { return m.replace(/\s+/g, ' ').trim(); });
         }
 
-        function parseSingleLesson(text, pairNum, defaultRooms = [], defaultSubgroup = '') {
+        function parseSingleLesson(text, pairNum, defaultRooms, defaultSubgroup) {
+            defaultRooms = defaultRooms || [];
+            defaultSubgroup = defaultSubgroup || '';
             if (!text || text.trim() === '') return null;
-            
-            let content = cleanHtmlEntities(text).replace(/\s+/g, ' ').trim();
-            let subgroup = defaultSubgroup;
-            let lessonType = '';
-            let teachers = [];
-            let rooms = [...defaultRooms];
+
+            var content = cleanHtmlEntities(text).replace(/\s+/g, ' ').trim();
+            var subgroup = defaultSubgroup;
+            var lessonType = '';
+            var teachers = [];
+            var rooms = defaultRooms.slice();
 
             content = content.replace(/^\d+\.\s*/, '').trim();
 
-            const subMatch = content.match(/^(\d+)\s*подгруппа/i) || content.match(/\((\d+)\s*подгруппа\)/i);
+            var subMatch = content.match(/^(\d+)\s*подгруппа/i) || content.match(/\((\d+)\s*подгруппа\)/i);
             if (subMatch) {
                 subgroup = subMatch[1];
                 content = content.replace(/^\d+\s*подгруппа/i, '').replace(/\((\d+)\s*подгруппа\)/i, '').trim();
             }
 
-            const typeMatch = content.match(/\((ЛЕКЦИЯ|ЛАБОРАТОРНАЯ|ПРАКТИКА|Лек|ЛР|ПР)\)/i);
+            var typeMatch = content.match(/\((ЛЕКЦИЯ|ЛАБОРАТОРНАЯ|ПРАКТИКА|Лек|ЛР|ПР)\)/i);
             if (typeMatch) {
                 lessonType = TYPE_MAP[typeMatch[1]] || typeMatch[1].toLowerCase();
                 content = content.replace(typeMatch[0], '').trim();
             } else {
-                if (content.includes('ЛЕКЦИЯ')) { lessonType = 'лекция'; content = content.replace('ЛЕКЦИЯ', '').trim(); }
-                else if (content.includes('ЛАБОРАТОРНАЯ')) { lessonType = 'лабораторная'; content = content.replace('ЛАБОРАТОРНАЯ', '').trim(); }
-                else if (content.includes('ПРАКТИКА')) { lessonType = 'практика'; content = content.replace('ПРАКТИКА', '').trim(); }
+                if (content.indexOf('ЛЕКЦИЯ') !== -1) { lessonType = 'лекция'; content = content.replace('ЛЕКЦИЯ', '').trim(); }
+                else if (content.indexOf('ЛАБОРАТОРНАЯ') !== -1) { lessonType = 'лабораторная'; content = content.replace('ЛАБОРАТОРНАЯ', '').trim(); }
+                else if (content.indexOf('ПРАКТИКА') !== -1) { lessonType = 'практика'; content = content.replace('ПРАКТИКА', '').trim(); }
             }
 
-            const textRooms = extractRooms(content);
+            var textRooms = extractRooms(content);
             if (textRooms.length > 0) {
                 rooms = textRooms;
-                textRooms.forEach(r => { content = content.replace(r, '').trim(); });
+                textRooms.forEach(function(r) { content = content.replace(r, '').trim(); });
             }
 
-            const teacherRegex = /([А-Я][а-я]+(?:\s+[А-Я]\.\s*[А-Я]\.))/g;
-            let match;
-            const tempContent = content;
+            var teacherRegex = /([А-Я][а-я]+(?:\s+[А-Я]\.\s*[А-Я]\.))/g;
+            var match;
+            var tempContent = content;
             while ((match = teacherRegex.exec(tempContent)) !== null) {
-                const t = match[0].trim();
-                const lower = t.toLowerCase();
-                if (!lower.includes('механ') && !lower.includes('инф') && !lower.includes('цифр') && !lower.includes('пром') && !lower.includes('техн') && !lower.includes('электр') && !lower.includes('микр') && !lower.includes('автом')) {
+                var t = match[0].trim();
+                var lower = t.toLowerCase();
+                if (lower.indexOf('механ') === -1 && lower.indexOf('инф') === -1 && lower.indexOf('цифр') === -1 && lower.indexOf('пром') === -1 && lower.indexOf('техн') === -1 && lower.indexOf('электр') === -1 && lower.indexOf('микр') === -1 && lower.indexOf('автом') === -1) {
                     teachers.push(t);
                     content = content.replace(t, '').trim();
                 }
             }
 
-            let discipline = content.replace(/\s+/g, ' ').replace(/^[.,\s]+|[.,\s]+$/g, '').trim();
+            var discipline = content.replace(/\s+/g, ' ').replace(/^[.,\s]+|[.,\s]+$/g, '').trim();
             if (!discipline) discipline = 'Предмет не указан';
 
             return {
@@ -2737,46 +2505,36 @@
             };
         }
 
-        function parseLessonText(text, pairNum, defaultRooms = []) {
+        function parseLessonText(text, pairNum, defaultRooms) {
+            defaultRooms = defaultRooms || [];
             if (!text || text.trim() === '' || text.trim() === '-') return [];
-            
-            const cleaned = cleanHtmlEntities(text);
+            var cleaned = cleanHtmlEntities(text);
             if (!cleaned || cleaned.trim() === '') return [];
-            
-            const parts = splitByNumbers(cleaned);
-            
+            var parts = splitByNumbers(cleaned);
             if (parts.length > 1) {
-                const lessons = [];
-                parts.forEach((part, idx) => {
-                    const subgroup = String(idx + 1);
-                    
-                    let roomsForThis = [];
-                    if (defaultRooms.length === parts.length) {
-                        roomsForThis = [defaultRooms[idx]];
-                    } else if (defaultRooms.length > 0) {
-                        roomsForThis = defaultRooms;
-                    }
-                    
-                    const lesson = parseSingleLesson(part, pairNum, roomsForThis, subgroup);
-                    if (lesson && lesson.discipline !== 'Предмет не указан') {
-                        lessons.push(lesson);
-                    }
+                var lessons = [];
+                parts.forEach(function(part, idx) {
+                    var subgroup = String(idx + 1);
+                    var roomsForThis = [];
+                    if (defaultRooms.length === parts.length) roomsForThis = [defaultRooms[idx]];
+                    else if (defaultRooms.length > 0) roomsForThis = defaultRooms;
+                    var lesson = parseSingleLesson(part, pairNum, roomsForThis, subgroup);
+                    if (lesson && lesson.discipline !== 'Предмет не указан') lessons.push(lesson);
                 });
                 return lessons;
             } else {
-                const lesson = parseSingleLesson(cleaned, pairNum, defaultRooms, '');
-                if (lesson && lesson.discipline !== 'Предмет не указан') {
-                    return [lesson];
-                }
+                var lesson = parseSingleLesson(cleaned, pairNum, defaultRooms, '');
+                if (lesson && lesson.discipline !== 'Предмет не указан') return [lesson];
                 return [];
             }
         }
 
         function mergeLessonsInPair(lessons) {
             if (!lessons || lessons.length === 0) return [];
-            const grouped = {};
-            for (const lesson of lessons) {
-                const key = lesson.pair + '|' + lesson.discipline + '|' + lesson.type + '|' + lesson.room + '|' + lesson.subgroup;
+            var grouped = {};
+            for (var i = 0; i < lessons.length; i++) {
+                var lesson = lessons[i];
+                var key = lesson.pair + '|' + lesson.discipline + '|' + lesson.type + '|' + lesson.room + '|' + lesson.subgroup;
                 if (!grouped[key]) {
                     grouped[key] = {
                         pair: lesson.pair,
@@ -2788,54 +2546,44 @@
                     };
                 }
                 if (lesson.teachers) {
-                    for (const t of lesson.teachers) {
-                        if (!grouped[key].teachers.includes(t)) grouped[key].teachers.push(t);
-                    }
+                    lesson.teachers.forEach(function(t) {
+                        if (grouped[key].teachers.indexOf(t) === -1) grouped[key].teachers.push(t);
+                    });
                 }
-                if (lesson.subgroup && !grouped[key].subgroups.includes(lesson.subgroup)) {
+                if (lesson.subgroup && grouped[key].subgroups.indexOf(lesson.subgroup) === -1) {
                     grouped[key].subgroups.push(lesson.subgroup);
                 }
             }
-            return Object.values(grouped);
+            return Object.keys(grouped).map(function(k) { return grouped[k]; });
         }
 
         function extractScheduleBlocks(html) {
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(html, 'text/html');
-            const blocks = [];
-            const headings = doc.querySelectorAll('h2');
-            
-            for (let i = 0; i < headings.length; i++) {
-                const h2 = headings[i];
-                if (h2.textContent.includes('Группа - 86')) {
-                    let table = null;
-                    let el = h2.nextElementSibling;
+            var parser = new DOMParser();
+            var doc = parser.parseFromString(html, 'text/html');
+            var blocks = [];
+            var headings = doc.querySelectorAll('h2');
+
+            for (var i = 0; i < headings.length; i++) {
+                var h2 = headings[i];
+                if (h2.textContent.indexOf('Группа - 86') !== -1) {
+                    var table = null;
+                    var el = h2.nextElementSibling;
                     while (el) {
-                        if (el.tagName === 'TABLE') {
-                            table = el;
-                            break;
-                        }
+                        if (el.tagName === 'TABLE') { table = el; break; }
                         el = el.nextElementSibling;
                     }
-                    
                     if (table) {
-                        const headerRow = table.querySelector('tr');
-                        let dates = [];
+                        var headerRow = table.querySelector('tr');
+                        var dates = [];
                         if (headerRow) {
-                            const cells = headerRow.querySelectorAll('td, th');
-                            for (const cell of cells) {
-                                const text = cell.textContent.trim();
-                                const dateMatch = text.match(/(\d{2}\.\d{2}\.\d{4})/);
-                                if (dateMatch) {
-                                    dates.push(dateMatch[1]);
-                                }
+                            var cells = headerRow.querySelectorAll('td, th');
+                            for (var j = 0; j < cells.length; j++) {
+                                var text = cells[j].textContent.trim();
+                                var dateMatch = text.match(/(\d{2}\.\d{2}\.\d{4})/);
+                                if (dateMatch) dates.push(dateMatch[1]);
                             }
                         }
-                        blocks.push({
-                            table: table,
-                            dates: dates,
-                            html: table.outerHTML
-                        });
+                        blocks.push({ table: table, dates: dates, html: table.outerHTML });
                     }
                 }
             }
@@ -2843,467 +2591,445 @@
         }
 
         function parseScheduleFromBlock(block) {
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(block.html, 'text/html');
-            const table = doc.querySelector('table');
+            var parser = new DOMParser();
+            var doc = parser.parseFromString(block.html, 'text/html');
+            var table = doc.querySelector('table');
             if (!table) return null;
-            
-            const rows = table.querySelectorAll('tr');
+
+            var rows = table.querySelectorAll('tr');
             if (rows.length < 4) return null;
-            
-            let headerRow = null;
-            let headerRowIndex = 0;
-            for (let i = 0; i < Math.min(4, rows.length); i++) {
-                const cells = rows[i].querySelectorAll('td, th');
-                let hasDay = false;
-                for (const cell of cells) {
-                    const text = cell.textContent.trim();
-                    for (const day of DAYS_RU) {
-                        if (text.includes(day)) { hasDay = true; break; }
+
+            var headerRow = null;
+            var headerRowIndex = 0;
+            for (var i = 0; i < Math.min(4, rows.length); i++) {
+                var cells = rows[i].querySelectorAll('td, th');
+                var hasDay = false;
+                for (var j = 0; j < cells.length; j++) {
+                    var text = cells[j].textContent.trim();
+                    for (var k = 0; k < DAYS_RU.length; k++) {
+                        if (text.indexOf(DAYS_RU[k]) !== -1) { hasDay = true; break; }
                     }
                     if (hasDay) break;
                 }
-                if (hasDay) {
-                    headerRow = rows[i];
-                    headerRowIndex = i;
-                    break;
-                }
+                if (hasDay) { headerRow = rows[i]; headerRowIndex = i; break; }
             }
             if (!headerRow) return null;
-            
-            const headerCells = headerRow.querySelectorAll('td, th');
-            const dayMap = {};
-            let currentCol = 0;
-            for (const cell of headerCells) {
-                const text = cell.textContent.trim();
-                const colspan = parseInt(cell.getAttribute('colspan')) || 1;
-                let foundDay = null;
-                for (const day of DAYS_RU) {
-                    if (text.includes(day)) { foundDay = day; break; }
+
+            var headerCells = headerRow.querySelectorAll('td, th');
+            var dayMap = {};
+            var currentCol = 0;
+            for (var i = 0; i < headerCells.length; i++) {
+                var cell = headerCells[i];
+                var text = cell.textContent.trim();
+                var colspan = parseInt(cell.getAttribute('colspan')) || 1;
+                var foundDay = null;
+                for (var k = 0; k < DAYS_RU.length; k++) {
+                    if (text.indexOf(DAYS_RU[k]) !== -1) { foundDay = DAYS_RU[k]; break; }
                 }
                 if (foundDay) {
                     dayMap[foundDay] = { subjectCol: currentCol, roomCol: currentCol + 1 };
                 }
                 currentCol += colspan;
             }
-            
-            const schedule = {};
-            Object.keys(dayMap).forEach(day => { schedule[day] = []; });
-            
-            const startRow = headerRowIndex + 2;
-            for (let i = startRow; i < rows.length; i++) {
-                const cells = rows[i].querySelectorAll('td, th');
+
+            var schedule = {};
+            Object.keys(dayMap).forEach(function(day) { schedule[day] = []; });
+
+            var startRow = headerRowIndex + 2;
+            for (var i = startRow; i < rows.length; i++) {
+                var cells = rows[i].querySelectorAll('td, th');
                 if (cells.length < 2) continue;
-                
-                const pairNum = cleanHtmlEntities(cells[0].textContent.trim());
+                var pairNum = cleanHtmlEntities(cells[0].textContent.trim());
                 if (!pairNum || pairNum === '') continue;
-                
-                for (const [dayName, info] of Object.entries(dayMap)) {
-                    const subjCol = info.subjectCol;
-                    const roomCol = info.roomCol;
-                    
-                    let subjectText = '';
-                    let roomText = '';
-                    
+
+                for (var dayName in dayMap) {
+                    if (!dayMap.hasOwnProperty(dayName)) continue;
+                    var info = dayMap[dayName];
+                    var subjCol = info.subjectCol;
+                    var roomCol = info.roomCol;
+
+                    var subjectText = '';
+                    var roomText = '';
                     if (subjCol < cells.length) {
-                        const cell = cells[subjCol];
-                        subjectText = cell.innerHTML
-                            .replace(/<br\s*\/?>/gi, ' ')
-                            .replace(/<[^>]+>/g, ' ')
-                            .replace(/\s+/g, ' ')
-                            .trim();
+                        var cell = cells[subjCol];
+                        subjectText = cell.innerHTML.replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
                     }
                     if (roomCol < cells.length) {
-                        const cell = cells[roomCol];
-                        roomText = cell.innerHTML
-                            .replace(/<br\s*\/?>/gi, ' ')
-                            .replace(/<[^>]+>/g, ' ')
-                            .replace(/\s+/g, ' ')
-                            .trim();
+                        var cell = cells[roomCol];
+                        roomText = cell.innerHTML.replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
                     }
-                    
+
                     subjectText = cleanHtmlEntities(subjectText);
                     roomText = cleanHtmlEntities(roomText);
-                    
+
                     if (!subjectText || subjectText === '' || subjectText === '-') continue;
-                    
-                    const defaultRooms = extractRooms(roomText);
-                    
-                    const lessons = parseLessonText(subjectText, pairNum, defaultRooms);
-                    lessons.forEach(lesson => {
-                        schedule[dayName].push(lesson);
-                    });
+
+                    var defaultRooms = extractRooms(roomText);
+                    var lessons = parseLessonText(subjectText, pairNum, defaultRooms);
+                    lessons.forEach(function(lesson) { schedule[dayName].push(lesson); });
                 }
             }
-            
-            for (const day of Object.keys(schedule)) {
-                schedule[day] = mergeLessonsInPair(schedule[day]);
+
+            for (var day in schedule) {
+                if (schedule.hasOwnProperty(day)) {
+                    schedule[day] = mergeLessonsInPair(schedule[day]);
+                }
             }
-            
+
             return schedule;
         }
 
         function updateScheduleLogo() {
-            const now = new Date();
+            var now = new Date();
             document.getElementById('scheduleLogoDay').textContent = now.getDate();
             document.getElementById('scheduleLogoMonth').textContent = MONTHS_RU[now.getMonth()];
         }
 
         function renderScheduleUI(schedule, weekOffset) {
-            const container = document.getElementById('scheduleContent');
-            const weekLabel = document.getElementById('scheduleWeekLabel');
-            
+            var container = document.getElementById('scheduleContent');
+            var weekLabel = document.getElementById('scheduleWeekLabel');
             updateScheduleLogo();
-            
+
             if (!schedule) {
-                container.innerHTML = `<div class="schedule-empty"><span class="empty-icon">📭</span><span>Расписание не найдено</span></div>`;
+                container.innerHTML = '<div class="schedule-empty"><span class="empty-icon">📭</span><span>Расписание не найдено</span></div>';
                 return;
             }
-            
-            const mondayDate = getWeekOffsetDate(weekOffset);
-            const weekDates = [];
-            for (let i = 0; i < 7; i++) {
-                const d = new Date(mondayDate);
+
+            var mondayDate = getWeekOffsetDate(weekOffset);
+            var weekDates = [];
+            for (var i = 0; i < 7; i++) {
+                var d = new Date(mondayDate);
                 d.setDate(mondayDate.getDate() + i);
                 weekDates.push(d);
             }
-            
-            const start = weekDates[0].toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
-            const end = weekDates[6].toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
-            const offsetLabel = weekOffset === 0 ? '📌 Текущая' : weekOffset === 1 ? '➡️ Следующая' : '⬅️ Предыдущая';
-            weekLabel.textContent = `${start} — ${end} (${offsetLabel})`;
-            
-            const today = new Date();
-            const todayName = today.getDay() === 0 ? 'Воскресенье' : DAYS_RU[today.getDay() - 1];
-            
-            let html = '';
-            
-            for (let i = 0; i < 6; i++) {
-                const dayName = DAYS_RU[i];
-                const lessons = schedule[dayName] || [];
-                const isToday = dayName === todayName && weekOffset === 0;
-                const isWeekend = i === 5;
-                const dateStr = weekDates[i].toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
-                
-                html += `
-                    <div class="schedule-day">
-                        <div class="schedule-day-header">
-                            <span class="day-name">${dayName}</span>
-                            <span class="day-date">${dateStr}</span>
-                            <span class="day-badge ${isToday ? 'today' : ''} ${isWeekend ? 'weekend' : ''}">${isToday ? 'СЕГОДНЯ' : isWeekend ? 'СУББОТА' : lessons.length > 0 ? `${lessons.length} пар` : 'ВЫХОДНОЙ'}</span>
-                        </div>
-                `;
-                
+
+            var start = weekDates[0].toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
+            var end = weekDates[6].toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
+            var offsetLabel = weekOffset === 0 ? '📌 Текущая' : weekOffset === 1 ? '➡️ Следующая' : '⬅️ Предыдущая';
+            weekLabel.textContent = start + ' — ' + end + ' (' + offsetLabel + ')';
+
+            var today = new Date();
+            var todayName = today.getDay() === 0 ? 'Воскресенье' : DAYS_RU[today.getDay() - 1];
+
+            var html = '';
+
+            for (var i = 0; i < 6; i++) {
+                var dayName = DAYS_RU[i];
+                var lessons = schedule[dayName] || [];
+                var isToday = dayName === todayName && weekOffset === 0;
+                var isWeekend = i === 5;
+                var dateStr = weekDates[i].toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
+
+                html += '<div class="schedule-day">' +
+                    '<div class="schedule-day-header">' +
+                        '<span class="day-name">' + dayName + '</span>' +
+                        '<span class="day-date">' + dateStr + '</span>' +
+                        '<span class="day-badge ' + (isToday ? 'today' : '') + ' ' + (isWeekend ? 'weekend' : '') + '">' + (isToday ? 'СЕГОДНЯ' : isWeekend ? 'СУББОТА' : lessons.length > 0 ? lessons.length + ' пар' : 'ВЫХОДНОЙ') + '</span>' +
+                    '</div>';
+
                 if (lessons.length === 0) {
-                    html += `<div class="schedule-empty"><span class="empty-icon">📭</span><span>Нет занятий</span></div>`;
+                    html += '<div class="schedule-empty"><span class="empty-icon">📭</span><span>Нет занятий</span></div>';
                 } else {
-                    lessons.sort((a, b) => parseInt(a.pair) - parseInt(b.pair));
-                    
-                    const groupedByPair = {};
-                    lessons.forEach(l => {
+                    lessons.sort(function(a, b) { return parseInt(a.pair) - parseInt(b.pair); });
+                    var groupedByPair = {};
+                    lessons.forEach(function(l) {
                         if (!groupedByPair[l.pair]) groupedByPair[l.pair] = [];
                         groupedByPair[l.pair].push(l);
                     });
-                    
-                    Object.keys(groupedByPair).sort((a, b) => parseInt(a) - parseInt(b)).forEach(pairNum => {
-                        const pairLessons = groupedByPair[pairNum];
-                        pairLessons.forEach((lesson, idx) => {
-                            const typeClass = lesson.type === 'лекция' ? 'lecture' : 
-                                            lesson.type === 'лабораторная' ? 'lab' : 
-                                            lesson.type === 'практика' ? 'practice' : '';
-                            const typeLabel = lesson.type ? lesson.type.charAt(0).toUpperCase() + lesson.type.slice(1) : '';
-                            
-                            let teachersHtml = '';
+
+                    Object.keys(groupedByPair).sort(function(a, b) { return parseInt(a) - parseInt(b); }).forEach(function(pairNum) {
+                        var pairLessons = groupedByPair[pairNum];
+                        pairLessons.forEach(function(lesson, idx) {
+                            var typeClass = lesson.type === 'лекция' ? 'lecture' : lesson.type === 'лабораторная' ? 'lab' : lesson.type === 'практика' ? 'practice' : '';
+                            var typeLabel = lesson.type ? lesson.type.charAt(0).toUpperCase() + lesson.type.slice(1) : '';
+
+                            var teachersHtml = '';
                             if (lesson.teachers && lesson.teachers.length > 0) {
-                                teachersHtml = lesson.teachers.map(t => 
-                                    `<span class="teacher-item">
-                                        <span class="teacher-icon">👨‍🏫</span>
-                                        <span class="teacher-name">${escapeHtml(t)}</span>
-                                    </span>`
-                                ).join(' ');
+                                teachersHtml = lesson.teachers.map(function(t) {
+                                    return '<span class="teacher-item"><span class="teacher-icon">👨‍🏫</span><span class="teacher-name">' + escapeHtml(t) + '</span></span>';
+                                }).join(' ');
                             }
-                            
-                            let subgroupsHtml = '';
+
+                            var subgroupsHtml = '';
                             if (lesson.subgroups && lesson.subgroups.length > 0) {
-                                subgroupsHtml = lesson.subgroups.map(s => `${s} подгруппа`).join(' / ');
+                                subgroupsHtml = lesson.subgroups.map(function(s) { return s + ' подгруппа'; }).join(' / ');
                             }
-                            
-                            html += `
-                                <div class="schedule-lesson">
-                                    <span class="lesson-time">${idx === 0 ? pairNum : ''}</span>
-                                    <div class="lesson-info">
-                                        <div class="lesson-name">${escapeHtml(lesson.discipline)}</div>
-                                        ${subgroupsHtml ? `<div class="lesson-subgroup">${subgroupsHtml}</div>` : ''}
-                                        <div class="lesson-meta-row">
-                                            ${lesson.room ? `<span class="room-badge"><span class="icon">🏛️</span> ${escapeHtml(lesson.room)}</span>` : ''}
-                                            ${typeLabel ? `<span class="type-badge ${typeClass}">${typeLabel}</span>` : ''}
-                                        </div>
-                                        ${teachersHtml ? `<div class="lesson-teachers">${teachersHtml}</div>` : ''}
-                                    </div>
-                                </div>
-                            `;
+
+                            html += '<div class="schedule-lesson">' +
+                                '<span class="lesson-time">' + (idx === 0 ? pairNum : '') + '</span>' +
+                                '<div class="lesson-info">' +
+                                    '<div class="lesson-name">' + escapeHtml(lesson.discipline) + '</div>' +
+                                    (subgroupsHtml ? '<div class="lesson-subgroup">' + subgroupsHtml + '</div>' : '') +
+                                    '<div class="lesson-meta-row">' +
+                                        (lesson.room ? '<span class="room-badge"><span class="icon">🏛️</span> ' + escapeHtml(lesson.room) + '</span>' : '') +
+                                        (typeLabel ? '<span class="type-badge ' + typeClass + '">' + typeLabel + '</span>' : '') +
+                                    '</div>' +
+                                    (teachersHtml ? '<div class="lesson-teachers">' + teachersHtml + '</div>' : '') +
+                                '</div>' +
+                            '</div>';
                         });
                     });
                 }
-                html += `</div>`;
+                html += '</div>';
             }
-            
+
             container.innerHTML = html;
             updateScheduleButtons(weekOffset);
         }
 
         function updateScheduleButtons(offset) {
-            document.querySelectorAll('#tabSchedule .schedule-controls button').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('#tabSchedule .schedule-controls button').forEach(function(b) { b.classList.remove('active'); });
             if (offset === 0) document.getElementById('scheduleCurrentWeek').classList.add('active');
             else if (offset === 1) document.getElementById('scheduleNextWeek').classList.add('active');
             else if (offset === -1) document.getElementById('schedulePrevWeek').classList.add('active');
         }
 
         function loadCurrentSchedule() {
-            if (!scheduleRawHTML || scheduleBlocks.length === 0) {
-                loadScheduleData();
-                return;
-            }
-            
-            const targetDate = getWeekOffsetDate(scheduleOffset);
-            const targetMondayStr = formatDate(targetDate);
-            
-            let targetBlock = null;
-            for (const block of scheduleBlocks) {
-                if (block.dates && block.dates.includes(targetMondayStr)) {
-                    targetBlock = block;
+            if (!scheduleRawHTML || scheduleBlocks.length === 0) { loadScheduleData(); return; }
+            var targetDate = getWeekOffsetDate(scheduleOffset);
+            var targetMondayStr = formatDate(targetDate);
+            var targetBlock = null;
+            for (var i = 0; i < scheduleBlocks.length; i++) {
+                if (scheduleBlocks[i].dates && scheduleBlocks[i].dates.indexOf(targetMondayStr) !== -1) {
+                    targetBlock = scheduleBlocks[i];
                     break;
                 }
             }
             if (!targetBlock) targetBlock = scheduleBlocks[0];
-            
-            const schedule = parseScheduleFromBlock(targetBlock);
-            if (schedule) {
-                renderScheduleUI(schedule, scheduleOffset);
-            } else {
-                document.getElementById('scheduleContent').innerHTML = 
-                    `<div class="schedule-error"><span class="error-icon">⚠️</span><span>Ошибка парсинга</span></div>`;
-            }
+            var schedule = parseScheduleFromBlock(targetBlock);
+            if (schedule) renderScheduleUI(schedule, scheduleOffset);
+            else document.getElementById('scheduleContent').innerHTML = '<div class="schedule-error"><span class="error-icon">⚠️</span><span>Ошибка парсинга</span></div>';
         }
 
-        async function loadScheduleData() {
-            const container = document.getElementById('scheduleContent');
-            container.innerHTML = `<div class="schedule-loader"><div class="spinner"></div><span>Загрузка расписания...</span></div>`;
-            loadStage = 'Загрузка расписания';
-            
-            try {
-                const response = await fetch(PROXY_URL, { signal: AbortSignal.timeout(15000) });
-                if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                
-                scheduleRawHTML = await response.text();
-                scheduleBlocks = extractScheduleBlocks(scheduleRawHTML);
-                
-                if (scheduleBlocks.length === 0) throw new Error('Блоки расписания не найдены');
-                
-                scheduleOffset = 0;
-                loadStage = 'Расписание загружено';
-                loadCurrentSchedule();
-            } catch(e) {
-                console.error('Ошибка загрузки расписания:', e);
-                logError('Schedule', 'Ошибка загрузки: ' + e.message, 'PROXY_URL=' + PROXY_URL);
-                loadStage = 'Ошибка расписания: ' + e.message;
-                container.innerHTML = `
-                    <div class="schedule-error">
-                        <span class="error-icon">⚠️</span>
-                        <span>Не удалось загрузить расписание</span>
-                        <br>
-                        <span style="font-size:11px;color:var(--muted);">Проверьте прокси-сервер</span>
-                        <br>
-                        <button class="retry-btn" onclick="loadScheduleData()">🔄 Попробовать снова</button>
-                    </div>
-                `;
-            }
+        function loadScheduleData() {
+            var container = document.getElementById('scheduleContent');
+            container.innerHTML = '<div class="schedule-loader"><div class="spinner"></div><span>Загрузка расписания...</span></div>';
+            window.__reportState.loadStage = 'Загрузка расписания';
+
+            fetch(PROXY_URL, { signal: AbortSignal.timeout(15000) })
+                .then(function(response) {
+                    if (!response.ok) throw new Error('HTTP ' + response.status);
+                    return response.text();
+                })
+                .then(function(text) {
+                    scheduleRawHTML = text;
+                    scheduleBlocks = extractScheduleBlocks(scheduleRawHTML);
+                    if (scheduleBlocks.length === 0) throw new Error('Блоки расписания не найдены');
+                    scheduleOffset = 0;
+                    window.__reportState.scheduleLoaded = true;
+                    window.__reportState.loadStage = 'Расписание загружено';
+                    loadCurrentSchedule();
+                })
+                .catch(function(e) {
+                    window.logError('Schedule', 'Ошибка загрузки: ' + e.message, 'PROXY_URL=' + PROXY_URL);
+                    window.__reportState.loadStage = 'Ошибка расписания: ' + e.message;
+                    container.innerHTML = '<div class="schedule-error"><span class="error-icon">⚠️</span><span>Не удалось загрузить расписание</span><br><span style="font-size:11px;color:var(--muted);">Проверьте прокси-сервер</span><br><button class="retry-btn" onclick="window.loadScheduleData()">🔄 Попробовать снова</button></div>';
+                });
         }
 
-        // ============================================================
-        // 15. НАВИГАЦИЯ
-        // ============================================================
         function switchTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(function(el) { el.classList.remove('active'); });
             document.getElementById(tabId).classList.add('active');
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            document.querySelector(`.nav-item[data-tab="${tabId}"]`).classList.add('active');
-            
+            document.querySelectorAll('.nav-item').forEach(function(el) { el.classList.remove('active'); });
+            var navItem = document.querySelector('.nav-item[data-tab="' + tabId + '"]');
+            if (navItem) navItem.classList.add('active');
+
             if (tabId === 'tabSchedule') {
-                const container = document.getElementById('scheduleContent');
-                if (container.querySelector('.schedule-loader') || 
-                    container.querySelector('.schedule-error') || 
-                    container.innerHTML === '' ||
-                    container.querySelector('.schedule-empty')) {
+                var container = document.getElementById('scheduleContent');
+                if (container.querySelector('.schedule-loader') || container.querySelector('.schedule-error') || container.innerHTML === '' || container.querySelector('.schedule-empty')) {
                     loadScheduleData();
                 }
                 updateScheduleLogo();
             }
-            if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
         }
 
-        // ============================================================
-        // 16. ОБРАБОТЧИКИ СОБЫТИЙ (основные)
-        // ============================================================
+        function updateAdminRecipients() {
+            var select = document.getElementById('adminRecipient');
+            if (!select) return;
+            var currentValue = select.value;
+            select.innerHTML = '<option value="all">📢 Всем студентам</option>';
+            var boundStudents = Object.keys(BINDINGS).map(function(id) { return { id: id, name: BINDINGS[id] }; });
+            boundStudents.sort(function(a, b) { return a.name.localeCompare(b.name); });
+            boundStudents.forEach(function(s) {
+                var option = document.createElement('option');
+                if (s.id === OWNER_CHAT_ID) { option.value = s.id; option.textContent = '👑 ' + s.name + ' (я)'; }
+                else { option.value = s.name; option.textContent = '👤 ' + s.name; }
+                select.appendChild(option);
+            });
+            if (currentValue) select.value = currentValue;
+        }
+
+        function sendMessageToUser(chatId, text) {
+            fetch('https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chat_id: chatId, text: text, parse_mode: 'Markdown' })
+            }).catch(function(err) { window.logError('SendMessage', 'Ошибка сети: ' + err.message); });
+        }
+
+        function notifyOwner(uid, studentName, uname) {
+            var userInfo = uname ? '👤 Юзернейм: <b>@' + escapeHtml(uname) + '</b>\n' : '';
+            var message = '🔔 <b>Новая привязка!</b>\n\n👤 Студент: <b>' + escapeHtml(studentName) + '</b>\n' + userInfo + '🆔 Telegram ID: <code>' + uid + '</code>\n\nДля привязки добавьте в BINDINGS:\n<code>\'' + uid + '\' : \'' + escapeHtml(studentName) + '\'</code>';
+            fetch('https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chat_id: OWNER_CHAT_ID, text: message, parse_mode: 'HTML' })
+            }).catch(function(e) {});
+        }
+
+        function notifyAllStudentsAboutNewScores() {
+            var students = Object.keys(BINDINGS);
+            var message = '📊 *Новые оценки!*\n\nПроверьте журнал успеваемости.\n\n📱 Журнал 86РТК v' + APP_VERSION;
+            students.forEach(function(id) { sendMessageToUser(id, message); });
+            var statusEl = document.getElementById('adminStatus');
+            statusEl.textContent = '✅ Отправлено ' + students.length + ' получателям!';
+            statusEl.className = 'admin-status success';
+        }
+
+        function sendMessageToStudents(text) {
+            var students = Object.keys(BINDINGS);
+            var msg = '📢 ' + text + '\n\n━━━━━━━━━━━━━━\n📱 Журнал 86РТК v' + APP_VERSION;
+            var sent = 0, failed = 0;
+            var promises = students.map(function(id) {
+                return fetch('https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ chat_id: id, text: msg, parse_mode: 'HTML' })
+                }).then(function(r) { return r.json(); }).then(function(data) {
+                    if (data.ok) sent++; else failed++;
+                }).catch(function() { failed++; });
+            });
+            Promise.all(promises).then(function() {
+                var statusEl = document.getElementById('adminStatus');
+                if (failed === 0) { statusEl.textContent = '✅ Отправлено ' + sent + ' получателям!'; statusEl.className = 'admin-status success'; }
+                else { statusEl.textContent = '⚠️ Отправлено ' + sent + ', ошибок: ' + failed; statusEl.className = 'admin-status error'; }
+                setTimeout(function() { document.getElementById('adminMessage').value = ''; }, 3000);
+            });
+        }
+
+        function sendToMe(text) {
+            var statusEl = document.getElementById('adminStatus');
+            statusEl.textContent = '⏳ Отправка...';
+            sendMessageToUser(OWNER_CHAT_ID, '📢 ' + text + '\n\n━━━━━━━━━━━━━━\n📱 Журнал 86РТК v' + APP_VERSION);
+            statusEl.textContent = '✅ Отправлено вам!';
+            statusEl.className = 'admin-status success';
+        }
+
+        function showStudentSelect() {
+            var popup = document.getElementById('identityPopup');
+            var list = document.getElementById('studentSelectList');
+            var sub = document.getElementById('popupSubText');
+            sub.textContent = 'Выберите свою фамилию из списка:';
+            list.innerHTML = '';
+            var sorted = ALL_DATA.journal.filter(function(s) { return s && s.studentName; }).sort(function(a, b) { return a.studentName.localeCompare(b.studentName); });
+            if (sorted.length === 0) { list.innerHTML = '<div style="padding:20px;text-align:center;color:var(--muted);">Нет студентов</div>'; popup.classList.add('open'); return; }
+            sorted.forEach(function(s) {
+                var item = document.createElement('div');
+                item.className = 'student-item';
+                item.innerHTML = '<span class="s-name">' + escapeHtml(s.studentName) + '</span><span class="s-group">' + getGroup() + '</span>';
+                item.onclick = (function(name) {
+                    return function() {
+                        selectedStudentForIdentity = name;
+                        document.querySelectorAll('.student-item').forEach(function(el) { el.style.background = 'transparent'; el.style.border = 'none'; });
+                        this.style.background = 'rgba(56, 189, 248, 0.1)';
+                        this.style.border = '1px solid rgba(56, 189, 248, 0.2)';
+                        document.getElementById('popupSubText').textContent = '✅ Вы выбрали: ' + name;
+                    };
+                })(s.studentName);
+                list.appendChild(item);
+            });
+            popup.classList.add('open');
+        }
+
+        // Экспорт функций
+        window.openCard = openCard;
+        window.closeCard = closeCard;
+        window.toggleMarks = function(id) { var el = document.getElementById(id); if (el) el.classList.toggle('open'); };
+        window.loadScheduleData = loadScheduleData;
+        window.showStudentSelect = showStudentSelect;
+        window.forceUpdate = forceUpdate;
+        window.switchTab = switchTab;
+        window.notifyAllStudentsAboutNewScores = notifyAllStudentsAboutNewScores;
+        window.sendMessageToStudents = sendMessageToStudents;
+        window.sendToMe = sendToMe;
+        window.notifyOwner = notifyOwner;
+        window.escapeHtml = escapeHtml;
+
+        // Обработчики
         document.getElementById('profileBtn').addEventListener('click', function(e) {
             e.stopPropagation();
-            const bound = getBoundStudent();
+            var bound = getBoundStudent();
             if (bound) {
-                if (isCardMode) closeCard();
-                else openCard(bound);
+                if (isCardMode) closeCard(); else openCard(bound);
             } else {
                 showStudentSelect();
             }
         });
-        
+
         document.getElementById('cardOverlay').addEventListener('click', function(e) {
             if (e.target === this) closeCard();
         });
-        
+
         document.getElementById('search').addEventListener('input', renderJournal);
         document.getElementById('fabUpdate').addEventListener('click', forceUpdate);
         document.getElementById('retryButton').addEventListener('click', forceUpdate);
-        
-        document.querySelectorAll('.nav-item').forEach(item => {
-            item.addEventListener('click', function() {
-                switchTab(this.dataset.tab);
+
+        document.querySelectorAll('.nav-item').forEach(function(item) {
+            item.addEventListener('click', function() { switchTab(this.dataset.tab); });
+        });
+
+        document.getElementById('scheduleCurrentWeek').addEventListener('click', function() { scheduleOffset = 0; loadCurrentSchedule(); });
+        document.getElementById('scheduleNextWeek').addEventListener('click', function() { scheduleOffset = 1; loadCurrentSchedule(); });
+        document.getElementById('schedulePrevWeek').addEventListener('click', function() { scheduleOffset = -1; loadCurrentSchedule(); });
+        document.getElementById('scheduleRefreshBtn').addEventListener('click', function() { scheduleRawHTML = null; scheduleBlocks = []; loadScheduleData(); });
+
+        var adminFab = document.getElementById('adminFab');
+        if (adminFab) {
+            adminFab.addEventListener('click', function() {
+                if (!isAdmin) { if (tg) tg.showAlert('⛔ Доступ запрещен'); return; }
+                document.getElementById('adminPanel').classList.add('open');
             });
-        });
-
-        document.getElementById('scheduleCurrentWeek').addEventListener('click', () => {
-            scheduleOffset = 0;
-            loadCurrentSchedule();
-        });
-        document.getElementById('scheduleNextWeek').addEventListener('click', () => {
-            scheduleOffset = 1;
-            loadCurrentSchedule();
-        });
-        document.getElementById('schedulePrevWeek').addEventListener('click', () => {
-            scheduleOffset = -1;
-            loadCurrentSchedule();
-        });
-        document.getElementById('scheduleRefreshBtn').addEventListener('click', () => {
-            scheduleRawHTML = null;
-            scheduleBlocks = [];
-            loadScheduleData();
-        });
-
-        document.getElementById('adminFab').addEventListener('click', function() {
-            if (!isAdmin) { if (tg) tg.showAlert('⛔ Доступ запрещен'); return; }
-            document.getElementById('adminPanel').classList.add('open');
-            if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
-        });
-        document.getElementById('closeAdmin').addEventListener('click', function() {
-            document.getElementById('adminPanel').classList.remove('open');
-        });
-        document.getElementById('adminCancel').addEventListener('click', function() {
-            document.getElementById('adminPanel').classList.remove('open');
-            document.getElementById('adminMessage').value = '';
-            document.getElementById('adminStatus').textContent = '';
-            document.getElementById('adminStatus').className = 'admin-status';
-        });
-        document.getElementById('adminSendToMe').addEventListener('click', function() {
-            if (!isAdmin) return;
-            const message = document.getElementById('adminMessage').value.trim();
-            if (!message) {
-                const statusEl = document.getElementById('adminStatus');
-                statusEl.textContent = '❌ Введите сообщение';
-                statusEl.className = 'admin-status error';
-                if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
-                return;
-            }
-            sendToMe(message);
-        });
-        document.getElementById('notifyNewScores').addEventListener('click', function() {
-            if (!isAdmin) return;
-            notifyAllStudentsAboutNewScores();
-        });
-        document.getElementById('notifyStudents').addEventListener('click', function() {
-            if (!isAdmin) return;
-            const message = document.getElementById('adminMessage').value.trim();
-            if (!message) {
-                const statusEl = document.getElementById('adminStatus');
-                statusEl.textContent = '❌ Введите сообщение в поле выше';
-                statusEl.className = 'admin-status error';
-                if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
-                return;
-            }
-            sendMessageToStudents(message);
-        });
-        document.getElementById('notifyTomorrowSchedule').addEventListener('click', function() {
-            if (!isAdmin) return;
-            sendTomorrowSchedule();
-        });
-        document.getElementById('notifyNextWeek').addEventListener('click', function() {
-            if (!isAdmin) return;
-            if (confirm('Отправить расписание на следующую неделю всем студентам?')) {
-                sendNextWeekSchedule();
-            }
-        });
-        document.getElementById('adminSend').addEventListener('click', function() {
-            if (!isAdmin) return;
-            const message = document.getElementById('adminMessage').value.trim();
-            const recipient = document.getElementById('adminRecipient').value;
-            if (!message) {
-                const statusEl = document.getElementById('adminStatus');
-                statusEl.textContent = '❌ Введите сообщение';
-                statusEl.className = 'admin-status error';
-                if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
-                return;
-            }
-            if (recipient === 'all') {
-                if (confirm('Отправить сообщение ВСЕМ студентам?')) sendMessageToStudents(message);
-            } else {
-                const boundId = Object.keys(BINDINGS).find(id => BINDINGS[id] === recipient);
-                if (boundId) {
-                    sendMessageToUser(boundId, '📢 ' + message);
-                    const statusEl = document.getElementById('adminStatus');
-                    statusEl.textContent = '✅ Отправлено ' + recipient;
-                    statusEl.className = 'admin-status success';
-                }
-            }
-        });
+        }
+        document.getElementById('closeAdmin').addEventListener('click', function() { document.getElementById('adminPanel').classList.remove('open'); });
+        document.getElementById('adminCancel').addEventListener('click', function() { document.getElementById('adminPanel').classList.remove('open'); document.getElementById('adminMessage').value = ''; document.getElementById('adminStatus').textContent = ''; });
+        document.getElementById('adminSendToMe').addEventListener('click', function() { if (!isAdmin) return; var m = document.getElementById('adminMessage').value.trim(); if (!m) return; sendToMe(m); });
+        document.getElementById('notifyNewScores').addEventListener('click', function() { if (!isAdmin) return; notifyAllStudentsAboutNewScores(); });
+        document.getElementById('notifyStudents').addEventListener('click', function() { if (!isAdmin) return; var m = document.getElementById('adminMessage').value.trim(); if (!m) { document.getElementById('adminStatus').textContent = '❌ Введите сообщение'; return; } sendMessageToStudents(m); });
+        document.getElementById('adminSend').addEventListener('click', function() { if (!isAdmin) return; var m = document.getElementById('adminMessage').value.trim(); if (!m) return; var recipient = document.getElementById('adminRecipient').value; if (recipient === 'all') { if (confirm('Отправить ВСЕМ?')) sendMessageToStudents(m); } else { var boundId = Object.keys(BINDINGS).find(function(id) { return BINDINGS[id] === recipient; }); if (boundId) sendMessageToUser(boundId, '📢 ' + m); } });
 
         document.getElementById('btnIdentityYes').addEventListener('click', function() {
-            if (!selectedStudentForIdentity) {
-                if (tg) { tg.HapticFeedback.notificationOccurred('error'); tg.showAlert('❌ Выберите свою фамилию из списка.'); }
-                else alert('❌ Выберите свою фамилию из списка.');
-                return;
-            }
+            if (!selectedStudentForIdentity) { if (tg) tg.showAlert('❌ Выберите фамилию'); else alert('❌ Выберите фамилию'); return; }
             document.getElementById('identityPopup').classList.remove('open');
-            if (!userId) { if (tg) tg.showAlert('❌ Ошибка: не удалось определить пользователя'); return; }
-            let uname = null;
-            try {
-                if (window.Telegram && window.Telegram.WebApp) {
-                    const user = window.Telegram.WebApp.initDataUnsafe?.user;
-                    if (user && user.username) uname = user.username;
-                }
-            } catch(e) { console.warn('Не удалось получить юзернейм:', e); }
-            notifyOwner(userId, selectedStudentForIdentity, uname);
-            if (tg) { tg.HapticFeedback.notificationOccurred('success'); tg.showAlert('✅ Запрос отправлен! Ожидайте подтверждения.'); }
+            var uid = window.__reportState.userId;
+            if (!uid) { if (tg) tg.showAlert('❌ Ошибка: не удалось определить пользователя'); else alert('❌ Ошибка: не удалось определить пользователя. Откройте через Telegram.'); return; }
+            var uname = window.__reportState.username;
+            notifyOwner(uid, selectedStudentForIdentity, uname);
+            if (tg) { tg.HapticFeedback.notificationOccurred('success'); tg.showAlert('✅ Запрос отправлен!'); }
             else alert('✅ Запрос отправлен!');
             selectedStudentForIdentity = null;
-            document.querySelectorAll('.student-item').forEach(el => { el.style.background = 'transparent'; el.style.border = 'none'; });
+            document.querySelectorAll('.student-item').forEach(function(el) { el.style.background = 'transparent'; el.style.border = 'none'; });
             document.getElementById('popupSubText').textContent = 'Выберите свою фамилию из списка:';
         });
+
         document.getElementById('btnIdentityNo').addEventListener('click', function() {
             document.getElementById('identityPopup').classList.remove('open');
             selectedStudentForIdentity = null;
-            document.querySelectorAll('.student-item').forEach(el => { el.style.background = 'transparent'; el.style.border = 'none'; });
+            document.querySelectorAll('.student-item').forEach(function(el) { el.style.background = 'transparent'; el.style.border = 'none'; });
             document.getElementById('popupSubText').textContent = 'Выберите свою фамилию из списка:';
-            if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
         });
+
         document.addEventListener('click', function(e) {
-            const popup = document.getElementById('identityPopup');
+            var popup = document.getElementById('identityPopup');
             if (popup.classList.contains('open')) {
                 if (!popup.contains(e.target)) {
                     popup.classList.remove('open');
                     selectedStudentForIdentity = null;
-                    document.querySelectorAll('.student-item').forEach(el => { el.style.background = 'transparent'; el.style.border = 'none'; });
+                    document.querySelectorAll('.student-item').forEach(function(el) { el.style.background = 'transparent'; el.style.border = 'none'; });
                     document.getElementById('popupSubText').textContent = 'Выберите свою фамилию из списка:';
                 }
             }
         });
+
         if (tg) {
             tg.onEvent('backButtonClicked', function() {
                 if (document.getElementById('reportOverlay').classList.contains('open')) closeReportDialog();
@@ -3315,140 +3041,13 @@
         }
 
         // ============================================================
-        // 17. УВЕДОМЛЕНИЯ РАСПИСАНИЯ (функции)
+        // ЗАПУСК: сначала ждём Telegram (но не блокируем), потом грузим данные
         // ============================================================
-        function getScheduleForDay(dayName, date) {
-            if (!scheduleBlocks || scheduleBlocks.length === 0) return null;
-            
-            if (date) {
-                const dateStr = formatDate(date);
-                for (const block of scheduleBlocks) {
-                    if (block.dates && block.dates.includes(dateStr)) {
-                        const schedule = parseScheduleFromBlock(block);
-                        if (schedule) return schedule[dayName] || null;
-                    }
-                }
-            }
-            
-            const targetDate = getWeekOffsetDate(0);
-            const targetMondayStr = formatDate(targetDate);
-            
-            let targetBlock = null;
-            for (const block of scheduleBlocks) {
-                if (block.dates && block.dates.includes(targetMondayStr)) {
-                    targetBlock = block;
-                    break;
-                }
-            }
-            if (!targetBlock) targetBlock = scheduleBlocks[0];
-            
-            const schedule = parseScheduleFromBlock(targetBlock);
-            if (!schedule) return null;
-            return schedule[dayName] || null;
-        }
-
-        function sendTomorrowSchedule() {
-            const students = Object.keys(BINDINGS);
-            const tomorrow = new Date();
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            const dayName = tomorrow.getDay() === 0 ? 'Воскресенье' : DAYS_RU[tomorrow.getDay() - 1];
-            const dateStr = tomorrow.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
-            
-            if (!scheduleBlocks || scheduleBlocks.length === 0) {
-                const statusEl = document.getElementById('adminStatus');
-                statusEl.textContent = '⏳ Загрузка расписания...';
-                statusEl.className = 'admin-status';
-                loadScheduleData();
-                setTimeout(() => { sendTomorrowSchedule(); }, 3000);
-                return;
-            }
-            
-            const schedule = getScheduleForDay(dayName, tomorrow);
-            
-            let message = `📅 *Расписание на завтра*\n`;
-            message += `*${dayName}*, ${dateStr}\n\n`;
-            
-            if (!schedule || schedule.length === 0) {
-                message += '📭 Выходной! 🎉';
-            } else {
-                schedule.forEach(lesson => {
-                    message += `${lesson.pair}. ${lesson.discipline}`;
-                    if (lesson.type) message += ` (${lesson.type.slice(0, 3)})`;
-                    if (lesson.teachers && lesson.teachers.length > 0) message += ` ${lesson.teachers.join(', ')}`;
-                    message += '\n';
-                    if (lesson.room) message += `${lesson.room}\n`;
-                    message += '\n';
-                });
-            }
-            
-            let sent = 0;
-            students.forEach(id => { sendMessageToUser(id, message); sent++; });
-            
-            const statusEl = document.getElementById('adminStatus');
-            statusEl.textContent = `✅ Расписание на завтра отправлено ${sent} получателям!`;
-            statusEl.className = 'admin-status success';
-        }
-
-        function sendNextWeekSchedule() {
-            const students = Object.keys(BINDINGS);
-            const today = new Date();
-            const dayOfWeek = today.getDay();
-            const daysUntilMonday = dayOfWeek === 0 ? 1 : 8 - dayOfWeek;
-            const nextMonday = new Date(today);
-            nextMonday.setDate(today.getDate() + daysUntilMonday);
-            
-            if (!scheduleBlocks || scheduleBlocks.length === 0) {
-                const statusEl = document.getElementById('adminStatus');
-                statusEl.textContent = '⏳ Загрузка расписания...';
-                statusEl.className = 'admin-status';
-                loadScheduleData();
-                setTimeout(() => { sendNextWeekSchedule(); }, 3000);
-                return;
-            }
-            
-            let message = `📆 *Расписание на следующую неделю*\n\n`;
-            
-            for (let i = 0; i < 6; i++) {
-                const date = new Date(nextMonday);
-                date.setDate(nextMonday.getDate() + i);
-                const dayName = date.getDay() === 0 ? 'Воскресенье' : DAYS_RU[date.getDay() - 1];
-                const dateStr = date.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
-                
-                const schedule = getScheduleForDay(dayName, date);
-                
-                message += `*${dayName}*, ${dateStr}\n`;
-                if (!schedule || schedule.length === 0) {
-                    message += '📭 Выходной\n\n';
-                } else {
-                    schedule.forEach(lesson => {
-                        message += `${lesson.pair}. ${lesson.discipline}`;
-                        if (lesson.type) message += ` (${lesson.type.slice(0, 3)})`;
-                        if (lesson.teachers && lesson.teachers.length > 0) message += ` ${lesson.teachers.join(', ')}`;
-                        message += '\n';
-                        if (lesson.room) message += `${lesson.room}\n`;
-                        message += '\n';
-                    });
-                }
-                message += '━'.repeat(25) + '\n\n';
-            }
-            
-            let sent = 0;
-            students.forEach(id => { sendMessageToUser(id, message); sent++; });
-            
-            const statusEl = document.getElementById('adminStatus');
-            statusEl.textContent = `✅ Расписание на следующую неделю отправлено ${sent} получателям!`;
-            statusEl.className = 'admin-status success';
-        }
-
-        // ============================================================
-        // 18. ЗАПУСК
-        // ============================================================
-        window.openCard = openCard;
-        window.closeCard = closeCard;
-        window.toggleMarks = toggleMarks;
-        window.loadScheduleData = loadScheduleData;
-
-        loadData();
+        waitForTelegram(function() {
+            initTelegram();
+            loadData();
+        });
+    })();
     </script>
 </body>
 </html>
