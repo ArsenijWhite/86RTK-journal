@@ -52,6 +52,7 @@
             align-items: center; 
             justify-content: center; 
             transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1); 
+            pointer-events: none;
         }
         .loader-inner {
             display: flex;
@@ -179,6 +180,7 @@
             gap: 6px;
             transition: all 0.2s;
             z-index: 2100;
+            pointer-events: auto;
         }
         .loader-report-btn:active {
             transform: translateX(-50%) scale(0.95);
@@ -1431,7 +1433,7 @@
                 <button class="retry-button" id="retryButton">Повторить</button>
             </div>
         </div>
-        <button class="loader-report-btn" id="loaderReportBtn" type="button">
+        <button class="loader-report-btn" id="loaderReportBtn" type="button" onclick="if(window.openReportDialog) window.openReportDialog();">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
                 <line x1="12" y1="9" x2="12" y2="13"/>
@@ -1568,7 +1570,7 @@
             </svg>
         </div>
 
-        <div class="fab-report" id="fabReport">
+        <div class="fab-report" id="fabReport" onclick="if(window.openReportDialog) window.openReportDialog();">
             <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
                 <line x1="12" y1="9" x2="12" y2="13"/>
@@ -1580,7 +1582,7 @@
             <div class="report-panel">
                 <div class="report-header">
                     <div class="report-title">🚨 Сообщить о проблеме</div>
-                    <div class="report-close" id="reportClose">✕</div>
+                    <div class="report-close" id="reportClose" onclick="if(window.closeReportDialog) window.closeReportDialog();">✕</div>
                 </div>
                 <div class="report-body">
                     <div class="report-info">
@@ -1590,8 +1592,8 @@
                     </div>
                     <textarea class="report-textarea" id="reportText" placeholder="Опишите проблему (необязательно)..."></textarea>
                     <div class="report-actions">
-                        <button class="btn-report-send" id="reportSend">📨 Отправить отчёт</button>
-                        <button class="btn-report-cancel" id="reportCancel">Отмена</button>
+                        <button class="btn-report-send" id="reportSend" onclick="if(window.sendReport) window.sendReport();">📨 Отправить отчёт</button>
+                        <button class="btn-report-cancel" id="reportCancel" onclick="if(window.closeReportDialog) window.closeReportDialog();">Отмена</button>
                     </div>
                     <div class="report-status" id="reportStatus"></div>
                 </div>
@@ -1612,10 +1614,10 @@
     </nav>
 
     <!-- ============================================================
-         СКРИПТ 1: Модуль отчёта и определение среды (работает независимо от Telegram)
+         СКРИПТ 1: Модуль отчёта и определение среды
+         Работает независимо от Telegram, вызывается через onclick
          ============================================================ -->
     <script>
-        // Глобальное пространство для отчёта
         window.__reportState = {
             version: '3.4.2',
             botToken: '8559243948:AAFAW1LdoTmE1a0I1pTgOvv6c9jDLz_1nnI',
@@ -1627,14 +1629,13 @@
             dataLoaded: false,
             scheduleLoaded: false,
             tgAvailable: false,
-            env: 'Browser', // 'Telegram Mini App' или 'Browser'
+            env: 'Browser',
             envDetails: '',
             errorLog: [],
             maxLogSize: 10
         };
 
-        // Определение среды (Telegram Mini App или Browser)
-        function detectEnvironment() {
+        window.detectEnvironment = function() {
             var state = window.__reportState;
             try {
                 if (window.Telegram && window.Telegram.WebApp) {
@@ -1644,27 +1645,23 @@
                         state.env = 'Telegram Mini App';
                         state.envDetails = 'Платформа: ' + platform;
                         state.tgAvailable = true;
-                        console.log('✅ Среда: Telegram Mini App (' + platform + ')');
                     } else {
                         state.env = 'Browser (Telegram WebApp без initData)';
                         state.envDetails = 'Telegram.WebApp доступен, но initData пустой. Платформа: ' + platform;
                         state.tgAvailable = true;
-                        console.warn('⚠️ Telegram.WebApp доступен, но initData пустой — возможно, открыто в обычном браузере');
                     }
                 } else {
                     state.env = 'Browser';
                     state.envDetails = 'Telegram.WebApp не загружен';
                     state.tgAvailable = false;
-                    console.warn('⚠️ Среда: Browser (Telegram.WebApp недоступен)');
                 }
             } catch(e) {
                 state.env = 'Browser (ошибка определения)';
                 state.envDetails = 'Ошибка: ' + e.message;
                 state.tgAvailable = false;
             }
-        }
+        };
 
-        // Логирование ошибок
         window.logError = function(source, message, details) {
             details = details || '';
             var entry = {
@@ -1687,7 +1684,7 @@
             window.logError('Promise', (e.reason && e.reason.message) || String(e.reason), '');
         });
 
-        function escapeHtmlReport(str) {
+        window.escapeHtmlReport = function(str) {
             if (!str) return '';
             return String(str).replace(/[&<>]/g, function(m) {
                 if (m === '&') return '&amp;';
@@ -1695,36 +1692,38 @@
                 if (m === '>') return '&gt;';
                 return m;
             });
-        }
+        };
 
-        function openReportDialog() {
+        window.openReportDialog = function() {
             var overlay = document.getElementById('reportOverlay');
             var statusEl = document.getElementById('reportStatus');
             var textEl = document.getElementById('reportText');
-            if (!overlay) return;
-            // Обновляем определение среды на момент открытия
-            detectEnvironment();
+            if (!overlay) {
+                console.error('❌ reportOverlay не найден');
+                return;
+            }
+            window.detectEnvironment();
             if (textEl) textEl.value = '';
             if (statusEl) {
                 statusEl.textContent = '';
                 statusEl.className = 'report-status';
             }
             overlay.classList.add('open');
-        }
+            console.log('✅ Окно отчёта открыто');
+        };
 
-        function closeReportDialog() {
+        window.closeReportDialog = function() {
             var overlay = document.getElementById('reportOverlay');
             if (overlay) overlay.classList.remove('open');
-        }
+        };
 
-        function sendReport() {
+        window.sendReport = function() {
             var statusEl = document.getElementById('reportStatus');
             var textEl = document.getElementById('reportText');
             var userComment = textEl ? textEl.value.trim() : '';
             var state = window.__reportState;
 
-            // Ещё раз определяем среду (на всякий случай, если Telegram догрузился позже)
-            detectEnvironment();
+            window.detectEnvironment();
 
             if (statusEl) {
                 statusEl.textContent = '⏳ Отправка...';
@@ -1733,31 +1732,31 @@
 
             var msg = '🚨 <b>ОТЧЁТ О ПРОБЛЕМЕ</b>\n\n';
             msg += '📱 <b>Версия:</b> v' + state.version + '\n';
-            msg += '🌍 <b>Среда:</b> ' + escapeHtmlReport(state.env) + '\n';
+            msg += '🌍 <b>Среда:</b> ' + window.escapeHtmlReport(state.env) + '\n';
             if (state.envDetails) {
-                msg += '   <i>' + escapeHtmlReport(state.envDetails) + '</i>\n';
+                msg += '   <i>' + window.escapeHtmlReport(state.envDetails) + '</i>\n';
             }
-            msg += '👤 <b>Юзернейм:</b> ' + (state.username ? '@' + escapeHtmlReport(state.username) : '❌ отсутствует') + '\n';
-            msg += '🆔 <b>Telegram ID:</b> <code>' + escapeHtmlReport(state.userId || 'не определён') + '</code>\n';
-            msg += '👨‍🎓 <b>Студент:</b> ' + escapeHtmlReport(state.studentName || 'не привязан') + '\n';
+            msg += '👤 <b>Юзернейм:</b> ' + (state.username ? '@' + window.escapeHtmlReport(state.username) : '❌ отсутствует') + '\n';
+            msg += '🆔 <b>Telegram ID:</b> <code>' + window.escapeHtmlReport(state.userId || 'не определён') + '</code>\n';
+            msg += '👨‍🎓 <b>Студент:</b> ' + window.escapeHtmlReport(state.studentName || 'не привязан') + '\n';
             msg += '🕒 <b>Время:</b> ' + new Date().toLocaleString('ru-RU') + '\n';
             msg += '📂 <b>Активная вкладка:</b> ' + (document.querySelector('.tab-content.active') ? document.querySelector('.tab-content.active').id : 'загрузка') + '\n';
-            msg += '⏳ <b>Этап загрузки:</b> ' + escapeHtmlReport(state.loadStage) + '\n';
+            msg += '⏳ <b>Этап загрузки:</b> ' + window.escapeHtmlReport(state.loadStage) + '\n';
             msg += '📱 <b>Telegram WebApp:</b> ' + (state.tgAvailable ? '✅ доступен' : '❌ НЕ доступен') + '\n';
             msg += '💾 <b>Данные загружены:</b> ' + (state.dataLoaded ? '✅' : '❌') + '\n';
             msg += '📅 <b>Расписание загружено:</b> ' + (state.scheduleLoaded ? '✅' : '❌') + '\n';
-            msg += '💻 <b>User Agent:</b> <code>' + escapeHtmlReport(navigator.userAgent || 'неизвестно') + '</code>\n';
-            msg += '🖥️ <b>Платформа:</b> ' + escapeHtmlReport(navigator.platform || 'неизвестно') + '\n';
+            msg += '💻 <b>User Agent:</b> <code>' + window.escapeHtmlReport(navigator.userAgent || 'неизвестно') + '</code>\n';
+            msg += '🖥️ <b>Платформа:</b> ' + window.escapeHtmlReport(navigator.platform || 'неизвестно') + '\n';
             msg += '📐 <b>Экран:</b> ' + (typeof screen !== 'undefined' ? screen.width + 'x' + screen.height : 'неизвестно') + '\n';
-            msg += '🌐 <b>Язык:</b> ' + escapeHtmlReport(navigator.language || 'неизвестно') + '\n\n';
-            msg += '💬 <b>Комментарий:</b>\n' + escapeHtmlReport(userComment || '(без комментария)') + '\n\n';
+            msg += '🌐 <b>Язык:</b> ' + window.escapeHtmlReport(navigator.language || 'неизвестно') + '\n\n';
+            msg += '💬 <b>Комментарий:</b>\n' + window.escapeHtmlReport(userComment || '(без комментария)') + '\n\n';
 
             if (state.errorLog && state.errorLog.length > 0) {
                 msg += '📋 <b>Лог ошибок (' + state.errorLog.length + '):</b>\n';
                 state.errorLog.slice(-5).forEach(function(e, i) {
-                    msg += '<b>' + (i + 1) + '.</b> [' + e.time + '] <i>' + escapeHtmlReport(e.source) + '</i>\n';
-                    msg += '   ' + escapeHtmlReport(e.message) + '\n';
-                    if (e.details) msg += '   <code>' + escapeHtmlReport(e.details) + '</code>\n';
+                    msg += '<b>' + (i + 1) + '.</b> [' + e.time + '] <i>' + window.escapeHtmlReport(e.source) + '</i>\n';
+                    msg += '   ' + window.escapeHtmlReport(e.message) + '\n';
+                    if (e.details) msg += '   <code>' + window.escapeHtmlReport(e.details) + '</code>\n';
                 });
             } else {
                 msg += '📋 <b>Лог ошибок:</b> пуст\n';
@@ -1780,7 +1779,7 @@
                         statusEl.textContent = '✅ Отчёт отправлен! Спасибо за обратную связь.';
                         statusEl.className = 'report-status success';
                     }
-                    setTimeout(closeReportDialog, 2500);
+                    setTimeout(window.closeReportDialog, 2500);
                 } else {
                     if (statusEl) {
                         statusEl.textContent = '❌ Ошибка отправки: ' + (data.description || 'неизвестно');
@@ -1796,45 +1795,22 @@
                 }
                 window.logError('Report', 'Ошибка сети: ' + err.message);
             });
-        }
+        };
 
-        // Делегирование событий для кнопок отчёта
         document.addEventListener('click', function(e) {
-            var target = e.target;
-            var reportBtn = target.closest ? target.closest('#loaderReportBtn, #fabReport') : null;
-            if (reportBtn) {
-                e.preventDefault();
-                e.stopPropagation();
-                openReportDialog();
-                return;
-            }
-            var closeBtn = target.closest ? target.closest('#reportClose, #reportCancel') : null;
-            if (closeBtn) {
-                e.preventDefault();
-                closeReportDialog();
-                return;
-            }
-            var sendBtn = target.closest ? target.closest('#reportSend') : null;
-            if (sendBtn) {
-                e.preventDefault();
-                sendReport();
-                return;
-            }
-            if (target.id === 'reportOverlay') {
-                closeReportDialog();
+            if (e.target && e.target.id === 'reportOverlay') {
+                window.closeReportDialog();
             }
         });
 
-        // Определяем среду сразу при загрузке модуля
-        detectEnvironment();
-
+        window.detectEnvironment();
         console.log('✅ Модуль отчёта загружен. Среда:', window.__reportState.env);
     </script>
 
     <!-- ============================================================
          СКРИПТ 2: Telegram WebApp (асинхронно)
          ============================================================ -->
-    <script async src="https://telegram.org/js/telegram-web-app.js?56" onload="window.__tgLoaded = true; window.detectEnvironment(); console.log('✅ Telegram WebApp скрипт загружен');"></script>
+    <script async src="https://telegram.org/js/telegram-web-app.js?56" onload="window.__tgLoaded = true; if(window.detectEnvironment) window.detectEnvironment(); console.log('✅ Telegram WebApp скрипт загружен');"></script>
 
     <!-- ============================================================
          СКРИПТ 3: Основная логика приложения
@@ -2006,7 +1982,6 @@
                         if (fab) fab.classList.add('visible');
                     }
                 }
-                // Определяем среду
                 window.detectEnvironment();
                 console.log('✅ Telegram WebApp инициализирован');
             } else {
@@ -2941,7 +2916,6 @@
             popup.classList.add('open');
         }
 
-        // Экспорт функций
         window.openCard = openCard;
         window.closeCard = closeCard;
         window.toggleMarks = function(id) { var el = document.getElementById(id); if (el) el.classList.toggle('open'); };
@@ -2955,7 +2929,6 @@
         window.notifyOwner = notifyOwner;
         window.escapeHtml = escapeHtml;
 
-        // Обработчики
         document.getElementById('profileBtn').addEventListener('click', function(e) {
             e.stopPropagation();
             var bound = getBoundStudent();
@@ -3001,7 +2974,7 @@
             if (!selectedStudentForIdentity) { if (tg) tg.showAlert('❌ Выберите фамилию'); else alert('❌ Выберите фамилию'); return; }
             document.getElementById('identityPopup').classList.remove('open');
             var uid = window.__reportState.userId;
-            if (!uid) { if (tg) tg.showAlert('❌ Ошибка: не удалось определить пользователя'); else alert('❌ Ошибка: не удалось определить пользователя. Откройте через Telegram.'); return; }
+            if (!uid) { if (tg) tg.showAlert('❌ Ошибка: откройте через Telegram'); else alert('❌ Ошибка: откройте через Telegram'); return; }
             var uname = window.__reportState.username;
             notifyOwner(uid, selectedStudentForIdentity, uname);
             if (tg) { tg.HapticFeedback.notificationOccurred('success'); tg.showAlert('✅ Запрос отправлен!'); }
@@ -3030,21 +3003,17 @@
             }
         });
 
-        if (tg) {
-            tg.onEvent('backButtonClicked', function() {
-                if (document.getElementById('reportOverlay').classList.contains('open')) closeReportDialog();
-                else if (document.getElementById('cardOverlay').classList.contains('open')) closeCard();
-                else if (document.getElementById('adminPanel').classList.contains('open')) document.getElementById('adminPanel').classList.remove('open');
-                else if (document.getElementById('tabSchedule').classList.contains('active')) switchTab('tabJournal');
-                else tg.close();
-            });
-        }
-
-        // ============================================================
-        // ЗАПУСК: сначала ждём Telegram (но не блокируем), потом грузим данные
-        // ============================================================
         waitForTelegram(function() {
             initTelegram();
+            if (tg) {
+                tg.onEvent('backButtonClicked', function() {
+                    if (document.getElementById('reportOverlay').classList.contains('open')) window.closeReportDialog();
+                    else if (document.getElementById('cardOverlay').classList.contains('open')) closeCard();
+                    else if (document.getElementById('adminPanel').classList.contains('open')) document.getElementById('adminPanel').classList.remove('open');
+                    else if (document.getElementById('tabSchedule').classList.contains('active')) switchTab('tabJournal');
+                    else tg.close();
+                });
+            }
             loadData();
         });
     })();
