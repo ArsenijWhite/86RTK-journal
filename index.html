@@ -19,6 +19,7 @@
             --success: #10b981;
             --admin: #8b5cf6;
             --tab-inactive: #334155;
+            --report: #f59e0b;
         }
         * { 
             font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; 
@@ -160,6 +161,37 @@
             bottom: 25px;
             font-size: 9px;
             color: rgba(255,255,255,0.08);
+        }
+        .loader-report-btn {
+            position: absolute;
+            bottom: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 8px 20px;
+            border-radius: 20px;
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+        .loader-report-btn:active {
+            transform: translateX(-50%) scale(0.95);
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .loader-version {
+            position: absolute;
+            bottom: 45px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 9px;
+            color: rgba(255,255,255,0.15);
+            letter-spacing: 0.5px;
         }
 
         @keyframes breatheContainer {
@@ -1242,6 +1274,135 @@
         }
         .fab-update:active { transform: scale(0.92); }
 
+        /* Кнопка отчёта */
+        .fab-report {
+            position: fixed;
+            bottom: 85px;
+            right: 70px;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: rgba(245, 158, 11, 0.15);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .fab-report:active { transform: scale(0.92); }
+        .fab-report svg { width: 20px; height: 20px; stroke: var(--report); fill: none; stroke-width: 2; }
+
+        /* Оверлей отчёта */
+        .report-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 1600;
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .report-overlay.open { display: flex; align-items: center; justify-content: center; }
+        .report-panel {
+            background: var(--card);
+            border-radius: 20px;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+            max-width: 420px;
+            width: 100%;
+            max-height: 85vh;
+            overflow-y: auto;
+            animation: slideUp 0.3s ease;
+        }
+        .report-header {
+            padding: 18px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .report-header .report-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--report);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .report-header .report-close {
+            margin-left: auto;
+            color: var(--muted);
+            font-size: 22px;
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.04);
+        }
+        .report-header .report-close:active { transform: scale(0.92); }
+        .report-body { padding: 18px 20px 20px; }
+        .report-info {
+            font-size: 12px;
+            color: var(--muted);
+            line-height: 1.5;
+            margin-bottom: 14px;
+            padding: 12px;
+            background: rgba(245, 158, 11, 0.06);
+            border-radius: 10px;
+            border-left: 3px solid var(--report);
+        }
+        .report-info strong { color: var(--text); }
+        .report-textarea {
+            width: 100%;
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 12px 16px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.05);
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+            margin-bottom: 10px;
+            resize: vertical;
+            min-height: 80px;
+            font-family: inherit;
+        }
+        .report-textarea:focus { border-color: var(--report); }
+        .report-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .report-actions button {
+            flex: 1;
+            padding: 12px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .report-actions button:active { transform: scale(0.96); }
+        .report-actions .btn-report-send { background: var(--report); color: #0f172a; }
+        .report-actions .btn-report-cancel { background: rgba(255,255,255,0.08); color: var(--text); }
+        .report-status {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 10px;
+            text-align: center;
+            min-height: 16px;
+        }
+        .report-status.success { color: var(--success); }
+        .report-status.error { color: var(--error); }
+
         .search-hidden #search,
         .search-hidden .header-sub {
             display: none;
@@ -1251,6 +1412,7 @@
             body { padding-bottom: calc(100px + env(safe-area-inset-bottom)); }
             .bottom-nav { padding-bottom: env(safe-area-inset-bottom); }
             .fab-update { bottom: calc(85px + env(safe-area-inset-bottom)); }
+            .fab-report { bottom: calc(85px + env(safe-area-inset-bottom)); }
             .admin-fab { bottom: calc(140px + env(safe-area-inset-bottom)); }
             .identity-popup { bottom: calc(30px + env(safe-area-inset-bottom)); }
             .admin-panel { bottom: calc(30px + env(safe-area-inset-bottom)); }
@@ -1271,6 +1433,15 @@
                 <button class="retry-button" id="retryButton">Повторить</button>
             </div>
         </div>
+        <button class="loader-report-btn" id="loaderReportBtn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                <line x1="12" y1="9" x2="12" y2="13"/>
+                <line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+            Сообщить о проблеме
+        </button>
+        <div class="loader-version">v3.4.2</div>
         <div class="copyright">by @skwared</div>
     </div>
 
@@ -1296,7 +1467,7 @@
             <div class="header-sub">Электронный журнал успеваемости</div>
             <input type="text" id="search" placeholder="Поиск по фамилии" autocomplete="off">
             <div id="list"></div>
-            <div class="footer">by @skwared</div>
+            <div class="footer">by @skwared • v3.4.2</div>
         </div>
 
         <div class="tab-content" id="tabSchedule">
@@ -1399,6 +1570,36 @@
             </svg>
         </div>
 
+        <div class="fab-report" id="fabReport">
+            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                <line x1="12" y1="9" x2="12" y2="13"/>
+                <line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+        </div>
+
+        <div class="report-overlay" id="reportOverlay">
+            <div class="report-panel">
+                <div class="report-header">
+                    <div class="report-title">🚨 Сообщить о проблеме</div>
+                    <div class="report-close" id="reportClose">✕</div>
+                </div>
+                <div class="report-body">
+                    <div class="report-info">
+                        Если вы заметили неисправность в работе бота, отправьте отчёт. 
+                        В отчёт автоматически включается ваш <strong>юзернейм</strong>, <strong>ID</strong>, 
+                        <strong>версия приложения</strong> и <strong>лог ошибок</strong>.
+                    </div>
+                    <textarea class="report-textarea" id="reportText" placeholder="Опишите проблему (необязательно)..."></textarea>
+                    <div class="report-actions">
+                        <button class="btn-report-send" id="reportSend">📨 Отправить отчёт</button>
+                        <button class="btn-report-cancel" id="reportCancel">Отмена</button>
+                    </div>
+                    <div class="report-status" id="reportStatus"></div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <nav class="bottom-nav" id="bottomNav">
@@ -1416,6 +1617,7 @@
         // ============================================================
         // 1. НАСТРОЙКИ
         // ============================================================
+        const APP_VERSION = '3.4.2';
         const API_JOURNAL = 'https://script.google.com/macros/s/AKfycbwtV3eFenNotdiVr3u1DQPJdOLn2fieHDsvWUwlsQquKURzkLkW4wuTiLqkNFnWCH0v/exec';
         const API_ABSENCES = 'https://script.google.com/macros/s/AKfycbyux4wfN_lVoodDq-JHHjbYAGuJys_DsZ2mADyUGdw1MERG-iZK833dN0tSzI7lq_QeZg/exec';
         const BOT_TOKEN = '8559243948:AAFAW1LdoTmE1a0I1pTgOvv6c9jDLz_1nnI';
@@ -1458,6 +1660,7 @@
         // ============================================================
         let tg = null;
         let userId = null;
+        let username = null;
         let isCardMode = false;
         let ALL_DATA = { journal: [], absences: {} };
         let isLoading = false;
@@ -1469,6 +1672,10 @@
         let scheduleBlocks = [];
         let scheduleOffset = 0;
 
+        // Лог ошибок для отчётов
+        let errorLog = [];
+        const MAX_LOG_SIZE = 10;
+
         const CACHE_KEY = 'journal_86rtk_v32';
         const EXAM_SUBJECTS = [
             'Цифровая и микропроцессорная техника',
@@ -1477,7 +1684,32 @@
         ];
 
         // ============================================================
-        // 4. Telegram WebApp
+        // 4. ЛОГИРОВАНИЕ ОШИБОК
+        // ============================================================
+        function logError(source, message, details = '') {
+            const entry = {
+                time: new Date().toLocaleString('ru-RU'),
+                source: source,
+                message: message,
+                details: details
+            };
+            errorLog.push(entry);
+            if (errorLog.length > MAX_LOG_SIZE) {
+                errorLog.shift();
+            }
+            console.warn('🚨 Лог ошибки:', entry);
+        }
+
+        // Перехватываем глобальные ошибки
+        window.addEventListener('error', function(e) {
+            logError('window.onerror', e.message, `${e.filename}:${e.lineno}`);
+        });
+        window.addEventListener('unhandledrejection', function(e) {
+            logError('Promise', e.reason?.message || String(e.reason), '');
+        });
+
+        // ============================================================
+        // 5. Telegram WebApp
         // ============================================================
         try {
             if (window.Telegram && window.Telegram.WebApp) {
@@ -1488,7 +1720,8 @@
                 const user = tg.initDataUnsafe?.user;
                 if (user) {
                     userId = String(user.id);
-                    console.log('👤 Пользователь ID:', userId);
+                    username = user.username || null;
+                    console.log('👤 Пользователь ID:', userId, '| @' + (username || 'без юзернейма'));
                     isAdmin = (userId === OWNER_CHAT_ID);
                     if (isAdmin) {
                         console.log('👑 Админ режим активирован');
@@ -1498,10 +1731,11 @@
             }
         } catch(e) {
             console.warn('Telegram WebApp не доступен:', e);
+            logError('Telegram WebApp', e.message);
         }
 
         // ============================================================
-        // 5. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+        // 6. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
         // ============================================================
         function getBoundStudent() {
             if (!userId) return null;
@@ -1597,6 +1831,7 @@
             loaderStatus.textContent = 'Ошибка соединения';
             errorMessage.textContent = message || 'Не удалось подключиться к серверу';
             errorContainer.classList.add('visible');
+            logError('UI', 'Показана ошибка: ' + message);
         }
         
         function hideError() {
@@ -1608,7 +1843,110 @@
         }
 
         // ============================================================
-        // 6. АДМИН-ФУНКЦИИ И УВЕДОМЛЕНИЯ
+        // 7. ОТПРАВКА ОТЧЁТА О ПРОБЛЕМЕ
+        // ============================================================
+        function openReportDialog() {
+            const overlay = document.getElementById('reportOverlay');
+            const statusEl = document.getElementById('reportStatus');
+            const textEl = document.getElementById('reportText');
+            
+            textEl.value = '';
+            statusEl.textContent = '';
+            statusEl.className = 'report-status';
+            overlay.classList.add('open');
+            
+            if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+        }
+
+        function closeReportDialog() {
+            document.getElementById('reportOverlay').classList.remove('open');
+        }
+
+        function sendReport() {
+            const statusEl = document.getElementById('reportStatus');
+            const textEl = document.getElementById('reportText');
+            const userComment = textEl.value.trim();
+            
+            statusEl.textContent = '⏳ Отправка...';
+            statusEl.className = 'report-status';
+            
+            // Формируем данные для отчёта
+            const reportData = {
+                version: APP_VERSION,
+                userId: userId || 'неизвестен',
+                username: username || 'без юзернейма',
+                studentName: getBoundStudent() || 'не привязан',
+                userAgent: navigator.userAgent,
+                platform: navigator.platform,
+                screen: `${screen.width}x${screen.height}`,
+                timestamp: new Date().toLocaleString('ru-RU'),
+                comment: userComment || '(без комментария)',
+                errors: errorLog.length > 0 ? errorLog : 'Ошибок не зафиксировано',
+                currentTab: document.querySelector('.tab-content.active')?.id || 'unknown',
+                dataLoaded: isDataLoaded,
+                scheduleLoaded: scheduleBlocks.length > 0
+            };
+            
+            // Формируем сообщение для владельца
+            let msg = '🚨 <b>ОТЧЁТ О ПРОБЛЕМЕ</b>\n\n';
+            msg += '📱 <b>Версия:</b> v' + reportData.version + '\n';
+            msg += '👤 <b>Юзернейм:</b> ' + (username ? '@' + escapeHtml(username) : '❌ отсутствует') + '\n';
+            msg += '🆔 <b>Telegram ID:</b> <code>' + reportData.userId + '</code>\n';
+            msg += '👨‍🎓 <b>Студент:</b> ' + escapeHtml(reportData.studentName) + '\n';
+            msg += '🕒 <b>Время:</b> ' + reportData.timestamp + '\n';
+            msg += '📂 <b>Активная вкладка:</b> ' + reportData.currentTab + '\n';
+            msg += '💾 <b>Данные загружены:</b> ' + (reportData.dataLoaded ? '✅' : '❌') + '\n';
+            msg += '📅 <b>Расписание загружено:</b> ' + (reportData.scheduleLoaded ? '✅' : '❌') + '\n';
+            msg += '💻 <b>Платформа:</b> ' + escapeHtml(reportData.platform) + '\n';
+            msg += '📐 <b>Экран:</b> ' + reportData.screen + '\n\n';
+            msg += '💬 <b>Комментарий:</b>\n' + escapeHtml(reportData.comment) + '\n\n';
+            
+            if (errorLog.length > 0) {
+                msg += '📋 <b>Лог ошибок (' + errorLog.length + '):</b>\n';
+                errorLog.slice(-5).forEach((e, i) => {
+                    msg += `<b>${i+1}.</b> [${e.time}] <i>${escapeHtml(e.source)}</i>\n`;
+                    msg += `   ${escapeHtml(e.message)}\n`;
+                    if (e.details) msg += `   <code>${escapeHtml(e.details)}</code>\n`;
+                });
+            } else {
+                msg += '📋 <b>Лог ошибок:</b> пуст\n';
+            }
+            
+            // Отправляем через Telegram Bot API
+            const url = 'https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage';
+            fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: OWNER_CHAT_ID,
+                    text: msg,
+                    parse_mode: 'HTML'
+                })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.ok) {
+                    statusEl.textContent = '✅ Отчёт отправлен! Спасибо за обратную связь.';
+                    statusEl.className = 'report-status success';
+                    if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+                    setTimeout(() => {
+                        closeReportDialog();
+                    }, 2500);
+                } else {
+                    statusEl.textContent = '❌ Ошибка отправки: ' + (data.description || 'неизвестно');
+                    statusEl.className = 'report-status error';
+                    logError('Report', 'Ошибка API: ' + (data.description || ''));
+                }
+            })
+            .catch(err => {
+                statusEl.textContent = '❌ Ошибка сети. Попробуйте позже.';
+                statusEl.className = 'report-status error';
+                logError('Report', 'Ошибка сети: ' + err.message);
+            });
+        }
+
+        // ============================================================
+        // 8. АДМИН-ФУНКЦИИ И УВЕДОМЛЕНИЯ
         // ============================================================
         function updateAdminRecipients() {
             const select = document.getElementById('adminRecipient');
@@ -1654,9 +1992,11 @@
             }).then(r => r.json()).then(data => {
                 if (!data.ok) {
                     console.error('❌ Ошибка отправки:', data);
+                    logError('SendMessage', 'Ошибка: ' + data.description, 'chat_id=' + chatId);
                 }
             }).catch(err => {
                 console.error('❌ Ошибка сети:', err);
+                logError('SendMessage', 'Ошибка сети: ' + err.message);
             });
         }
 
@@ -1693,7 +2033,7 @@
 
         function notifyAllStudentsAboutNewScores() {
             const students = Object.keys(BINDINGS);
-            const message = '📊 *Новые оценки!*\n\nПроверьте журнал успеваемости.\n\n📱 Журнал 86РТК';
+            const message = '📊 *Новые оценки!*\n\nПроверьте журнал успеваемости.\n\n📱 Журнал 86РТК v' + APP_VERSION;
             
             let sent = 0;
             students.forEach(id => {
@@ -1712,7 +2052,7 @@
 
         function sendMessageToStudents(text) {
             const students = Object.keys(BINDINGS);
-            const msg = '📢 ' + escapeHtml(text) + '\n\n━━━━━━━━━━━━━━\n📱 Журнал 86РТК';
+            const msg = '📢 ' + escapeHtml(text) + '\n\n━━━━━━━━━━━━━━\n📱 Журнал 86РТК v' + APP_VERSION;
             
             let sent = 0;
             let failed = 0;
@@ -1729,14 +2069,12 @@
                 }).then(r => r.json()).then(data => {
                     if (data.ok) {
                         sent++;
-                        console.log('✅ Отправлено:', BINDINGS[id]);
                     } else {
                         failed++;
-                        console.error('❌ Ошибка отправки:', BINDINGS[id], data);
+                        logError('SendAll', 'Ошибка: ' + data.description, 'chat_id=' + id);
                     }
                 }).catch(() => {
                     failed++;
-                    console.error('❌ Ошибка сети:', BINDINGS[id]);
                 });
             });
             
@@ -1763,7 +2101,7 @@
             statusEl.textContent = '⏳ Отправка себе...';
             statusEl.className = 'admin-status';
             
-            sendMessageToUser(OWNER_CHAT_ID, '📢 ' + text + '\n\n━━━━━━━━━━━━━━\n📱 Журнал 86РТК');
+            sendMessageToUser(OWNER_CHAT_ID, '📢 ' + text + '\n\n━━━━━━━━━━━━━━\n📱 Журнал 86РТК v' + APP_VERSION);
             
             statusEl.textContent = '✅ Отправлено вам!';
             statusEl.className = 'admin-status success';
@@ -1776,7 +2114,7 @@
         }
 
         // ============================================================
-        // 7. УВЕДОМЛЕНИЯ РАСПИСАНИЯ
+        // 9. УВЕДОМЛЕНИЯ РАСПИСАНИЯ
         // ============================================================
         function getScheduleForDay(dayName, date) {
             if (!scheduleBlocks || scheduleBlocks.length === 0) {
@@ -1867,7 +2205,6 @@
             const statusEl = document.getElementById('adminStatus');
             statusEl.textContent = `✅ Расписание на завтра отправлено ${sent} получателям!`;
             statusEl.className = 'admin-status success';
-            console.log('✅ Отправлено расписание на завтра');
         }
 
         function sendNextWeekSchedule() {
@@ -1930,11 +2267,10 @@
             const statusEl = document.getElementById('adminStatus');
             statusEl.textContent = `✅ Расписание на следующую неделю отправлено ${sent} получателям!`;
             statusEl.className = 'admin-status success';
-            console.log('✅ Отправлено расписание на следующую неделю');
         }
 
         // ============================================================
-        // 8. КАРТОЧКА СТУДЕНТА
+        // 10. КАРТОЧКА СТУДЕНТА
         // ============================================================
         function toggleMarks(id) {
             const el = document.getElementById(id);
@@ -2061,7 +2397,7 @@
         }
 
         // ============================================================
-        // 9. РЕНДЕРИНГ ЖУРНАЛА
+        // 11. РЕНДЕРИНГ ЖУРНАЛА
         // ============================================================
         function renderJournal() {
             const container = document.getElementById('list');
@@ -2197,7 +2533,7 @@
         }
 
         // ============================================================
-        // 10. КНОПКА ПРОФИЛЯ
+        // 12. КНОПКА ПРОФИЛЯ
         // ============================================================
         function updateProfileButton() {
             const btn = document.getElementById('profileBtn');
@@ -2218,7 +2554,7 @@
         }
 
         // ============================================================
-        // 11. ВЫБОР СТУДЕНТА
+        // 13. ВЫБОР СТУДЕНТА
         // ============================================================
         function showStudentSelect() {
             const popup = document.getElementById('identityPopup');
@@ -2260,7 +2596,7 @@
         }
 
         // ============================================================
-        // 12. ЗАГРУЗКА ДАННЫХ (ЖУРНАЛ)
+        // 14. ЗАГРУЗКА ДАННЫХ (ЖУРНАЛ)
         // ============================================================
         function loadData() {
             if (isLoading) return;
@@ -2294,6 +2630,7 @@
                 }
             } catch(e) {
                 console.warn('Ошибка чтения кеша:', e);
+                logError('Cache', 'Ошибка чтения: ' + e.message);
             }
             
             const controller = new AbortController();
@@ -2344,6 +2681,7 @@
             }).catch(e => {
                 clearTimeout(timeoutId);
                 console.error('Ошибка загрузки с сервера:', e);
+                logError('API', 'Ошибка загрузки журнала: ' + e.message, 'API_JOURNAL');
                 
                 if (isDataLoaded && ALL_DATA.journal.length > 0) {
                     console.log('📦 Использую кеш');
@@ -2392,7 +2730,7 @@
         }
 
         // ============================================================
-        // 13. РАСПИСАНИЕ — ПАРСИНГ И ОТОБРАЖЕНИЕ (ФИНАЛЬНАЯ ВЕРСИЯ)
+        // 15. РАСПИСАНИЕ — ПАРСИНГ И ОТОБРАЖЕНИЕ
         // ============================================================
         function getWeekOffsetDate(offset) {
             const today = new Date();
@@ -2410,7 +2748,6 @@
             return `${d}.${m}.${y}`;
         }
 
-        // Очистка HTML-сущностей
         function cleanHtmlEntities(str) {
             if (!str) return '';
             return str
@@ -2426,14 +2763,12 @@
                 .replace(/\u00a0/g, ' ');
         }
 
-        // Разбивает строку на отдельные занятия по нумерации (1., 2., 3.)
         function splitByNumbers(text) {
             if (!text) return [];
             const parts = text.split(/(?=(?:^|\s)\d+\.)/);
             return parts.map(p => p.trim()).filter(p => p.length > 0);
         }
 
-        // Извлекает аудитории из строки
         function extractRooms(text) {
             if (!text) return [];
             const roomRegex = /(Кн\.?\s*\d+[-–]\d+\(?[кК]?\)?|\d+[-–]\d+\(?[кК]?\)?|\d+\([кК]\)|\(\d+[кК]\))/g;
@@ -2442,7 +2777,6 @@
             return matches.map(m => m.replace(/\s+/g, ' ').trim());
         }
 
-        // Парсит один предмет
         function parseSingleLesson(text, pairNum, defaultRooms = [], defaultSubgroup = '') {
             if (!text || text.trim() === '') return null;
             
@@ -2452,17 +2786,14 @@
             let teachers = [];
             let rooms = [...defaultRooms];
 
-            // Убираем номер в начале (1. 2. 3.)
             content = content.replace(/^\d+\.\s*/, '').trim();
 
-            // Подгруппа (если указана явно)
             const subMatch = content.match(/^(\d+)\s*подгруппа/i) || content.match(/\((\d+)\s*подгруппа\)/i);
             if (subMatch) {
                 subgroup = subMatch[1];
                 content = content.replace(/^\d+\s*подгруппа/i, '').replace(/\((\d+)\s*подгруппа\)/i, '').trim();
             }
 
-            // Тип занятия
             const typeMatch = content.match(/\((ЛЕКЦИЯ|ЛАБОРАТОРНАЯ|ПРАКТИКА|Лек|ЛР|ПР)\)/i);
             if (typeMatch) {
                 lessonType = TYPE_MAP[typeMatch[1]] || typeMatch[1].toLowerCase();
@@ -2473,14 +2804,12 @@
                 else if (content.includes('ПРАКТИКА')) { lessonType = 'практика'; content = content.replace('ПРАКТИКА', '').trim(); }
             }
 
-            // Аудитории
             const textRooms = extractRooms(content);
             if (textRooms.length > 0) {
                 rooms = textRooms;
                 textRooms.forEach(r => { content = content.replace(r, '').trim(); });
             }
 
-            // Преподаватели
             const teacherRegex = /([А-Я][а-я]+(?:\s+[А-Я]\.\s*[А-Я]\.))/g;
             let match;
             const tempContent = content;
@@ -2493,7 +2822,6 @@
                 }
             }
 
-            // Название дисциплины
             let discipline = content.replace(/\s+/g, ' ').replace(/^[.,\s]+|[.,\s]+$/g, '').trim();
             if (!discipline) discipline = 'Предмет не указан';
 
@@ -2507,7 +2835,6 @@
             };
         }
 
-        // Парсит всю ячейку и возвращает массив занятий
         function parseLessonText(text, pairNum, defaultRooms = []) {
             if (!text || text.trim() === '' || text.trim() === '-') return [];
             
@@ -2519,10 +2846,8 @@
             if (parts.length > 1) {
                 const lessons = [];
                 parts.forEach((part, idx) => {
-                    // Если есть нумерация, подгруппа соответствует порядковому номеру
                     const subgroup = String(idx + 1);
                     
-                    // Распределяем аудитории
                     let roomsForThis = [];
                     if (defaultRooms.length === parts.length) {
                         roomsForThis = [defaultRooms[idx]];
@@ -2545,7 +2870,6 @@
             }
         }
 
-        // Объединяет дубликаты
         function mergeLessonsInPair(lessons) {
             if (!lessons || lessons.length === 0) return [];
             const grouped = {};
@@ -2625,7 +2949,6 @@
             const rows = table.querySelectorAll('tr');
             if (rows.length < 4) return null;
             
-            // 1. Ищем строку с днями недели
             let headerRow = null;
             let headerRowIndex = 0;
             for (let i = 0; i < Math.min(4, rows.length); i++) {
@@ -2646,7 +2969,6 @@
             }
             if (!headerRow) return null;
             
-            // 2. Сопоставляем колонки дням
             const headerCells = headerRow.querySelectorAll('td, th');
             const dayMap = {};
             let currentCol = 0;
@@ -2666,7 +2988,6 @@
             const schedule = {};
             Object.keys(dayMap).forEach(day => { schedule[day] = []; });
             
-            // 3. Проходим по строкам
             const startRow = headerRowIndex + 2;
             for (let i = startRow; i < rows.length; i++) {
                 const cells = rows[i].querySelectorAll('td, th');
@@ -2713,7 +3034,6 @@
                 }
             }
             
-            // 4. Объединяем дубликаты
             for (const day of Object.keys(schedule)) {
                 schedule[day] = mergeLessonsInPair(schedule[day]);
             }
@@ -2881,6 +3201,7 @@
                 loadCurrentSchedule();
             } catch(e) {
                 console.error('Ошибка загрузки расписания:', e);
+                logError('Schedule', 'Ошибка загрузки: ' + e.message, 'PROXY_URL=' + PROXY_URL);
                 container.innerHTML = `
                     <div class="schedule-error">
                         <span class="error-icon">⚠️</span>
@@ -2895,7 +3216,7 @@
         }
 
         // ============================================================
-        // 14. НАВИГАЦИЯ
+        // 16. НАВИГАЦИЯ
         // ============================================================
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
@@ -2917,7 +3238,7 @@
         }
 
         // ============================================================
-        // 15. ОБРАБОТЧИКИ СОБЫТИЙ
+        // 17. ОБРАБОТЧИКИ СОБЫТИЙ
         // ============================================================
         document.getElementById('profileBtn').addEventListener('click', function(e) {
             e.stopPropagation();
@@ -2937,6 +3258,16 @@
         document.getElementById('search').addEventListener('input', renderJournal);
         document.getElementById('fabUpdate').addEventListener('click', forceUpdate);
         document.getElementById('retryButton').addEventListener('click', forceUpdate);
+        
+        // Кнопки отчёта
+        document.getElementById('fabReport').addEventListener('click', openReportDialog);
+        document.getElementById('loaderReportBtn').addEventListener('click', openReportDialog);
+        document.getElementById('reportClose').addEventListener('click', closeReportDialog);
+        document.getElementById('reportCancel').addEventListener('click', closeReportDialog);
+        document.getElementById('reportSend').addEventListener('click', sendReport);
+        document.getElementById('reportOverlay').addEventListener('click', function(e) {
+            if (e.target === this) closeReportDialog();
+        });
         
         document.querySelectorAll('.nav-item').forEach(item => {
             item.addEventListener('click', function() {
@@ -3046,14 +3377,14 @@
             }
             document.getElementById('identityPopup').classList.remove('open');
             if (!userId) { if (tg) tg.showAlert('❌ Ошибка: не удалось определить пользователя'); return; }
-            let username = null;
+            let uname = null;
             try {
                 if (window.Telegram && window.Telegram.WebApp) {
                     const user = window.Telegram.WebApp.initDataUnsafe?.user;
-                    if (user && user.username) username = user.username;
+                    if (user && user.username) uname = user.username;
                 }
             } catch(e) { console.warn('Не удалось получить юзернейм:', e); }
-            notifyOwner(userId, selectedStudentForIdentity, username);
+            notifyOwner(userId, selectedStudentForIdentity, uname);
             if (tg) { tg.HapticFeedback.notificationOccurred('success'); tg.showAlert('✅ Запрос отправлен! Ожидайте подтверждения.'); }
             else alert('✅ Запрос отправлен!');
             selectedStudentForIdentity = null;
@@ -3080,7 +3411,8 @@
         });
         if (tg) {
             tg.onEvent('backButtonClicked', function() {
-                if (document.getElementById('cardOverlay').classList.contains('open')) closeCard();
+                if (document.getElementById('reportOverlay').classList.contains('open')) closeReportDialog();
+                else if (document.getElementById('cardOverlay').classList.contains('open')) closeCard();
                 else if (document.getElementById('adminPanel').classList.contains('open')) document.getElementById('adminPanel').classList.remove('open');
                 else if (document.getElementById('tabSchedule').classList.contains('active')) switchTab('tabJournal');
                 else tg.close();
@@ -3088,7 +3420,7 @@
         }
 
         // ============================================================
-        // 16. ЗАПУСК
+        // 18. ЗАПУСК
         // ============================================================
         window.openCard = openCard;
         window.closeCard = closeCard;
