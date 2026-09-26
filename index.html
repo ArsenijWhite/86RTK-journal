@@ -2392,7 +2392,7 @@
         }
 
         // ============================================================
-        // 13. РАСПИСАНИЕ — ПАРСИНГ И ОТОБРАЖЕНИЕ (ИСПРАВЛЕНО)
+        // 13. РАСПИСАНИЕ — ПАРСИНГ И ОТОБРАЖЕНИЕ (ФИНАЛЬНАЯ ВЕРСИЯ)
         // ============================================================
         function getWeekOffsetDate(offset) {
             const today = new Date();
@@ -2410,7 +2410,23 @@
             return `${d}.${m}.${y}`;
         }
 
-        // Разбивает строку на отдельные занятия, если они пронумерованы (1., 2., 3.)
+        // Очистка HTML-сущностей
+        function cleanHtmlEntities(str) {
+            if (!str) return '';
+            return str
+                .replace(/&nbsp;/gi, ' ')
+                .replace(/&mdash;/gi, '—')
+                .replace(/&ndash;/gi, '–')
+                .replace(/&laquo;/gi, '«')
+                .replace(/&raquo;/gi, '»')
+                .replace(/&quot;/gi, '"')
+                .replace(/&amp;/gi, '&')
+                .replace(/&lt;/gi, '<')
+                .replace(/&gt;/gi, '>')
+                .replace(/\u00a0/g, ' ');
+        }
+
+        // Разбивает строку на отдельные занятия по нумерации (1., 2., 3.)
         function splitByNumbers(text) {
             if (!text) return [];
             const parts = text.split(/(?=(?:^|\s)\d+\.)/);
@@ -2427,23 +2443,26 @@
         }
 
         // Парсит один предмет
-        function parseSingleLesson(text, pairNum, defaultRooms = []) {
+        function parseSingleLesson(text, pairNum, defaultRooms = [], defaultSubgroup = '') {
             if (!text || text.trim() === '') return null;
             
-            let content = text.replace(/\s+/g, ' ').trim();
-            let subgroup = '';
+            let content = cleanHtmlEntities(text).replace(/\s+/g, ' ').trim();
+            let subgroup = defaultSubgroup;
             let lessonType = '';
             let teachers = [];
             let rooms = [...defaultRooms];
 
+            // Убираем номер в начале (1. 2. 3.)
             content = content.replace(/^\d+\.\s*/, '').trim();
 
-            const subMatch = content.match(/^(\d+)\s*подгруппа/i);
+            // Подгруппа (если указана явно)
+            const subMatch = content.match(/^(\d+)\s*подгруппа/i) || content.match(/\((\d+)\s*подгруппа\)/i);
             if (subMatch) {
                 subgroup = subMatch[1];
-                content = content.replace(/^\d+\s*подгруппа/i, '').trim();
+                content = content.replace(/^\d+\s*подгруппа/i, '').replace(/\((\d+)\s*подгруппа\)/i, '').trim();
             }
 
+            // Тип занятия
             const typeMatch = content.match(/\((ЛЕКЦИЯ|ЛАБОРАТОРНАЯ|ПРАКТИКА|Лек|ЛР|ПР)\)/i);
             if (typeMatch) {
                 lessonType = TYPE_MAP[typeMatch[1]] || typeMatch[1].toLowerCase();
@@ -2454,24 +2473,27 @@
                 else if (content.includes('ПРАКТИКА')) { lessonType = 'практика'; content = content.replace('ПРАКТИКА', '').trim(); }
             }
 
+            // Аудитории
             const textRooms = extractRooms(content);
             if (textRooms.length > 0) {
                 rooms = textRooms;
                 textRooms.forEach(r => { content = content.replace(r, '').trim(); });
             }
 
+            // Преподаватели
             const teacherRegex = /([А-Я][а-я]+(?:\s+[А-Я]\.\s*[А-Я]\.))/g;
             let match;
             const tempContent = content;
             while ((match = teacherRegex.exec(tempContent)) !== null) {
                 const t = match[0].trim();
                 const lower = t.toLowerCase();
-                if (!lower.includes('механ') && !lower.includes('инф') && !lower.includes('цифр') && !lower.includes('пром') && !lower.includes('техн') && !lower.includes('электр') && !lower.includes('микр')) {
+                if (!lower.includes('механ') && !lower.includes('инф') && !lower.includes('цифр') && !lower.includes('пром') && !lower.includes('техн') && !lower.includes('электр') && !lower.includes('микр') && !lower.includes('автом')) {
                     teachers.push(t);
                     content = content.replace(t, '').trim();
                 }
             }
 
+            // Название дисциплины
             let discipline = content.replace(/\s+/g, ' ').replace(/^[.,\s]+|[.,\s]+$/g, '').trim();
             if (!discipline) discipline = 'Предмет не указан';
 
@@ -2485,28 +2507,37 @@
             };
         }
 
+        // Парсит всю ячейку и возвращает массив занятий
         function parseLessonText(text, pairNum, defaultRooms = []) {
             if (!text || text.trim() === '' || text.trim() === '-') return [];
             
-            const parts = splitByNumbers(text);
+            const cleaned = cleanHtmlEntities(text);
+            if (!cleaned || cleaned.trim() === '') return [];
+            
+            const parts = splitByNumbers(cleaned);
             
             if (parts.length > 1) {
                 const lessons = [];
                 parts.forEach((part, idx) => {
+                    // Если есть нумерация, подгруппа соответствует порядковому номеру
+                    const subgroup = String(idx + 1);
+                    
+                    // Распределяем аудитории
                     let roomsForThis = [];
                     if (defaultRooms.length === parts.length) {
                         roomsForThis = [defaultRooms[idx]];
                     } else if (defaultRooms.length > 0) {
                         roomsForThis = defaultRooms;
                     }
-                    const lesson = parseSingleLesson(part, pairNum, roomsForThis);
+                    
+                    const lesson = parseSingleLesson(part, pairNum, roomsForThis, subgroup);
                     if (lesson && lesson.discipline !== 'Предмет не указан') {
                         lessons.push(lesson);
                     }
                 });
                 return lessons;
             } else {
-                const lesson = parseSingleLesson(text, pairNum, defaultRooms);
+                const lesson = parseSingleLesson(cleaned, pairNum, defaultRooms, '');
                 if (lesson && lesson.discipline !== 'Предмет не указан') {
                     return [lesson];
                 }
@@ -2514,11 +2545,12 @@
             }
         }
 
+        // Объединяет дубликаты
         function mergeLessonsInPair(lessons) {
             if (!lessons || lessons.length === 0) return [];
             const grouped = {};
             for (const lesson of lessons) {
-                const key = lesson.pair + '|' + lesson.discipline + '|' + lesson.type + '|' + lesson.room;
+                const key = lesson.pair + '|' + lesson.discipline + '|' + lesson.type + '|' + lesson.room + '|' + lesson.subgroup;
                 if (!grouped[key]) {
                     grouped[key] = {
                         pair: lesson.pair,
@@ -2593,6 +2625,7 @@
             const rows = table.querySelectorAll('tr');
             if (rows.length < 4) return null;
             
+            // 1. Ищем строку с днями недели
             let headerRow = null;
             let headerRowIndex = 0;
             for (let i = 0; i < Math.min(4, rows.length); i++) {
@@ -2613,6 +2646,7 @@
             }
             if (!headerRow) return null;
             
+            // 2. Сопоставляем колонки дням
             const headerCells = headerRow.querySelectorAll('td, th');
             const dayMap = {};
             let currentCol = 0;
@@ -2632,12 +2666,13 @@
             const schedule = {};
             Object.keys(dayMap).forEach(day => { schedule[day] = []; });
             
+            // 3. Проходим по строкам
             const startRow = headerRowIndex + 2;
             for (let i = startRow; i < rows.length; i++) {
                 const cells = rows[i].querySelectorAll('td, th');
                 if (cells.length < 2) continue;
                 
-                const pairNum = cells[0].textContent.trim();
+                const pairNum = cleanHtmlEntities(cells[0].textContent.trim());
                 if (!pairNum || pairNum === '') continue;
                 
                 for (const [dayName, info] of Object.entries(dayMap)) {
@@ -2649,12 +2684,23 @@
                     
                     if (subjCol < cells.length) {
                         const cell = cells[subjCol];
-                        subjectText = cell.innerHTML.replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+                        subjectText = cell.innerHTML
+                            .replace(/<br\s*\/?>/gi, ' ')
+                            .replace(/<[^>]+>/g, ' ')
+                            .replace(/\s+/g, ' ')
+                            .trim();
                     }
                     if (roomCol < cells.length) {
                         const cell = cells[roomCol];
-                        roomText = cell.innerHTML.replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+                        roomText = cell.innerHTML
+                            .replace(/<br\s*\/?>/gi, ' ')
+                            .replace(/<[^>]+>/g, ' ')
+                            .replace(/\s+/g, ' ')
+                            .trim();
                     }
+                    
+                    subjectText = cleanHtmlEntities(subjectText);
+                    roomText = cleanHtmlEntities(roomText);
                     
                     if (!subjectText || subjectText === '' || subjectText === '-') continue;
                     
@@ -2667,6 +2713,7 @@
                 }
             }
             
+            // 4. Объединяем дубликаты
             for (const day of Object.keys(schedule)) {
                 schedule[day] = mergeLessonsInPair(schedule[day]);
             }
