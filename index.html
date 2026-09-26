@@ -2392,7 +2392,7 @@
         }
 
         // ============================================================
-        // 13. РАСПИСАНИЕ — ПАРСИНГ И ОТОБРАЖЕНИЕ (сокращено)
+        // 13. РАСПИСАНИЕ — ПАРСИНГ И ОТОБРАЖЕНИЕ
         // ============================================================
         function cleanDiscipline(name) {
             if (!name) return '';
@@ -2517,7 +2517,8 @@
                         type: lesson.type,
                         room: lesson.room,
                         teachers: [],
-                        subgroups: []
+                        subgroups: [],
+                        isDouble: lesson.isDouble || false
                     };
                 }
                 if (lesson.teachers && lesson.teachers.length > 0) {
@@ -2661,7 +2662,7 @@
                         subjectCol: currentCol,
                         roomCol: currentCol + 1,
                         date: text
-                    };
+ document                    };
                 }
                 
                 currentCol += colspan;
@@ -2680,7 +2681,6 @@
             const schedule = {};
             Object.keys(dayMap).forEach(day => { schedule[day] = []; });
             
-            let totalPairs = 0;
             const startRow = headerRowIndex + 2;
             
             for (let i = startRow; i < rows.length; i++) {
@@ -2706,18 +2706,55 @@
                     
                     if (!subject || subject === '' || subject === '-') continue;
                     
-                    let fullText = subject;
-                    if (room && room !== '' && room !== '-') {
-                        fullText += ' ' + room;
-                    }
+                    const subjectHTML = cells[subjCol] ? cells[subjCol].innerHTML : '';
+                    const roomHTML = cells[roomCol] ? cells[roomCol].innerHTML : '';
                     
-                    const lesson = parseLessonText(fullText, pairNum);
-                    if (lesson) {
-                        if (!lesson.room && room && room !== '' && room !== '-') {
-                            lesson.room = room;
+                    const subjectParts = subjectHTML.split(/<br\s*\/?>/i).map(s => {
+                        const temp =.createElement('div');
+                        temp.innerHTML = s;
+                        return temp.textContent.trim();
+                    }).filter(s => s);
+                    
+                    const roomParts = roomHTML.split(/<br\s*\/?>/i).map(s => {
+                        const temp = document.createElement('div');
+                        temp.innerHTML = s;
+                        return temp.textContent.trim();
+                    }).filter(s => s);
+                    
+                    if (subjectParts.length > 1) {
+                        for (let j = 0; j < subjectParts.length; j++) {
+                            const partSubject = subjectParts[j];
+                            const partRoom = roomParts[j] || roomParts[0] || '';
+                            
+                            if (!partSubject || partSubject === '-') continue;
+                            
+                            let fullText = partSubject;
+                            if (partRoom && partRoom !== '-' && partRoom !== '--') {
+                                fullText += ' ' + partRoom;
+                            }
+                            
+                            const lesson = parseLessonText(fullText, pairNum);
+                            if (lesson) {
+                                if (!lesson.room && partRoom && partRoom !== '' && partRoom !== '-' && partRoom !== '--') {
+                                    lesson.room = partRoom;
+                                }
+                                lesson.isDouble = true;
+                                schedule[dayName].push(lesson);
+                            }
                         }
-                        schedule[dayName].push(lesson);
-                        totalPairs++;
+                    } else {
+                        let fullText = subject;
+                        if (room && room !== '' && room !== '-') {
+                            fullText += ' ' + room;
+                        }
+                        
+                        const lesson = parseLessonText(fullText, pairNum);
+                        if (lesson) {
+                            if (!lesson.room && room && room !== '' && room !== '-' && room !== '--') {
+                                lesson.room = room;
+                            }
+                            schedule[dayName].push(lesson);
+                        }
                     }
                 }
             }
@@ -3094,7 +3131,6 @@
                 return;
             }
             
-            // Получаем юзернейм
             let username = null;
             try {
                 if (window.Telegram && window.Telegram.WebApp) {
