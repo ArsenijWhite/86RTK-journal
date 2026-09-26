@@ -1,3 +1,4 @@
+html
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -465,13 +466,14 @@
             min-width: 0;
             display: flex;
             flex-direction: column;
-            gap: 2px;
+            gap: 4px;
         }
         .schedule-lesson .lesson-name {
             font-size: 14px;
             font-weight: 600;
             color: var(--text);
             line-height: 1.3;
+            word-break: break-word;
         }
         .schedule-lesson .lesson-subgroup {
             font-size: 10px;
@@ -2391,7 +2393,7 @@
         }
 
         // ============================================================
-        // 13. РАСПИСАНИЕ
+        // 13. РАСПИСАНИЕ — ПАРСИНГ И ОТОБРАЖЕНИЕ (ИСПРАВЛЕНО)
         // ============================================================
         function cleanDiscipline(name) {
             if (!name) return '';
@@ -2418,80 +2420,57 @@
         function parseLessonText(text, pairNum) {
             if (!text || text.trim() === '' || text.trim() === '-') return null;
             
-            let content = text.trim();
+            // 1. Заменяем множественные пробелы на один
+            let content = text.replace(/\s+/g, ' ').trim();
             let subgroup = '';
             let lessonType = '';
             let room = '';
             let teachers = [];
-            
-            const subMatch = content.match(/^(\d+)\./);
+
+            // 2. Ищем подгруппу
+            const subMatch = content.match(/(\d+)\s*подгруппа/i) || content.match(/\((\d+)\)/);
             if (subMatch) {
                 subgroup = subMatch[1];
-                content = content.replace(/^\d+\.\s*/, '').trim();
+                content = content.replace(subMatch[0], '').trim();
             }
-            
-            const roomMatch = content.match(/(Кн\.?\s*[\d\-()]+|[\d\-]+\(?[к\)]?)/i);
+
+            // 3. Ищем тип занятия
+            const typeMatch = content.match(/\((ЛЕКЦИЯ|ЛАБОРАТОРНАЯ|ПРАКТИКА|Лек|ЛР|ПР)\)/i);
+            if (typeMatch) {
+                lessonType = TYPE_MAP[typeMatch[1]] || typeMatch[1].toLowerCase();
+                content = content.replace(typeMatch[0], '').trim();
+            } else {
+                if (content.includes('ЛЕКЦИЯ')) { lessonType = 'лекция'; content = content.replace('ЛЕКЦИЯ', '').trim(); }
+                else if (content.includes('ЛАБОРАТОРНАЯ')) { lessonType = 'лабораторная'; content = content.replace('ЛАБОРАТОРНАЯ', '').trim(); }
+            }
+
+            // 4. Ищем аудиторию (например: 2-206, 3-111(К), 2(К))
+            const roomMatch = content.match(/(\d+[-–]\d+[а-яА-Я]?|\(\d+[кК]\)|\d+\([кК]\))/);
             if (roomMatch) {
                 room = roomMatch[0].trim();
                 content = content.replace(roomMatch[0], '').trim();
             }
+
+            // 5. Ищем преподавателей (Фамилия И.О.)
+            const teacherRegex = /([А-Я][а-я]+(?:\s+[А-Я]\.\s*[А-Я]\.)?)/g;
+            const foundTeachers = content.match(teacherRegex);
             
-            const kMatch = content.match(/\([кКнН]\)/);
-            if (kMatch) {
-                const kText = kMatch[0];
-                if (!room) room = kText;
-                else room = room + ' ' + kText;
-                content = content.replace(kMatch[0], '').trim();
-            }
-            
-            const typeMatch = content.match(/\(([^)]+)\)/);
-            if (typeMatch) {
-                const type = typeMatch[1].trim();
-                lessonType = TYPE_MAP[type] || type;
-                content = content.replace(typeMatch[0], '').trim();
-            }
-            
-            let discipline = '';
-            let tempContent = content;
-            let isFizra = false;
-            
-            if (tempContent.includes('ФЗКиЗ')) {
-                isFizra = true;
-                const teacherPatterns = [
-                    /Усикова\s+[А-Я]\.\s*[А-Я]\./,
-                    /Анципов\s+[А-Я]\.\s*[А-Я]\./
-                ];
-                
-                for (const pattern of teacherPatterns) {
-                    const match = tempContent.match(pattern);
-                    if (match) {
-                        teachers.push(match[0].trim());
-                        tempContent = tempContent.replace(match[0], '').trim();
+            if (foundTeachers) {
+                foundTeachers.forEach(t => {
+                    // Исключаем слова, которые являются частью названия предмета
+                    if (t.length > 3 && !t.includes('Механ') && !t.includes('Инф') && !t.includes('Цифр') && !t.includes('Пром')) {
+                        teachers.push(t.trim());
+                        content = content.replace(t, '').trim();
                     }
-                }
-                
-                if (teachers.length > 0) {
-                    discipline = 'ФЗКиЗ';
-                }
+                });
             }
-            
-            if (!discipline) {
-                const teacher = extractTeacherFromText(tempContent);
-                if (teacher) {
-                    teachers.push(teacher);
-                    tempContent = tempContent.replace(teacher, '').trim();
-                }
-                discipline = cleanDiscipline(tempContent);
-                if (!discipline) discipline = 'Без названия';
-            }
-            
-            if (isFizra) {
-                subgroup = '';
-                if (room === '2' || room === '--' || room === '-') {
-                    room = '';
-                }
-            }
-            
+
+            // 6. Остаток — это дисциплина
+            let discipline = content.replace(/\s+/g, ' ').trim();
+            discipline = discipline.replace(/^[.,\s]+|[.,\s]+$/g, '');
+
+            if (!discipline) discipline = 'Предмет не указан';
+
             return {
                 pair: pairNum,
                 discipline: discipline,
@@ -2516,8 +2495,7 @@
                         type: lesson.type,
                         room: lesson.room,
                         teachers: [],
-                        subgroups: [],
-                        isDouble: lesson.isDouble || false
+                        subgroups: []
                     };
                 }
                 if (lesson.teachers && lesson.teachers.length > 0) {
@@ -2549,14 +2527,6 @@
             const m = String(date.getMonth() + 1).padStart(2, '0');
             const y = date.getFullYear();
             return `${d}.${m}.${y}`;
-        }
-
-        function getWeekNumber(date) {
-            const d = new Date(date);
-            d.setHours(0, 0, 0, 0);
-            d.setDate(d.getDate() + 3 - (d.getDay() + 6) % 7);
-            const week1 = new Date(d.getFullYear(), 0, 4);
-            return 1 + Math.round(((d - week1) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
         }
 
         function extractScheduleBlocks(html) {
@@ -2605,22 +2575,6 @@
             return blocks;
         }
 
-        function getCellLines(cell) {
-            if (!cell) return [''];
-            
-            let html = cell.innerHTML;
-            html = html.replace(/<br\s*\/?>/gi, '\n');
-            
-            const temp = document.createElement('div');
-            temp.innerHTML = html;
-            
-            const lines = temp.textContent.split('\n')
-                .map(s => s.trim())
-                .filter(s => s !== '');
-            
-            return lines.length > 0 ? lines : [''];
-        }
-
         function parseScheduleFromBlock(block) {
             const parser = new DOMParser();
             const doc = parser.parseFromString(block.html, 'text/html');
@@ -2634,7 +2588,8 @@
             let headerRow = null;
             let headerRowIndex = 0;
             
-            for (let i = 0; i < Math.min(3, rows.length); i++) {
+            // Ищем строку с днями недели
+            for (let i = 0; i < Math.min(4, rows.length); i++) {
                 const cells = rows[i].querySelectorAll('td, th');
                 let hasDay = false;
                 for (const cell of cells) {
@@ -2679,24 +2634,13 @@
                         date: text
                     };
                 }
-                
                 currentCol += colspan;
-            }
-            
-            if (Object.keys(dayMap).length === 0) {
-                for (let i = 0; i < 6; i++) {
-                    dayMap[DAYS_RU[i]] = {
-                        subjectCol: 1 + i * 2,
-                        roomCol: 2 + i * 2,
-                        date: ''
-                    };
-                }
             }
             
             const schedule = {};
             Object.keys(dayMap).forEach(day => { schedule[day] = []; });
             
-            const startRow = headerRowIndex + 2;
+            const startRow = headerRowIndex + 2; // Пропускаем строку с датами
             
             for (let i = startRow; i < rows.length; i++) {
                 const cells = rows[i].querySelectorAll('td, th');
@@ -2709,55 +2653,32 @@
                     const subjCol = info.subjectCol;
                     const roomCol = info.roomCol;
                     
-                    if (subjCol >= cells.length) continue;
+                    let subjectText = '';
+                    let roomText = '';
                     
-                    const subjectCell = cells[subjCol];
-                    const roomCell = roomCol < cells.length ? cells[roomCol] : null;
+                    if (subjCol < cells.length) {
+                        // Собираем текст из всех дочерних узлов, разделяя пробелом
+                        const cell = cells[subjCol];
+                        subjectText = Array.from(cell.childNodes).map(node => node.textContent).join(' ').trim();
+                    }
+                    if (roomCol < cells.length) {
+                        const cell = cells[roomCol];
+                        roomText = Array.from(cell.childNodes).map(node => node.textContent).join(' ').trim();
+                    }
                     
-                    const subjectLines = getCellLines(subjectCell);
-                    const roomLines = roomCell ? getCellLines(roomCell) : [''];
+                    if (!subjectText || subjectText === '' || subjectText === '-') continue;
                     
-                    if (subjectLines.length === 0) continue;
+                    let fullText = subjectText;
+                    if (roomText && roomText !== '' && roomText !== '-') {
+                        fullText += ' ' + roomText;
+                    }
                     
-                    if (subjectLines.length > 1) {
-                        for (let j = 0; j < subjectLines.length; j++) {
-                            const partSubject = subjectLines[j];
-                            const partRoom = roomLines[j] || roomLines[0] || '';
-                            
-                            if (!partSubject || partSubject === '-' || partSubject === '') continue;
-                            
-                            let fullText = partSubject;
-                            if (partRoom && partRoom !== '-' && partRoom !== '--' && partRoom !== '') {
-                                fullText += ' ' + partRoom;
-                            }
-                            
-                            const lesson = parseLessonText(fullText, pairNum);
-                            if (lesson) {
-                                if (!lesson.room && partRoom && partRoom !== '' && partRoom !== '-' && partRoom !== '--') {
-                                    lesson.room = partRoom;
-                                }
-                                lesson.isDouble = true;
-                                schedule[dayName].push(lesson);
-                            }
+                    const lesson = parseLessonText(fullText, pairNum);
+                    if (lesson) {
+                        if (!lesson.room && roomText && roomText !== '') {
+                            lesson.room = roomText;
                         }
-                    } else {
-                        const subject = subjectLines[0] || '';
-                        const room = roomLines[0] || '';
-                        
-                        if (!subject || subject === '-' || subject === '') continue;
-                        
-                        let fullText = subject;
-                        if (room && room !== '-' && room !== '--' && room !== '') {
-                            fullText += ' ' + room;
-                        }
-                        
-                        const lesson = parseLessonText(fullText, pairNum);
-                        if (lesson) {
-                            if (!lesson.room && room && room !== '' && room !== '-' && room !== '--') {
-                                lesson.room = room;
-                            }
-                            schedule[dayName].push(lesson);
-                        }
+                        schedule[dayName].push(lesson);
                     }
                 }
             }
