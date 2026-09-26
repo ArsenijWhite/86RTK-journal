@@ -2410,64 +2410,68 @@
             return `${d}.${m}.${y}`;
         }
 
-        // Разбивает строку на отдельные занятия (если в одной ячейке 2 предмета)
-        function splitLessonText(text) {
+        // Разбивает строку на отдельные занятия, если они пронумерованы (1., 2., 3.)
+        function splitByNumbers(text) {
             if (!text) return [];
-            // Разделяем по маркерам: "1 подгруппа", "2 подгруппа", "ЛЕКЦИЯ", "ЛАБОРАТОРНАЯ", "ПРАКТИКА", "ЛР", "ПР"
-            const parts = text.split(/(?=\d+\s*подгруппа|\bЛЕКЦИЯ\b|\bЛАБОРАТОРНАЯ\b|\bПРАКТИКА\b|\bЛР\b|\bПР\b)/i);
+            const parts = text.split(/(?=(?:^|\s)\d+\.)/);
             return parts.map(p => p.trim()).filter(p => p.length > 0);
         }
 
-        // Парсит один предмет из текста
-        function parseSingleLesson(text, pairNum) {
+        // Извлекает аудитории из строки
+        function extractRooms(text) {
+            if (!text) return [];
+            const roomRegex = /(Кн\.?\s*\d+[-–]\d+\(?[кК]?\)?|\d+[-–]\d+\(?[кК]?\)?|\d+\([кК]\)|\(\d+[кК]\))/g;
+            const matches = text.match(roomRegex);
+            if (!matches) return [];
+            return matches.map(m => m.replace(/\s+/g, ' ').trim());
+        }
+
+        // Парсит один предмет
+        function parseSingleLesson(text, pairNum, defaultRooms = []) {
+            if (!text || text.trim() === '') return null;
+            
             let content = text.replace(/\s+/g, ' ').trim();
             let subgroup = '';
             let lessonType = '';
-            let room = '';
             let teachers = [];
+            let rooms = [...defaultRooms];
 
-            // 1. Подгруппа (в начале строки)
+            content = content.replace(/^\d+\.\s*/, '').trim();
+
             const subMatch = content.match(/^(\d+)\s*подгруппа/i);
             if (subMatch) {
                 subgroup = subMatch[1];
                 content = content.replace(/^\d+\s*подгруппа/i, '').trim();
             }
 
-            // 2. Тип занятия (в скобках)
             const typeMatch = content.match(/\((ЛЕКЦИЯ|ЛАБОРАТОРНАЯ|ПРАКТИКА|Лек|ЛР|ПР)\)/i);
             if (typeMatch) {
                 lessonType = TYPE_MAP[typeMatch[1]] || typeMatch[1].toLowerCase();
                 content = content.replace(typeMatch[0], '').trim();
             } else {
-                // Если тип без скобок
                 if (content.includes('ЛЕКЦИЯ')) { lessonType = 'лекция'; content = content.replace('ЛЕКЦИЯ', '').trim(); }
                 else if (content.includes('ЛАБОРАТОРНАЯ')) { lessonType = 'лабораторная'; content = content.replace('ЛАБОРАТОРНАЯ', '').trim(); }
                 else if (content.includes('ПРАКТИКА')) { lessonType = 'практика'; content = content.replace('ПРАКТИКА', '').trim(); }
             }
 
-            // 3. Аудитория (строгий формат: 3-114, 2-105(к), 2(К))
-            const roomMatch = content.match(/(\d+[-–]\d+[а-яА-Я]?|\(\d+[кК]\)|\d+\([кК]\))/);
-            if (roomMatch) {
-                room = roomMatch[0].trim();
-                content = content.replace(roomMatch[0], '').trim();
+            const textRooms = extractRooms(content);
+            if (textRooms.length > 0) {
+                rooms = textRooms;
+                textRooms.forEach(r => { content = content.replace(r, '').trim(); });
             }
 
-            // 4. Преподаватели (строго: Фамилия И.О. или Фамилия И. О.)
-            // Ищем все совпадения, но исключаем куски названий предметов
             const teacherRegex = /([А-Я][а-я]+(?:\s+[А-Я]\.\s*[А-Я]\.))/g;
             let match;
             const tempContent = content;
             while ((match = teacherRegex.exec(tempContent)) !== null) {
                 const t = match[0].trim();
-                // Исключаем слова, которые являются частью названия предмета
                 const lower = t.toLowerCase();
-                if (!lower.includes('механ') && !lower.includes('инф') && !lower.includes('цифр') && !lower.includes('пром') && !lower.includes('техн') && !lower.includes('электр')) {
+                if (!lower.includes('механ') && !lower.includes('инф') && !lower.includes('цифр') && !lower.includes('пром') && !lower.includes('техн') && !lower.includes('электр') && !lower.includes('микр')) {
                     teachers.push(t);
                     content = content.replace(t, '').trim();
                 }
             }
 
-            // 5. Дисциплина (остаток)
             let discipline = content.replace(/\s+/g, ' ').replace(/^[.,\s]+|[.,\s]+$/g, '').trim();
             if (!discipline) discipline = 'Предмет не указан';
 
@@ -2476,26 +2480,40 @@
                 discipline: discipline,
                 type: lessonType,
                 teachers: teachers,
-                room: room,
+                room: rooms.join(', '),
                 subgroup: subgroup
             };
         }
 
-        // Парсит всю ячейку и возвращает массив занятий
-        function parseLessonText(text, pairNum) {
+        function parseLessonText(text, pairNum, defaultRooms = []) {
             if (!text || text.trim() === '' || text.trim() === '-') return [];
-            const parts = splitLessonText(text);
-            const lessons = [];
-            for (const part of parts) {
-                const lesson = parseSingleLesson(part, pairNum);
+            
+            const parts = splitByNumbers(text);
+            
+            if (parts.length > 1) {
+                const lessons = [];
+                parts.forEach((part, idx) => {
+                    let roomsForThis = [];
+                    if (defaultRooms.length === parts.length) {
+                        roomsForThis = [defaultRooms[idx]];
+                    } else if (defaultRooms.length > 0) {
+                        roomsForThis = defaultRooms;
+                    }
+                    const lesson = parseSingleLesson(part, pairNum, roomsForThis);
+                    if (lesson && lesson.discipline !== 'Предмет не указан') {
+                        lessons.push(lesson);
+                    }
+                });
+                return lessons;
+            } else {
+                const lesson = parseSingleLesson(text, pairNum, defaultRooms);
                 if (lesson && lesson.discipline !== 'Предмет не указан') {
-                    lessons.push(lesson);
+                    return [lesson];
                 }
+                return [];
             }
-            return lessons;
         }
 
-        // Объединяет дубликаты (одна пара, одинаковый предмет, но разные подгруппы/преподаватели)
         function mergeLessonsInPair(lessons) {
             if (!lessons || lessons.length === 0) return [];
             const grouped = {};
@@ -2575,7 +2593,6 @@
             const rows = table.querySelectorAll('tr');
             if (rows.length < 4) return null;
             
-            // 1. Ищем строку с днями недели
             let headerRow = null;
             let headerRowIndex = 0;
             for (let i = 0; i < Math.min(4, rows.length); i++) {
@@ -2596,7 +2613,6 @@
             }
             if (!headerRow) return null;
             
-            // 2. Сопоставляем колонки дням
             const headerCells = headerRow.querySelectorAll('td, th');
             const dayMap = {};
             let currentCol = 0;
@@ -2608,7 +2624,6 @@
                     if (text.includes(day)) { foundDay = day; break; }
                 }
                 if (foundDay) {
-                    // Первая колонка — предмет, вторая — аудитория
                     dayMap[foundDay] = { subjectCol: currentCol, roomCol: currentCol + 1 };
                 }
                 currentCol += colspan;
@@ -2617,7 +2632,6 @@
             const schedule = {};
             Object.keys(dayMap).forEach(day => { schedule[day] = []; });
             
-            // 3. Проходим по строкам (начиная после заголовка и дат)
             const startRow = headerRowIndex + 2;
             for (let i = startRow; i < rows.length; i++) {
                 const cells = rows[i].querySelectorAll('td, th');
@@ -2634,34 +2648,25 @@
                     let roomText = '';
                     
                     if (subjCol < cells.length) {
-                        // Собираем текст из всех дочерних узлов, разделяя пробелом
                         const cell = cells[subjCol];
-                        subjectText = Array.from(cell.childNodes).map(n => n.textContent).join(' ').trim();
+                        subjectText = cell.innerHTML.replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
                     }
                     if (roomCol < cells.length) {
                         const cell = cells[roomCol];
-                        roomText = Array.from(cell.childNodes).map(n => n.textContent).join(' ').trim();
+                        roomText = cell.innerHTML.replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
                     }
                     
                     if (!subjectText || subjectText === '' || subjectText === '-') continue;
                     
-                    let fullText = subjectText;
-                    if (roomText && roomText !== '' && roomText !== '-') {
-                        fullText += ' ' + roomText;
-                    }
+                    const defaultRooms = extractRooms(roomText);
                     
-                    // Парсим все занятия из ячейки
-                    const lessons = parseLessonText(fullText, pairNum);
+                    const lessons = parseLessonText(subjectText, pairNum, defaultRooms);
                     lessons.forEach(lesson => {
-                        if (!lesson.room && roomText && roomText !== '') {
-                            lesson.room = roomText;
-                        }
                         schedule[dayName].push(lesson);
                     });
                 }
             }
             
-            // 4. Объединяем дубликаты
             for (const day of Object.keys(schedule)) {
                 schedule[day] = mergeLessonsInPair(schedule[day]);
             }
@@ -2723,17 +2728,14 @@
                 if (lessons.length === 0) {
                     html += `<div class="schedule-empty"><span class="empty-icon">📭</span><span>Нет занятий</span></div>`;
                 } else {
-                    // Сортируем по номеру пары
                     lessons.sort((a, b) => parseInt(a.pair) - parseInt(b.pair));
                     
-                    // Группируем по номеру пары
                     const groupedByPair = {};
                     lessons.forEach(l => {
                         if (!groupedByPair[l.pair]) groupedByPair[l.pair] = [];
                         groupedByPair[l.pair].push(l);
                     });
                     
-                    // Отрисовываем каждую пару
                     Object.keys(groupedByPair).sort((a, b) => parseInt(a) - parseInt(b)).forEach(pairNum => {
                         const pairLessons = groupedByPair[pairNum];
                         pairLessons.forEach((lesson, idx) => {
