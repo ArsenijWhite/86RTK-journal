@@ -2392,7 +2392,7 @@
         }
 
         // ============================================================
-        // 13. РАСПИСАНИЕ — ПАРСИНГ И ОТОБРАЖЕНИЕ (ПОЛНОСТЬЮ ПЕРЕПИСАНО)
+        // 13. РАСПИСАНИЕ — ПАРСИНГ И ОТОБРАЖЕНИЕ (ИСПРАВЛЕНО)
         // ============================================================
         function getWeekOffsetDate(offset) {
             const today = new Date();
@@ -2410,12 +2410,11 @@
             return `${d}.${m}.${y}`;
         }
 
-        // Разбивает строку на отдельные занятия (для случаев, когда в одной ячейке 2 предмета)
+        // Разбивает строку на отдельные занятия (если в одной ячейке 2 предмета)
         function splitLessonText(text) {
             if (!text) return [];
-            // Разделяем по маркерам: "1 подгруппа", "2 подгруппа", "ЛЕКЦИЯ", "ЛАБОРАТОРНАЯ", "ПРАКТИКА"
-            // Используем lookahead, чтобы не терять сами маркеры
-            const parts = text.split(/(?=\d+\s*подгруппа|\bЛЕКЦИЯ\b|\bЛАБОРАТОРНАЯ\b|\bПРАКТИКА\b|\bЛек\b|\bЛР\b|\bПР\b)/i);
+            // Разделяем по маркерам: "1 подгруппа", "2 подгруппа", "ЛЕКЦИЯ", "ЛАБОРАТОРНАЯ", "ПРАКТИКА", "ЛР", "ПР"
+            const parts = text.split(/(?=\d+\s*подгруппа|\bЛЕКЦИЯ\b|\bЛАБОРАТОРНАЯ\b|\bПРАКТИКА\b|\bЛР\b|\bПР\b)/i);
             return parts.map(p => p.trim()).filter(p => p.length > 0);
         }
 
@@ -2427,44 +2426,45 @@
             let room = '';
             let teachers = [];
 
-            // 1. Подгруппа
+            // 1. Подгруппа (в начале строки)
             const subMatch = content.match(/^(\d+)\s*подгруппа/i);
             if (subMatch) {
                 subgroup = subMatch[1];
                 content = content.replace(/^\d+\s*подгруппа/i, '').trim();
             }
 
-            // 2. Тип занятия
+            // 2. Тип занятия (в скобках)
             const typeMatch = content.match(/\((ЛЕКЦИЯ|ЛАБОРАТОРНАЯ|ПРАКТИКА|Лек|ЛР|ПР)\)/i);
             if (typeMatch) {
                 lessonType = TYPE_MAP[typeMatch[1]] || typeMatch[1].toLowerCase();
                 content = content.replace(typeMatch[0], '').trim();
             } else {
+                // Если тип без скобок
                 if (content.includes('ЛЕКЦИЯ')) { lessonType = 'лекция'; content = content.replace('ЛЕКЦИЯ', '').trim(); }
                 else if (content.includes('ЛАБОРАТОРНАЯ')) { lessonType = 'лабораторная'; content = content.replace('ЛАБОРАТОРНАЯ', '').trim(); }
                 else if (content.includes('ПРАКТИКА')) { lessonType = 'практика'; content = content.replace('ПРАКТИКА', '').trim(); }
             }
 
-            // 3. Аудитория (2-206, 3-111(К), 2(К))
+            // 3. Аудитория (строгий формат: 3-114, 2-105(к), 2(К))
             const roomMatch = content.match(/(\d+[-–]\d+[а-яА-Я]?|\(\d+[кК]\)|\d+\([кК]\))/);
             if (roomMatch) {
                 room = roomMatch[0].trim();
                 content = content.replace(roomMatch[0], '').trim();
             }
 
-            // 4. Преподаватели (Фамилия И.О. или Фамилия И. О.)
-            // Ищем после удаления аудитории
-            const teacherRegex = /([А-Я][а-я]+(?:\s+[А-Я]\.\s*[А-Я]\.)?)/g;
-            const foundTeachers = content.match(teacherRegex);
-            if (foundTeachers) {
-                foundTeachers.forEach(t => {
-                    // Исключаем куски названий предметов
-                    const lower = t.toLowerCase();
-                    if (!lower.includes('механ') && !lower.includes('инф') && !lower.includes('цифр') && !lower.includes('пром') && !lower.includes('техн')) {
-                        teachers.push(t.trim());
-                        content = content.replace(t, '').trim();
-                    }
-                });
+            // 4. Преподаватели (строго: Фамилия И.О. или Фамилия И. О.)
+            // Ищем все совпадения, но исключаем куски названий предметов
+            const teacherRegex = /([А-Я][а-я]+(?:\s+[А-Я]\.\s*[А-Я]\.))/g;
+            let match;
+            const tempContent = content;
+            while ((match = teacherRegex.exec(tempContent)) !== null) {
+                const t = match[0].trim();
+                // Исключаем слова, которые являются частью названия предмета
+                const lower = t.toLowerCase();
+                if (!lower.includes('механ') && !lower.includes('инф') && !lower.includes('цифр') && !lower.includes('пром') && !lower.includes('техн') && !lower.includes('электр')) {
+                    teachers.push(t);
+                    content = content.replace(t, '').trim();
+                }
             }
 
             // 5. Дисциплина (остаток)
@@ -2608,7 +2608,7 @@
                     if (text.includes(day)) { foundDay = day; break; }
                 }
                 if (foundDay) {
-                    // Первая колонка — предмет, вторая — аудитория (если есть)
+                    // Первая колонка — предмет, вторая — аудитория
                     dayMap[foundDay] = { subjectCol: currentCol, roomCol: currentCol + 1 };
                 }
                 currentCol += colspan;
