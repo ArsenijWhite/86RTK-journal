@@ -128,61 +128,11 @@
             letter-spacing: 0.3em; 
             margin-bottom: 25px;
         }
-        .error-container {
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            margin-top: 20px;
-            width: 100%;
-            max-width: 280px;
-        }
-        .error-container.visible { display: flex; }
-        .error-message {
-            font-size: 13px;
-            font-weight: 500;
-            color: var(--error);
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        .retry-button {
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            padding: 12px 28px;
-            border-radius: 30px;
-            color: var(--text);
-            font-weight: 500;
-            font-size: 14px;
-            cursor: pointer;
-        }
         .copyright {
             position: absolute;
             bottom: 25px;
             font-size: 9px;
             color: rgba(255,255,255,0.08);
-        }
-        .loader-report-btn {
-            position: absolute;
-            bottom: 70px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 8px 20px;
-            border-radius: 20px;
-            color: var(--muted);
-            font-size: 11px;
-            font-weight: 500;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            transition: all 0.2s;
-            z-index: 2100;
-        }
-        .loader-report-btn:active {
-            transform: translateX(-50%) scale(0.95);
-            background: rgba(255, 255, 255, 0.1);
         }
         .loader-version {
             position: absolute;
@@ -192,6 +142,75 @@
             font-size: 9px;
             color: rgba(255,255,255,0.15);
             letter-spacing: 0.5px;
+        }
+
+        /* Кнопка отчёта на экране загрузки — вынесена из #loader */
+        #loaderReportBtn {
+            position: fixed;
+            bottom: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 10px 22px;
+            border-radius: 22px;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+            z-index: 2200;
+            -webkit-tap-highlight-color: rgba(255,255,255,0.1);
+        }
+        #loaderReportBtn:active {
+            transform: translateX(-50%) scale(0.95);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Оверлей ошибки — вынесен из #loader */
+        #errorOverlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 23, 42, 0.95);
+            z-index: 2190;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        #errorOverlay.visible {
+            display: flex;
+        }
+        #errorOverlay .error-message {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--error);
+            text-align: center;
+            margin-bottom: 20px;
+            max-width: 280px;
+        }
+        #errorOverlay .retry-button {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 14px 32px;
+            border-radius: 30px;
+            color: var(--text);
+            font-weight: 500;
+            font-size: 15px;
+            cursor: pointer;
+            -webkit-tap-highlight-color: rgba(255,255,255,0.1);
+            z-index: 2195;
+        }
+        #errorOverlay .retry-button:active {
+            transform: scale(0.96);
+            background: rgba(255, 255, 255, 0.15);
         }
 
         @keyframes breatheContainer {
@@ -1414,11 +1433,13 @@
             .admin-fab { bottom: calc(140px + env(safe-area-inset-bottom)); }
             .identity-popup { bottom: calc(30px + env(safe-area-inset-bottom)); }
             .admin-panel { bottom: calc(30px + env(safe-area-inset-bottom)); }
+            #loaderReportBtn { bottom: calc(70px + env(safe-area-inset-bottom)); }
         }
     </style>
 </head>
 <body>
 
+    <!-- Экран загрузки -->
     <div id="loader">
         <div class="loader-inner">
             <div class="logo-container">
@@ -1426,21 +1447,25 @@
                 <div class="logo-icon"></div>
             </div>
             <div class="loader-status" id="loaderStatus">Загрузка данных</div>
-            <div class="error-container" id="errorContainer">
-                <div class="error-message" id="errorMessage">Не удалось подключиться к серверу</div>
-                <button class="retry-button" id="retryButton" type="button" onclick="if(window.forceUpdate) window.forceUpdate();">Повторить</button>
-            </div>
         </div>
-        <button class="loader-report-btn" id="loaderReportBtn" type="button" onclick="if(window.openReportDialog) window.openReportDialog();">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-                <line x1="12" y1="9" x2="12" y2="13"/>
-                <line x1="12" y1="17" x2="12.01" y2="17"/>
-            </svg>
-            Сообщить о проблеме
-        </button>
         <div class="loader-version">v3.4.2</div>
         <div class="copyright">by @skwared</div>
+    </div>
+
+    <!-- Кнопка отчёта на экране загрузки — ВНЕ #loader -->
+    <div id="loaderReportBtn" onclick="if(window.openReportDialog) window.openReportDialog();" role="button" tabindex="0">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+        Сообщить о проблеме
+    </div>
+
+    <!-- Оверлей ошибки — ВНЕ #loader -->
+    <div id="errorOverlay">
+        <div class="error-message" id="errorMessage">Не удалось подключиться к серверу</div>
+        <div class="retry-button" id="retryButton" onclick="if(window.forceUpdate) window.forceUpdate();" role="button" tabindex="0">Повторить</div>
     </div>
 
     <div id="main-content">
@@ -1612,7 +1637,7 @@
     </nav>
 
     <!-- ============================================================
-         СКРИПТ 1: Модуль отчёта и определение среды
+         СКРИПТ 1: Модуль отчёта, определение среды и логгирование
          ============================================================ -->
     <script>
         window.__reportState = {
@@ -1794,6 +1819,50 @@
             });
         };
 
+        // Резервная привязка обработчиков — на случай, если onclick в HTML не сработал
+        function bindReportButtons() {
+            var loaderBtn = document.getElementById('loaderReportBtn');
+            var fabBtn = document.getElementById('fabReport');
+            var retryBtn = document.getElementById('retryButton');
+
+            if (loaderBtn && !loaderBtn.__bound) {
+                loaderBtn.__bound = true;
+                var handler = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (window.openReportDialog) window.openReportDialog();
+                };
+                loaderBtn.addEventListener('click', handler);
+                loaderBtn.addEventListener('touchend', handler);
+            }
+            if (fabBtn && !fabBtn.__bound) {
+                fabBtn.__bound = true;
+                var handler2 = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (window.openReportDialog) window.openReportDialog();
+                };
+                fabBtn.addEventListener('click', handler2);
+                fabBtn.addEventListener('touchend', handler2);
+            }
+            if (retryBtn && !retryBtn.__bound) {
+                retryBtn.__bound = true;
+                var handler3 = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (window.forceUpdate) window.forceUpdate();
+                };
+                retryBtn.addEventListener('click', handler3);
+                retryBtn.addEventListener('touchend', handler3);
+            }
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', bindReportButtons);
+        } else {
+            bindReportButtons();
+        }
+
         document.addEventListener('click', function(e) {
             if (e.target && e.target.id === 'reportOverlay') {
                 window.closeReportDialog();
@@ -1945,21 +2014,21 @@
         function showError(message) {
             var loader = document.getElementById('loader');
             var loaderStatus = document.getElementById('loaderStatus');
-            var errorContainer = document.getElementById('errorContainer');
+            var errorOverlay = document.getElementById('errorOverlay');
             var errorMessage = document.getElementById('errorMessage');
             loader.classList.add('error-mode');
             loaderStatus.textContent = 'Ошибка соединения';
             errorMessage.textContent = message || 'Не удалось подключиться к серверу';
-            errorContainer.classList.add('visible');
+            errorOverlay.classList.add('visible');
             window.__reportState.loadStage = 'Ошибка: ' + message;
             window.logError('UI', 'Показана ошибка: ' + message);
         }
 
         function hideError() {
             var loader = document.getElementById('loader');
-            var errorContainer = document.getElementById('errorContainer');
+            var errorOverlay = document.getElementById('errorOverlay');
             loader.classList.remove('error-mode');
-            errorContainer.classList.remove('visible');
+            errorOverlay.classList.remove('visible');
             document.getElementById('loaderStatus').textContent = 'Загрузка журнала';
         }
 
