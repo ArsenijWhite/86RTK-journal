@@ -52,7 +52,15 @@
             align-items: center; 
             justify-content: center; 
             transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1); 
+            pointer-events: none;
         }
+        #loader * {
+            pointer-events: none;
+        }
+        #loader #loaderReportBtn {
+            pointer-events: auto;
+        }
+
         .loader-inner {
             display: flex;
             flex-direction: column;
@@ -144,33 +152,35 @@
             letter-spacing: 0.5px;
         }
 
-        /* Кнопка отчёта на экране загрузки — вынесена из #loader */
         #loaderReportBtn {
-            position: fixed;
+            position: absolute;
             bottom: 70px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 10px 22px;
-            border-radius: 22px;
-            color: var(--muted);
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 12px 24px;
+            border-radius: 24px;
+            color: var(--text);
             font-size: 12px;
             font-weight: 500;
             cursor: pointer;
             display: flex;
             align-items: center;
             gap: 6px;
-            transition: all 0.2s;
-            z-index: 2200;
-            -webkit-tap-highlight-color: rgba(255,255,255,0.1);
+            transition: transform 0.15s, background 0.15s;
+            z-index: 2410;
+            pointer-events: auto;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: rgba(56, 189, 248, 0.3);
+            -webkit-user-select: none;
+            user-select: none;
         }
         #loaderReportBtn:active {
             transform: translateX(-50%) scale(0.95);
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.15);
         }
 
-        /* Оверлей ошибки — вынесен из #loader */
         #errorOverlay {
             display: none;
             position: fixed;
@@ -179,7 +189,7 @@
             right: 0;
             bottom: 0;
             background: rgba(15, 23, 42, 0.95);
-            z-index: 2190;
+            z-index: 2200;
             flex-direction: column;
             align-items: center;
             justify-content: center;
@@ -197,20 +207,24 @@
             max-width: 280px;
         }
         #errorOverlay .retry-button {
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.18);
             padding: 14px 32px;
             border-radius: 30px;
             color: var(--text);
             font-weight: 500;
             font-size: 15px;
             cursor: pointer;
-            -webkit-tap-highlight-color: rgba(255,255,255,0.1);
-            z-index: 2195;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: rgba(56, 189, 248, 0.3);
+            -webkit-user-select: none;
+            user-select: none;
+            z-index: 2300;
+            pointer-events: auto;
         }
         #errorOverlay .retry-button:active {
             transform: scale(0.96);
-            background: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.18);
         }
 
         @keyframes breatheContainer {
@@ -1321,7 +1335,7 @@
             right: 0;
             bottom: 0;
             background: rgba(0,0,0,0.7);
-            z-index: 2500;
+            z-index: 2600;
             backdrop-filter: blur(10px);
             padding: 20px;
             overflow-y: auto;
@@ -1448,24 +1462,45 @@
             </div>
             <div class="loader-status" id="loaderStatus">Загрузка данных</div>
         </div>
-        <div class="loader-version">v3.4.2</div>
+        <button id="loaderReportBtn" type="button">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                <line x1="12" y1="9" x2="12" y2="13"/>
+                <line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+            Сообщить о проблеме
+        </button>
+        <div class="loader-version">v3.4.2.6</div>
         <div class="copyright">by @skwared</div>
     </div>
 
-    <!-- Кнопка отчёта на экране загрузки — ВНЕ #loader -->
-    <div id="loaderReportBtn" onclick="if(window.openReportDialog) window.openReportDialog();" role="button" tabindex="0">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-            <line x1="12" y1="9" x2="12" y2="13"/>
-            <line x1="12" y1="17" x2="12.01" y2="17"/>
-        </svg>
-        Сообщить о проблеме
-    </div>
-
-    <!-- Оверлей ошибки — ВНЕ #loader -->
+    <!-- Оверлей ошибки -->
     <div id="errorOverlay">
         <div class="error-message" id="errorMessage">Не удалось подключиться к серверу</div>
-        <div class="retry-button" id="retryButton" onclick="if(window.forceUpdate) window.forceUpdate();" role="button" tabindex="0">Повторить</div>
+        <div class="retry-button" id="retryButton">Повторить</div>
+    </div>
+
+    <!-- Окно отчёта — ВЫНЕСЕНО из #main-content, чтобы показываться даже во время загрузки -->
+    <div class="report-overlay" id="reportOverlay">
+        <div class="report-panel">
+            <div class="report-header">
+                <div class="report-title">🚨 Сообщить о проблеме</div>
+                <div class="report-close" id="reportClose">✕</div>
+            </div>
+            <div class="report-body">
+                <div class="report-info">
+                    Если вы заметили неисправность в работе бота, отправьте отчёт. 
+                    В отчёт автоматически включается ваш <strong>юзернейм</strong>, <strong>ID</strong>, 
+                    <strong>версия приложения</strong>, <strong>лог ошибок</strong>, <strong>состояние загрузки</strong> и <strong>среда</strong>.
+                </div>
+                <textarea class="report-textarea" id="reportText" placeholder="Опишите проблему (необязательно)..."></textarea>
+                <div class="report-actions">
+                    <button class="btn-report-send" id="reportSend">📨 Отправить отчёт</button>
+                    <button class="btn-report-cancel" id="reportCancel">Отмена</button>
+                </div>
+                <div class="report-status" id="reportStatus"></div>
+            </div>
+        </div>
     </div>
 
     <div id="main-content">
@@ -1490,7 +1525,7 @@
             <div class="header-sub">Электронный журнал успеваемости</div>
             <input type="text" id="search" placeholder="Поиск по фамилии" autocomplete="off">
             <div id="list"></div>
-            <div class="footer">by @skwared • v3.4.2</div>
+            <div class="footer">by @skwared • v3.4.2.6</div>
         </div>
 
         <div class="tab-content" id="tabSchedule">
@@ -1593,34 +1628,12 @@
             </svg>
         </div>
 
-        <div class="fab-report" id="fabReport" onclick="if(window.openReportDialog) window.openReportDialog();">
+        <div class="fab-report" id="fabReport">
             <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
                 <line x1="12" y1="9" x2="12" y2="13"/>
                 <line x1="12" y1="17" x2="12.01" y2="17"/>
             </svg>
-        </div>
-
-        <div class="report-overlay" id="reportOverlay">
-            <div class="report-panel">
-                <div class="report-header">
-                    <div class="report-title">🚨 Сообщить о проблеме</div>
-                    <div class="report-close" id="reportClose" onclick="if(window.closeReportDialog) window.closeReportDialog();">✕</div>
-                </div>
-                <div class="report-body">
-                    <div class="report-info">
-                        Если вы заметили неисправность в работе бота, отправьте отчёт. 
-                        В отчёт автоматически включается ваш <strong>юзернейм</strong>, <strong>ID</strong>, 
-                        <strong>версия приложения</strong>, <strong>лог ошибок</strong>, <strong>состояние загрузки</strong> и <strong>среда</strong>.
-                    </div>
-                    <textarea class="report-textarea" id="reportText" placeholder="Опишите проблему (необязательно)..."></textarea>
-                    <div class="report-actions">
-                        <button class="btn-report-send" id="reportSend" onclick="if(window.sendReport) window.sendReport();">📨 Отправить отчёт</button>
-                        <button class="btn-report-cancel" id="reportCancel" onclick="if(window.closeReportDialog) window.closeReportDialog();">Отмена</button>
-                    </div>
-                    <div class="report-status" id="reportStatus"></div>
-                </div>
-            </div>
         </div>
 
     </div>
@@ -1637,11 +1650,11 @@
     </nav>
 
     <!-- ============================================================
-         СКРИПТ 1: Модуль отчёта, определение среды и логгирование
+         СКРИПТ 1: Модуль отчёта, определение среды, логгирование
          ============================================================ -->
     <script>
         window.__reportState = {
-            version: '3.4.2',
+            version: '3.4.2.6',
             botToken: '8559243948:AAFAW1LdoTmE1a0I1pTgOvv6c9jDLz_1nnI',
             ownerChatId: '5753985995',
             userId: null,
@@ -1819,42 +1832,44 @@
             });
         };
 
-        // Резервная привязка обработчиков — на случай, если onclick в HTML не сработал
+        // Привязка обработчиков
         function bindReportButtons() {
             var loaderBtn = document.getElementById('loaderReportBtn');
             var fabBtn = document.getElementById('fabReport');
             var retryBtn = document.getElementById('retryButton');
 
-            if (loaderBtn && !loaderBtn.__bound) {
-                loaderBtn.__bound = true;
-                var handler = function(e) {
+            function attach(el, handler) {
+                if (!el || el.__bound) return;
+                el.__bound = true;
+                el.addEventListener('click', handler);
+                el.addEventListener('touchend', function(e) {
                     e.preventDefault();
-                    e.stopPropagation();
-                    if (window.openReportDialog) window.openReportDialog();
-                };
-                loaderBtn.addEventListener('click', handler);
-                loaderBtn.addEventListener('touchend', handler);
+                    handler(e);
+                });
             }
-            if (fabBtn && !fabBtn.__bound) {
-                fabBtn.__bound = true;
-                var handler2 = function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    if (window.openReportDialog) window.openReportDialog();
-                };
-                fabBtn.addEventListener('click', handler2);
-                fabBtn.addEventListener('touchend', handler2);
-            }
-            if (retryBtn && !retryBtn.__bound) {
-                retryBtn.__bound = true;
-                var handler3 = function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    if (window.forceUpdate) window.forceUpdate();
-                };
-                retryBtn.addEventListener('click', handler3);
-                retryBtn.addEventListener('touchend', handler3);
-            }
+
+            attach(loaderBtn, function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                if (window.openReportDialog) window.openReportDialog();
+            });
+            attach(fabBtn, function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                if (window.openReportDialog) window.openReportDialog();
+            });
+            attach(retryBtn, function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                if (window.forceUpdate) window.forceUpdate();
+            });
+
+            var closeBtn = document.getElementById('reportClose');
+            var cancelBtn = document.getElementById('reportCancel');
+            var sendBtn = document.getElementById('reportSend');
+            attach(closeBtn, function(e) { e.preventDefault(); if (window.closeReportDialog) window.closeReportDialog(); });
+            attach(cancelBtn, function(e) { e.preventDefault(); if (window.closeReportDialog) window.closeReportDialog(); });
+            attach(sendBtn, function(e) { e.preventDefault(); if (window.sendReport) window.sendReport(); });
         }
 
         if (document.readyState === 'loading') {
@@ -1862,6 +1877,9 @@
         } else {
             bindReportButtons();
         }
+        // Также попробуем через 500 мс (на случай поздней отрисовки)
+        setTimeout(bindReportButtons, 500);
+        setTimeout(bindReportButtons, 1500);
 
         document.addEventListener('click', function(e) {
             if (e.target && e.target.id === 'reportOverlay') {
@@ -1890,7 +1908,7 @@
         var PROXY_URL = 'https://schedule-proxy.arsenijbro5.workers.dev/';
         var BOT_TOKEN = '8559243948:AAFAW1LdoTmE1a0I1pTgOvv6c9jDLz_1nnI';
         var OWNER_CHAT_ID = '5753985995';
-        var APP_VERSION = '3.4.2';
+        var APP_VERSION = '3.4.2.6';
         var DAYS_RU = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
         var MONTHS_RU = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
         var TYPE_MAP = {
