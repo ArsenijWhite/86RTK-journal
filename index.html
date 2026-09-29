@@ -139,16 +139,19 @@
         .copyright {
             position: absolute;
             bottom: 25px;
-            font-size: 9px;
-            color: rgba(255,255,255,0.08);
+            font-size: 10px;
+            color: rgba(255,255,255,0.35);
+            font-weight: 500;
+            letter-spacing: 0.3px;
         }
         .loader-version {
             position: absolute;
             bottom: 45px;
             left: 50%;
             transform: translateX(-50%);
-            font-size: 9px;
-            color: rgba(255,255,255,0.15);
+            font-size: 10px;
+            color: rgba(255,255,255,0.4);
+            font-weight: 600;
             letter-spacing: 0.5px;
         }
 
@@ -1288,7 +1291,14 @@
         .student-select-list .student-item .s-name { font-size: 14px; font-weight: 500; color: var(--text); }
         .student-select-list .student-item .s-group { font-size: 11px; color: var(--muted); margin-left: auto; }
         .empty-state { text-align: center; padding: 40px 20px; color: var(--muted); font-size: 13px; }
-        .footer { text-align: center; padding: 16px; color: rgba(255,255,255,0.08); font-size: 9px; }
+        .footer {
+            text-align: center;
+            padding: 16px;
+            color: rgba(255,255,255,0.35);
+            font-size: 10px;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+        }
         .fab-update {
             position: fixed;
             bottom: 85px;
@@ -1453,7 +1463,6 @@
 </head>
 <body>
 
-    <!-- Экран загрузки -->
     <div id="loader">
         <div class="loader-inner">
             <div class="logo-container">
@@ -1470,17 +1479,15 @@
             </svg>
             Сообщить о проблеме
         </button>
-        <div class="loader-version">v3.4.2.6</div>
+        <div class="loader-version">v3.4.2.7</div>
         <div class="copyright">by @skwared</div>
     </div>
 
-    <!-- Оверлей ошибки -->
     <div id="errorOverlay">
         <div class="error-message" id="errorMessage">Не удалось подключиться к серверу</div>
         <div class="retry-button" id="retryButton">Повторить</div>
     </div>
 
-    <!-- Окно отчёта — ВЫНЕСЕНО из #main-content, чтобы показываться даже во время загрузки -->
     <div class="report-overlay" id="reportOverlay">
         <div class="report-panel">
             <div class="report-header">
@@ -1525,7 +1532,7 @@
             <div class="header-sub">Электронный журнал успеваемости</div>
             <input type="text" id="search" placeholder="Поиск по фамилии" autocomplete="off">
             <div id="list"></div>
-            <div class="footer">by @skwared • v3.4.2.6</div>
+            <div class="footer">by @skwared • v3.4.2.7</div>
         </div>
 
         <div class="tab-content" id="tabSchedule">
@@ -1574,6 +1581,7 @@
                     <span>Загрузка расписания...</span>
                 </div>
             </div>
+            <div class="footer">by @skwared • v3.4.2.7</div>
         </div>
 
         <div class="admin-fab" id="adminFab">
@@ -1649,12 +1657,9 @@
         </button>
     </nav>
 
-    <!-- ============================================================
-         СКРИПТ 1: Модуль отчёта, определение среды, логгирование
-         ============================================================ -->
     <script>
         window.__reportState = {
-            version: '3.4.2.6',
+            version: '3.4.2.7',
             botToken: '8559243948:AAFAW1LdoTmE1a0I1pTgOvv6c9jDLz_1nnI',
             ownerChatId: '5753985995',
             userId: null,
@@ -1733,10 +1738,7 @@
             var overlay = document.getElementById('reportOverlay');
             var statusEl = document.getElementById('reportStatus');
             var textEl = document.getElementById('reportText');
-            if (!overlay) {
-                console.error('❌ reportOverlay не найден');
-                return;
-            }
+            if (!overlay) return;
             window.detectEnvironment();
             if (textEl) textEl.value = '';
             if (statusEl) {
@@ -1744,7 +1746,6 @@
                 statusEl.className = 'report-status';
             }
             overlay.classList.add('open');
-            console.log('✅ Окно отчёта открыто');
         };
 
         window.closeReportDialog = function() {
@@ -1832,7 +1833,6 @@
             });
         };
 
-        // Привязка обработчиков
         function bindReportButtons() {
             var loaderBtn = document.getElementById('loaderReportBtn');
             var fabBtn = document.getElementById('fabReport');
@@ -1877,7 +1877,6 @@
         } else {
             bindReportButtons();
         }
-        // Также попробуем через 500 мс (на случай поздней отрисовки)
         setTimeout(bindReportButtons, 500);
         setTimeout(bindReportButtons, 1500);
 
@@ -1891,14 +1890,8 @@
         console.log('✅ Модуль отчёта загружен. Среда:', window.__reportState.env);
     </script>
 
-    <!-- ============================================================
-         СКРИПТ 2: Telegram WebApp (асинхронно)
-         ============================================================ -->
     <script async src="https://telegram.org/js/telegram-web-app.js?56" onload="window.__tgLoaded = true; if(window.detectEnvironment) window.detectEnvironment(); console.log('✅ Telegram WebApp скрипт загружен');"></script>
 
-    <!-- ============================================================
-         СКРИПТ 3: Основная логика приложения
-         ============================================================ -->
     <script>
     (function() {
         'use strict';
@@ -1908,7 +1901,7 @@
         var PROXY_URL = 'https://schedule-proxy.arsenijbro5.workers.dev/';
         var BOT_TOKEN = '8559243948:AAFAW1LdoTmE1a0I1pTgOvv6c9jDLz_1nnI';
         var OWNER_CHAT_ID = '5753985995';
-        var APP_VERSION = '3.4.2.6';
+        var APP_VERSION = '3.4.2.7';
         var DAYS_RU = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
         var MONTHS_RU = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
         var TYPE_MAP = {
@@ -2779,11 +2772,24 @@
                 var isWeekend = i === 5;
                 var dateStr = weekDates[i].toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
 
+                // Считаем УНИКАЛЬНЫЕ номера пар (если в одной паре 2 подгруппы — это 1 пара)
+                var uniquePairsCount = 0;
+                if (lessons.length > 0) {
+                    var seenPairs = {};
+                    for (var li = 0; li < lessons.length; li++) {
+                        var p = String(lessons[li].pair);
+                        if (!seenPairs[p]) {
+                            seenPairs[p] = true;
+                            uniquePairsCount++;
+                        }
+                    }
+                }
+
                 html += '<div class="schedule-day">' +
                     '<div class="schedule-day-header">' +
                         '<span class="day-name">' + dayName + '</span>' +
                         '<span class="day-date">' + dateStr + '</span>' +
-                        '<span class="day-badge ' + (isToday ? 'today' : '') + ' ' + (isWeekend ? 'weekend' : '') + '">' + (isToday ? 'СЕГОДНЯ' : isWeekend ? 'СУББОТА' : lessons.length > 0 ? lessons.length + ' пар' : 'ВЫХОДНОЙ') + '</span>' +
+                        '<span class="day-badge ' + (isToday ? 'today' : '') + ' ' + (isWeekend ? 'weekend' : '') + '">' + (isToday ? 'СЕГОДНЯ' : isWeekend ? 'СУББОТА' : uniquePairsCount > 0 ? uniquePairsCount + ' пар' : 'ВЫХОДНОЙ') + '</span>' +
                     '</div>';
 
                 if (lessons.length === 0) {
