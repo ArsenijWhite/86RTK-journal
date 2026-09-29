@@ -1630,7 +1630,7 @@
                 <div class="password-lock-timer" id="passwordLockTimer">07:00:00</div>
                 <div class="password-lock-hint">Слишком много неверных попыток. Попробуйте позже.</div>
             </div>
-            <div class="password-footer">by @skwared • v3.4.3.1</div>
+            <div class="password-footer">by @skwared • v3.4.3.1a</div>
         </div>
     </div>
 
@@ -1650,7 +1650,7 @@
             </svg>
             Сообщить о проблеме
         </button>
-        <div class="loader-version">v3.4.3.1</div>
+        <div class="loader-version">v3.4.3.1a</div>
         <div class="copyright">by @skwared</div>
     </div>
 
@@ -1703,7 +1703,7 @@
             <div class="header-sub">Электронный журнал успеваемости</div>
             <input type="text" id="search" placeholder="Поиск по фамилии" autocomplete="off">
             <div id="list"></div>
-            <div class="footer">by @skwared • v3.4.3.1</div>
+            <div class="footer">by @skwared • v3.4.3.1a</div>
         </div>
 
         <div class="tab-content" id="tabSchedule">
@@ -1752,7 +1752,7 @@
                     <span>Загрузка расписания...</span>
                 </div>
             </div>
-            <div class="footer">by @skwared • v3.4.3.1</div>
+            <div class="footer">by @skwared • v3.4.3.1a</div>
         </div>
 
         <div class="admin-fab" id="adminFab">
@@ -1837,7 +1837,7 @@
 
             var CORRECT_PASSWORD = '86rtk2026';
             var MAX_ATTEMPTS = 3;
-            var LOCK_DURATION_MS = 7 * 60 * 60 * 1000; // 7 часов
+            var LOCK_DURATION_MS = 7 * 60 * 60 * 1000;
             var MIN_ATTEMPTS_FOR_LOCK = 3;
 
             var KEY_PASSWORD = 'journal_86rtk_password';
@@ -1858,7 +1858,6 @@
 
             var lockTimerInterval = null;
 
-            // ---- Работа с localStorage ----
             function getLS(key, defaultValue) {
                 try {
                     var v = localStorage.getItem(key);
@@ -1903,8 +1902,6 @@
                 removeLS(KEY_LOCK_STARTED);
             }
 
-            // Проверка блокировки. Возвращает:
-            // { locked: true, remaining: ms } или { locked: false }
             function checkLock() {
                 var now = Date.now();
                 var lockUntil = getLockUntil();
@@ -1914,12 +1911,8 @@
                     return { locked: false };
                 }
 
-                // Защита от отката системного времени:
-                // Если текущее время меньше времени начала блокировки — значит часы перевели назад.
-                // В этом случае считаем, что блокировка всё ещё действует (пока не пройдёт 7 часов от lockStarted).
                 if (lockStarted > 0 && now < lockStarted) {
-                    // Часы откатили. Считаем оставшееся время как LOCK_DURATION_MS от lockStarted.
-                    var elapsedFake = lockStarted - now; // сколько «отмотали» назад
+                    var elapsedFake = lockStarted - now;
                     var remaining = LOCK_DURATION_MS + elapsedFake;
                     return { locked: true, remaining: remaining };
                 }
@@ -1928,12 +1921,10 @@
                     return { locked: true, remaining: lockUntil - now };
                 }
 
-                // Блокировка истекла — сбрасываем
                 clearLock();
                 return { locked: false };
             }
 
-            // Установка блокировки на 7 часов
             function applyLock() {
                 var now = Date.now();
                 setLockUntil(now + LOCK_DURATION_MS);
@@ -1941,7 +1932,6 @@
                 setFailedAttempts(MIN_ATTEMPTS_FOR_LOCK);
             }
 
-            // Форматирование времени в ЧЧ:ММ:СС
             function formatTime(ms) {
                 if (ms < 0) ms = 0;
                 var totalSec = Math.floor(ms / 1000);
@@ -1952,7 +1942,6 @@
                 return pad(h) + ':' + pad(m) + ':' + pad(s);
             }
 
-            // ---- Экран ----
             function showPasswordScreen() {
                 PASSWORD_SCREEN.classList.add('visible');
                 setTimeout(function() {
@@ -1981,7 +1970,6 @@
                     if (check.locked) {
                         updateLockTimer(check.remaining);
                     } else {
-                        // Блокировка снята
                         clearInterval(lockTimerInterval);
                         lockTimerInterval = null;
                         setUnlockedUI();
@@ -2014,9 +2002,7 @@
                 }, 100);
             }
 
-            // ---- Логика ввода ----
             function submitPassword() {
-                // Проверяем блокировку перед проверкой пароля
                 var lockCheck = checkLock();
                 if (lockCheck.locked) {
                     setLockedUI(lockCheck.remaining);
@@ -2026,7 +2012,6 @@
                 var val = (passwordInput.value || '').trim();
 
                 if (val === CORRECT_PASSWORD) {
-                    // Успех
                     passwordError.textContent = '';
                     passwordAttempts.textContent = '';
                     clearLock();
@@ -2036,12 +2021,10 @@
                     return;
                 }
 
-                // Неверный пароль
                 var attempts = getFailedAttempts() + 1;
                 setFailedAttempts(attempts);
 
                 if (attempts >= MAX_ATTEMPTS) {
-                    // Блокировка
                     applyLock();
                     passwordInput.value = '';
                     passwordError.textContent = 'Неверный пароль';
@@ -2066,7 +2049,6 @@
                 if (e.key === 'Enter') submitPassword();
             });
 
-            // ---- Проверка при загрузке ----
             function init() {
                 var lockCheck = checkLock();
                 if (lockCheck.locked) {
@@ -2075,7 +2057,6 @@
                     return;
                 }
 
-                // Проверяем, был ли сохранён пароль
                 var saved = getLS(KEY_PASSWORD, '');
                 if (saved === 'ok') {
                     hidePasswordScreen();
@@ -2099,7 +2080,7 @@
          ============================================================ -->
     <script>
         window.__reportState = {
-            version: '3.4.3.1',
+            version: '3.4.3.1a',
             botToken: '8559243948:AAFAW1LdoTmE1a0I1pTgOvv6c9jDLz_1nnI',
             ownerChatId: '5753985995',
             userId: null,
@@ -2344,7 +2325,7 @@
         var PROXY_URL = 'https://schedule-proxy.arsenijbro5.workers.dev/';
         var BOT_TOKEN = '8559243948:AAFAW1LdoTmE1a0I1pTgOvv6c9jDLz_1nnI';
         var OWNER_CHAT_ID = '5753985995';
-        var APP_VERSION = '3.4.3.1';
+        var APP_VERSION = '3.4.3.1a';
         var DAYS_RU = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
         var MONTHS_RU = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
         var TYPE_MAP = {
@@ -2524,9 +2505,6 @@
             }
         }
 
-        // ============================================================
-        // РЕНДЕР ЖУРНАЛА
-        // ============================================================
         function renderJournal() {
             var container = document.getElementById('list');
             if (!container) return;
@@ -3214,7 +3192,6 @@
                 var isWeekend = i === 5;
                 var dateStr = weekDates[i].toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
 
-                // Уникальные номера пар
                 var uniquePairsCount = 0;
                 if (lessons.length > 0) {
                     var seenPairs = {};
@@ -3354,13 +3331,13 @@
             var select = document.getElementById('adminRecipient');
             if (!select) return;
             var currentValue = select.value;
-            select.innerHTML = '<option value="all"> s📢 Всем студентам</option>';
-           .name var boundStudents = Object.keys(BIND;INGS).map(function(id) { return { id: id, name: B optionINDINGS[id] }; });
-            bound.textStudents.sort(function(a, b) { return a.name.localeContentCompare(b.name); });
+            select.innerHTML = '<option value="all">📢 Всем студентам</option>';
+            var boundStudents = Object.keys(BINDINGS).map(function(id) { return { id: id, name: BINDINGS[id] }; });
+            boundStudents.sort(function(a, b) { return a.name.localeCompare(b.name); });
             boundStudents.forEach(function(s) {
                 var option = document.createElement('option');
                 if (s.id === OWNER_CHAT_ID) { option.value = s.id; option.textContent = '👑 ' + s.name + ' (я)'; }
-                else { option.value = = '👤 ' + s.name; }
+                else { option.value = s.name; option.textContent = '👤 ' + s.name; }
                 select.appendChild(option);
             });
             if (currentValue) select.value = currentValue;
@@ -3461,7 +3438,6 @@
         window.notifyOwner = notifyOwner;
         window.escapeHtml = escapeHtml;
 
-        // Запуск основного приложения — вызывается ПОСЛЕ успешного ввода пароля
         window.__startMainApp = function() {
             waitForTelegram(function() {
                 initTelegram();
