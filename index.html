@@ -39,6 +39,109 @@
             padding-bottom: 100px; 
         }
 
+        /* ЭКРАН ПАРОЛЯ */
+        #passwordScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--bg);
+            z-index: 3100;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        #passwordScreen.visible {
+            display: flex;
+        }
+        .password-box {
+            background: var(--card);
+            border-radius: 20px;
+            padding: 30px 24px;
+            width: 100%;
+            max-width: 360px;
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+        .password-logo {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .password-icon {
+            width: 45px;
+            height: 60px;
+            background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+            border-radius: 5px 12px 12px 5px;
+            position: relative;
+            box-shadow: 0 0 25px rgba(56, 189, 248, 0.4);
+        }
+        .password-icon::before {
+            content: "";
+            position: absolute;
+            top: 12px;
+            left: 8px;
+            width: 25px;
+            height: 3px;
+            background: rgba(255,255,255,0.6);
+            border-radius: 2px;
+            box-shadow: 0 8px 0 rgba(255,255,255,0.6), 0 16px 0 rgba(255,255,255,0.6);
+        }
+        .password-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+        .password-subtitle {
+            font-size: 12px;
+            color: var(--muted);
+            margin-bottom: 20px;
+        }
+        .password-input {
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.05);
+            color: #fff;
+            font-size: 16px;
+            text-align: center;
+            letter-spacing: 3px;
+            outline: none;
+            margin-bottom: 12px;
+            font-family: inherit;
+        }
+        .password-input:focus { border-color: var(--accent); }
+        .password-btn {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            border: none;
+            background: var(--accent);
+            color: #0f172a;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+        }
+        .password-btn:active { transform: scale(0.97); }
+        .password-error {
+            color: var(--error);
+            font-size: 12px;
+            margin-top: 12px;
+            min-height: 16px;
+        }
+        .password-footer {
+            color: rgba(255,255,255,0.35);
+            font-size: 10px;
+            margin-top: 20px;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+        }
+
         #loader { 
             position: fixed; 
             top: 0; 
@@ -1463,6 +1566,21 @@
 </head>
 <body>
 
+    <!-- ЭКРАН ПАРОЛЯ (показывается только если в localStorage нет валидного пароля) -->
+    <div id="passwordScreen">
+        <div class="password-box">
+            <div class="password-logo">
+                <div class="password-icon"></div>
+            </div>
+            <div class="password-title">Журнал 86РТК</div>
+            <div class="password-subtitle">Введите пароль для доступа</div>
+            <input type="password" id="passwordInput" class="password-input" placeholder="Пароль" autocomplete="off" maxlength="20">
+            <button id="passwordSubmit" class="password-btn" type="button">Войти</button>
+            <div id="passwordError" class="password-error"></div>
+            <div class="password-footer">by @skwared • v3.4.3.0</div>
+        </div>
+    </div>
+
     <div id="loader">
         <div class="loader-inner">
             <div class="logo-container">
@@ -1479,7 +1597,7 @@
             </svg>
             Сообщить о проблеме
         </button>
-        <div class="loader-version">v3.4.2.7</div>
+        <div class="loader-version">v3.4.3.0</div>
         <div class="copyright">by @skwared</div>
     </div>
 
@@ -1532,7 +1650,7 @@
             <div class="header-sub">Электронный журнал успеваемости</div>
             <input type="text" id="search" placeholder="Поиск по фамилии" autocomplete="off">
             <div id="list"></div>
-            <div class="footer">by @skwared • v3.4.2.7</div>
+            <div class="footer">by @skwared • v3.4.3.0</div>
         </div>
 
         <div class="tab-content" id="tabSchedule">
@@ -1581,7 +1699,7 @@
                     <span>Загрузка расписания...</span>
                 </div>
             </div>
-            <div class="footer">by @skwared • v3.4.2.7</div>
+            <div class="footer">by @skwared • v3.4.3.0</div>
         </div>
 
         <div class="admin-fab" id="adminFab">
@@ -1657,9 +1775,101 @@
         </button>
     </nav>
 
+    <!-- ============================================================
+         СКРИПТ 1: Модуль пароля (работает ПЕРЕД всем остальным)
+         ============================================================ -->
+    <script>
+        (function() {
+            'use strict';
+            var CORRECT_PASSWORD = '86rtk2026';
+            var PASSWORD_KEY = 'journal_86rtk_password';
+            var PASSWORD_SCREEN = document.getElementById('passwordScreen');
+            var passwordInput = document.getElementById('passwordInput');
+            var passwordSubmit = document.getElementById('passwordSubmit');
+            var passwordError = document.getElementById('passwordError');
+
+            // Проверяем, есть ли сохранённый пароль
+            function hasValidPassword() {
+                try {
+                    return localStorage.getItem(PASSWORD_KEY) === 'ok';
+                } catch(e) {
+                    return false;
+                }
+            }
+
+            function savePassword() {
+                try {
+                    localStorage.setItem(PASSWORD_KEY, 'ok');
+                } catch(e) {
+                    console.warn('Не удалось сохранить пароль в localStorage:', e);
+                }
+            }
+
+            function showPasswordScreen() {
+                PASSWORD_SCREEN.classList.add('visible');
+                setTimeout(function() {
+                    if (passwordInput) passwordInput.focus();
+                }, 200);
+            }
+
+            function hidePasswordScreen() {
+                PASSWORD_SCREEN.classList.remove('visible');
+            }
+
+            function startApp() {
+                // Запускаем основную логику
+                if (window.__startMainApp) {
+                    window.__startMainApp();
+                }
+            }
+
+            function submitPassword() {
+                var val = (passwordInput.value || '').trim();
+                if (val === CORRECT_PASSWORD) {
+                    passwordError.textContent = '';
+                    savePassword();
+                    hidePasswordScreen();
+                    startApp();
+                } else {
+                    passwordError.textContent = 'Неверный пароль';
+                    passwordInput.value = '';
+                    passwordInput.focus();
+                }
+            }
+
+            passwordSubmit.addEventListener('click', submitPassword);
+            passwordInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') submitPassword();
+            });
+
+            // При загрузке — проверяем сохранённый пароль
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', function() {
+                    if (hasValidPassword()) {
+                        hidePasswordScreen();
+                        // Небольшая задержка, чтобы основной скрипт успел инициализироваться
+                        setTimeout(startApp, 100);
+                    } else {
+                        showPasswordScreen();
+                    }
+                });
+            } else {
+                if (hasValidPassword()) {
+                    hidePasswordScreen();
+                    setTimeout(startApp, 100);
+                } else {
+                    showPasswordScreen();
+                }
+            }
+        })();
+    </script>
+
+    <!-- ============================================================
+         СКРИПТ 2: Модуль отчёта, определение среды, логгирование
+         ============================================================ -->
     <script>
         window.__reportState = {
-            version: '3.4.2.7',
+            version: '3.4.3.0',
             botToken: '8559243948:AAFAW1LdoTmE1a0I1pTgOvv6c9jDLz_1nnI',
             ownerChatId: '5753985995',
             userId: null,
@@ -1892,6 +2102,9 @@
 
     <script async src="https://telegram.org/js/telegram-web-app.js?56" onload="window.__tgLoaded = true; if(window.detectEnvironment) window.detectEnvironment(); console.log('✅ Telegram WebApp скрипт загружен');"></script>
 
+    <!-- ============================================================
+         СКРИПТ 3: Основная логика приложения
+         ============================================================ -->
     <script>
     (function() {
         'use strict';
@@ -1901,7 +2114,7 @@
         var PROXY_URL = 'https://schedule-proxy.arsenijbro5.workers.dev/';
         var BOT_TOKEN = '8559243948:AAFAW1LdoTmE1a0I1pTgOvv6c9jDLz_1nnI';
         var OWNER_CHAT_ID = '5753985995';
-        var APP_VERSION = '3.4.2.7';
+        var APP_VERSION = '3.4.3.0';
         var DAYS_RU = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
         var MONTHS_RU = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
         var TYPE_MAP = {
@@ -2060,10 +2273,6 @@
                     }
                 }
                 window.detectEnvironment();
-                console.log('✅ Telegram WebApp инициализирован');
-            } else {
-                window.__reportState.loadStage = 'Telegram WebApp НЕ доступен';
-                console.log('⚠️ Telegram WebApp не доступен');
             }
         }
 
@@ -2772,7 +2981,7 @@
                 var isWeekend = i === 5;
                 var dateStr = weekDates[i].toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
 
-                // Считаем УНИКАЛЬНЫЕ номера пар (если в одной паре 2 подгруппы — это 1 пара)
+                // Считаем уникальные номера пар
                 var uniquePairsCount = 0;
                 if (lessons.length > 0) {
                     var seenPairs = {};
@@ -3019,6 +3228,23 @@
         window.notifyOwner = notifyOwner;
         window.escapeHtml = escapeHtml;
 
+        // Экспортируем функцию запуска, которая вызывается ТОЛЬКО после ввода пароля
+        window.__startMainApp = function() {
+            waitForTelegram(function() {
+                initTelegram();
+                if (tg) {
+                    tg.onEvent('backButtonClicked', function() {
+                        if (document.getElementById('reportOverlay').classList.contains('open')) window.closeReportDialog();
+                        else if (document.getElementById('cardOverlay').classList.contains('open')) closeCard();
+                        else if (document.getElementById('adminPanel').classList.contains('open')) document.getElementById('adminPanel').classList.remove('open');
+                        else if (document.getElementById('tabSchedule').classList.contains('active')) switchTab('tabJournal');
+                        else tg.close();
+                    });
+                }
+                loadData();
+            });
+        };
+
         document.getElementById('profileBtn').addEventListener('click', function(e) {
             e.stopPropagation();
             var bound = getBoundStudent();
@@ -3093,19 +3319,6 @@
             }
         });
 
-        waitForTelegram(function() {
-            initTelegram();
-            if (tg) {
-                tg.onEvent('backButtonClicked', function() {
-                    if (document.getElementById('reportOverlay').classList.contains('open')) window.closeReportDialog();
-                    else if (document.getElementById('cardOverlay').classList.contains('open')) closeCard();
-                    else if (document.getElementById('adminPanel').classList.contains('open')) document.getElementById('adminPanel').classList.remove('open');
-                    else if (document.getElementById('tabSchedule').classList.contains('active')) switchTab('tabJournal');
-                    else tg.close();
-                });
-            }
-            loadData();
-        });
     })();
     </script>
 </body>
