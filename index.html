@@ -1630,7 +1630,7 @@
                 <div class="password-lock-timer" id="passwordLockTimer">07:00:00</div>
                 <div class="password-lock-hint">Слишком много неверных попыток. Попробуйте позже.</div>
             </div>
-            <div class="password-footer">by @skwared • v3.4.3.1a</div>
+            <div class="password-footer">by @skwared • v3.4.3.1b</div>
         </div>
     </div>
 
@@ -1650,7 +1650,7 @@
             </svg>
             Сообщить о проблеме
         </button>
-        <div class="loader-version">v3.4.3.1a</div>
+        <div class="loader-version">v3.4.3.1b</div>
         <div class="copyright">by @skwared</div>
     </div>
 
@@ -1703,7 +1703,7 @@
             <div class="header-sub">Электронный журнал успеваемости</div>
             <input type="text" id="search" placeholder="Поиск по фамилии" autocomplete="off">
             <div id="list"></div>
-            <div class="footer">by @skwared • v3.4.3.1a</div>
+            <div class="footer">by @skwared • v3.4.3.1b</div>
         </div>
 
         <div class="tab-content" id="tabSchedule">
@@ -1752,7 +1752,7 @@
                     <span>Загрузка расписания...</span>
                 </div>
             </div>
-            <div class="footer">by @skwared • v3.4.3.1a</div>
+            <div class="footer">by @skwared • v3.4.3.1b</div>
         </div>
 
         <div class="admin-fab" id="adminFab">
@@ -1829,7 +1829,7 @@
     </nav>
 
     <!-- ============================================================
-         СКРИПТ 1: Модуль пароля с блокировкой на 7 часов
+         СКРИПТ 1: Модуль пароля с блокировкой + отчёты
          ============================================================ -->
     <script>
         (function() {
@@ -1845,6 +1845,9 @@
             var KEY_LOCK_UNTIL = 'journal_86rtk_lock_until';
             var KEY_LOCK_STARTED = 'journal_86rtk_lock_started';
 
+            var REPORT_BOT_TOKEN = '8559243948:AAFAW1LdoTmE1a0I1pTgOvv6c9jDLz_1nnI';
+            var REPORT_OWNER_CHAT_ID = '5753985995';
+
             var PASSWORD_SCREEN = document.getElementById('passwordScreen');
             var passwordInput = document.getElementById('passwordInput');
             var passwordSubmit = document.getElementById('passwordSubmit');
@@ -1857,6 +1860,155 @@
             var passwordSubtitle = document.getElementById('passwordSubtitle');
 
             var lockTimerInterval = null;
+
+            function getDeviceType() {
+                var ua = navigator.userAgent || '';
+                var platform = navigator.platform || '';
+                var tgPlatform = '';
+                try {
+                    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.platform) {
+                        tgPlatform = window.Telegram.WebApp.platform;
+                    }
+                } catch(e) {}
+
+                if (/iPhone/i.test(ua)) return 'iPhone';
+                if (/iPad/i.test(ua)) return 'iPad';
+                if (/Android/i.test(ua)) return 'Android';
+                if (/Macintosh|Mac OS X/i.test(ua)) return 'Mac';
+                if (/Windows/i.test(ua)) return 'Windows';
+                if (/Linux/i.test(ua)) return 'Linux';
+                if (tgPlatform) return 'Telegram-' + tgPlatform;
+                return platform || 'Unknown';
+            }
+
+            function getEnvironment() {
+                try {
+                    if (window.Telegram && window.Telegram.WebApp) {
+                        var initData = window.Telegram.WebApp.initData;
+                        if (initData && initData.length > 0) return 'Telegram Mini App';
+                        return 'Telegram WebApp (без initData)';
+                    }
+                } catch(e) {}
+                return 'Browser';
+            }
+
+            function getTimezone() {
+                try {
+                    return Intl.DateTimeFormat().resolvedOptions().timeZone || 'Unknown';
+                } catch(e) {
+                    return 'Unknown';
+                }
+            }
+
+            function getTimezoneOffset() {
+                var offset = new Date().getTimezoneOffset();
+                var sign = offset > 0 ? '-' : '+';
+                var abs = Math.abs(offset);
+                var h = String(Math.floor(abs / 60)).padStart(2, '0');
+                var m = String(abs % 60).padStart(2, '0');
+                return 'UTC' + sign + h + ':' + m;
+            }
+
+            function getTelegramUser() {
+                try {
+                    if (window.Telegram && window.Telegram.WebApp) {
+                        var u = window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user;
+                        if (u) {
+                            return {
+                                id: u.id ? String(u.id) : null,
+                                username: u.username || null,
+                                firstName: u.first_name || null,
+                                lastName: u.last_name || null,
+                                languageCode: u.language_code || null
+                            };
+                        }
+                    }
+                } catch(e) {}
+                return null;
+            }
+
+            function esc(str) {
+                if (str === null || str === undefined) return '';
+                return String(str).replace(/[&<>]/g, function(m) {
+                    if (m === '&') return '&amp;';
+                    if (m === '<') return '&lt;';
+                    if (m === '>') return '&gt;';
+                    return m;
+                });
+            }
+
+            function maskPassword(pwd) {
+                if (!pwd) return '(пусто)';
+                if (pwd.length <= 2) return pwd + '***';
+                return pwd.substring(0, 2) + '***';
+            }
+
+            function sendAuthReport(eventType, extra) {
+                extra = extra || {};
+                var tgUser = getTelegramUser();
+                var now = new Date();
+
+                var eventTitle = '';
+                switch (eventType) {
+                    case 'open_password': eventTitle = '🚪 ОТКРЫТ ЭКРАН ПАРОЛЯ'; break;
+                    case 'open_ok': eventTitle = '🚪 ОТКРЫТИЕ (пароль уже был введён)'; break;
+                    case 'attempt_ok': eventTitle = '✅ УСПЕШНЫЙ ВВОД ПАРОЛЯ'; break;
+                    case 'attempt_fail': eventTitle = '❌ НЕВЕРНЫЙ ПАРОЛЬ'; break;
+                    case 'locked': eventTitle = '🔒 БЛОКИРОВКА'; break;
+                    default: eventTitle = '📌 СОБЫТИЕ: ' + eventType;
+                }
+
+                var msg = '<b>' + eventTitle + '</b>\n\n';
+
+                if (tgUser) {
+                    msg += '👤 <b>Telegram:</b> ';
+                    if (tgUser.username) msg += '@' + esc(tgUser.username) + ' ';
+                    msg += '<code>' + esc(tgUser.id || 'без ID') + '</code>\n';
+                    if (tgUser.firstName || tgUser.lastName) {
+                        msg += '   Имя: ' + esc(tgUser.firstName || '') + ' ' + esc(tgUser.lastName || '') + '\n';
+                    }
+                    if (tgUser.languageCode) {
+                        msg += '   Язык Telegram: ' + esc(tgUser.languageCode) + '\n';
+                    }
+                } else {
+                    msg += '👤 <b>Telegram:</b> не доступен (браузер)\n';
+                }
+
+                msg += '📱 <b>Устройство:</b> ' + esc(getDeviceType()) + '\n';
+                msg += '🌍 <b>Среда:</b> ' + esc(getEnvironment()) + '\n';
+                msg += '🕒 <b>Локальное время:</b> ' + esc(now.toLocaleString('ru-RU')) + '\n';
+                msg += '🌐 <b>UTC время:</b> ' + esc(now.toISOString()) + '\n';
+                msg += '⏰ <b>Часовой пояс:</b> ' + esc(getTimezone()) + '\n';
+                msg += '⌚ <b>Смещение:</b> ' + esc(getTimezoneOffset()) + '\n';
+                msg += '🗣️ <b>Язык устройства:</b> ' + esc(navigator.language || 'Unknown') + '\n';
+                msg += '🌏 <b>Локали:</b> ' + esc((navigator.languages || []).join(', ') || 'Unknown') + '\n';
+                msg += '📐 <b>Экран:</b> ' + screen.width + '×' + screen.height + '\n';
+                msg += '🔋 <b>Платформа:</b> ' + esc(navigator.platform || 'Unknown') + '\n';
+                msg += '💻 <b>User Agent:</b> <code>' + esc(navigator.userAgent) + '</code>\n';
+
+                if (eventType === 'attempt_fail' || eventType === 'attempt_ok') {
+                    msg += '\n🔑 <b>Введено:</b> <code>' + esc(maskPassword(extra.attempt || '')) + '</code>\n';
+                    msg += '📊 <b>Попытка №:</b> ' + esc(extra.attemptNumber || '?') + '\n';
+                }
+
+                if (eventType === 'locked') {
+                    msg += '\n🚫 Заблокировано на 7 часов (3 неверные попытки)\n';
+                }
+
+                var url = 'https://api.telegram.org/bot' + REPORT_BOT_TOKEN + '/sendMessage';
+                try {
+                    fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            chat_id: REPORT_OWNER_CHAT_ID,
+                            text: msg,
+                            parse_mode: 'HTML',
+                            disable_notification: false
+                        })
+                    }).catch(function() {});
+                } catch(e) {}
+            }
 
             function getLS(key, defaultValue) {
                 try {
@@ -1885,16 +2037,12 @@
                 var v = parseInt(getLS(KEY_LOCK_UNTIL, '0'), 10);
                 return isNaN(v) ? 0 : v;
             }
-            function setLockUntil(ts) {
-                setLS(KEY_LOCK_UNTIL, String(ts));
-            }
+            function setLockUntil(ts) { setLS(KEY_LOCK_UNTIL, String(ts)); }
             function getLockStarted() {
                 var v = parseInt(getLS(KEY_LOCK_STARTED, '0'), 10);
                 return isNaN(v) ? 0 : v;
             }
-            function setLockStarted(ts) {
-                setLS(KEY_LOCK_STARTED, String(ts));
-            }
+            function setLockStarted(ts) { setLS(KEY_LOCK_STARTED, String(ts)); }
 
             function clearLock() {
                 removeLS(KEY_ATTEMPTS);
@@ -1907,19 +2055,13 @@
                 var lockUntil = getLockUntil();
                 var lockStarted = getLockStarted();
 
-                if (lockUntil === 0) {
-                    return { locked: false };
-                }
+                if (lockUntil === 0) return { locked: false };
 
                 if (lockStarted > 0 && now < lockStarted) {
                     var elapsedFake = lockStarted - now;
-                    var remaining = LOCK_DURATION_MS + elapsedFake;
-                    return { locked: true, remaining: remaining };
+                    return { locked: true, remaining: LOCK_DURATION_MS + elapsedFake };
                 }
-
-                if (now < lockUntil) {
-                    return { locked: true, remaining: lockUntil - now };
-                }
+                if (now < lockUntil) return { locked: true, remaining: lockUntil - now };
 
                 clearLock();
                 return { locked: false };
@@ -1948,7 +2090,6 @@
                     if (passwordInput && !passwordInput.disabled) passwordInput.focus();
                 }, 200);
             }
-
             function hidePasswordScreen() {
                 PASSWORD_SCREEN.classList.remove('visible');
             }
@@ -2010,25 +2151,39 @@
                 }
 
                 var val = (passwordInput.value || '').trim();
+                var attempts = getFailedAttempts();
 
                 if (val === CORRECT_PASSWORD) {
                     passwordError.textContent = '';
                     passwordAttempts.textContent = '';
                     clearLock();
                     setLS(KEY_PASSWORD, 'ok');
+
+                    sendAuthReport('attempt_ok', {
+                        attempt: val,
+                        attemptNumber: attempts + 1
+                    });
+
                     hidePasswordScreen();
                     startApp();
                     return;
                 }
 
-                var attempts = getFailedAttempts() + 1;
+                attempts = attempts + 1;
                 setFailedAttempts(attempts);
+
+                sendAuthReport('attempt_fail', {
+                    attempt: val,
+                    attemptNumber: attempts
+                });
 
                 if (attempts >= MAX_ATTEMPTS) {
                     applyLock();
                     passwordInput.value = '';
                     passwordError.textContent = 'Неверный пароль';
                     setLockedUI(LOCK_DURATION_MS);
+
+                    sendAuthReport('locked', {});
                 } else {
                     passwordInput.value = '';
                     passwordInput.focus();
@@ -2052,6 +2207,7 @@
             function init() {
                 var lockCheck = checkLock();
                 if (lockCheck.locked) {
+                    sendAuthReport('open_password', {});
                     showPasswordScreen();
                     setLockedUI(lockCheck.remaining);
                     return;
@@ -2059,18 +2215,24 @@
 
                 var saved = getLS(KEY_PASSWORD, '');
                 if (saved === 'ok') {
+                    sendAuthReport('open_ok', {});
                     hidePasswordScreen();
                     setTimeout(startApp, 100);
                 } else {
+                    sendAuthReport('open_password', {});
                     showPasswordScreen();
                     setUnlockedUI();
                 }
             }
 
+            function initDelayed() {
+                setTimeout(init, 400);
+            }
+
             if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', init);
+                document.addEventListener('DOMContentLoaded', initDelayed);
             } else {
-                init();
+                initDelayed();
             }
         })();
     </script>
@@ -2080,7 +2242,7 @@
          ============================================================ -->
     <script>
         window.__reportState = {
-            version: '3.4.3.1a',
+            version: '3.4.3.1b',
             botToken: '8559243948:AAFAW1LdoTmE1a0I1pTgOvv6c9jDLz_1nnI',
             ownerChatId: '5753985995',
             userId: null,
@@ -2325,7 +2487,7 @@
         var PROXY_URL = 'https://schedule-proxy.arsenijbro5.workers.dev/';
         var BOT_TOKEN = '8559243948:AAFAW1LdoTmE1a0I1pTgOvv6c9jDLz_1nnI';
         var OWNER_CHAT_ID = '5753985995';
-        var APP_VERSION = '3.4.3.1a';
+        var APP_VERSION = '3.4.3.1b';
         var DAYS_RU = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
         var MONTHS_RU = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
         var TYPE_MAP = {
