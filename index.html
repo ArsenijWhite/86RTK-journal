@@ -39,156 +39,6 @@
             padding-bottom: 100px; 
         }
 
-        /* ЭКРАН ПАРОЛЯ */
-        #passwordScreen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: var(--bg);
-            z-index: 3100;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        #passwordScreen.visible {
-            display: flex;
-        }
-        .password-box {
-            background: var(--card);
-            border-radius: 20px;
-            padding: 30px 24px;
-            width: 100%;
-            max-width: 360px;
-            border: 1px solid rgba(56, 189, 248, 0.2);
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-            text-align: center;
-        }
-        .password-logo {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 20px;
-        }
-        .password-icon {
-            width: 45px;
-            height: 60px;
-            background: linear-gradient(135deg, #38bdf8, #0ea5e9);
-            border-radius: 5px 12px 12px 5px;
-            position: relative;
-            box-shadow: 0 0 25px rgba(56, 189, 248, 0.4);
-        }
-        .password-icon::before {
-            content: "";
-            position: absolute;
-            top: 12px;
-            left: 8px;
-            width: 25px;
-            height: 3px;
-            background: rgba(255,255,255,0.6);
-            border-radius: 2px;
-            box-shadow: 0 8px 0 rgba(255,255,255,0.6), 0 16px 0 rgba(255,255,255,0.6);
-        }
-        .password-icon.locked {
-            background: linear-gradient(135deg, #ef4444, #dc2626);
-            box-shadow: 0 0 25px rgba(239, 68, 68, 0.5);
-        }
-        .password-title {
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--text);
-            margin-bottom: 4px;
-        }
-        .password-subtitle {
-            font-size: 12px;
-            color: var(--muted);
-            margin-bottom: 20px;
-        }
-        .password-input {
-            width: 100%;
-            padding: 14px 16px;
-            border-radius: 12px;
-            border: 1px solid rgba(255,255,255,0.1);
-            background: rgba(255,255,255,0.05);
-            color: #fff;
-            font-size: 16px;
-            text-align: center;
-            letter-spacing: 3px;
-            outline: none;
-            margin-bottom: 12px;
-            font-family: inherit;
-        }
-        .password-input:focus { border-color: var(--accent); }
-        .password-input:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-        }
-        .password-btn {
-            width: 100%;
-            padding: 14px;
-            border-radius: 12px;
-            border: none;
-            background: var(--accent);
-            color: #0f172a;
-            font-weight: 700;
-            font-size: 15px;
-            cursor: pointer;
-        }
-        .password-btn:active { transform: scale(0.97); }
-        .password-btn:disabled {
-            background: rgba(255,255,255,0.08);
-            color: var(--muted);
-            cursor: not-allowed;
-        }
-        .password-error {
-            color: var(--error);
-            font-size: 12px;
-            margin-top: 12px;
-            min-height: 16px;
-        }
-        .password-attempts {
-            color: var(--muted);
-            font-size: 11px;
-            margin-top: 4px;
-            min-height: 14px;
-        }
-        .password-lock-info {
-            display: none;
-            text-align: center;
-            margin-top: 12px;
-            padding: 12px;
-            background: rgba(239, 68, 68, 0.08);
-            border: 1px solid rgba(239, 68, 68, 0.2);
-            border-radius: 12px;
-        }
-        .password-lock-info.visible { display: block; }
-        .password-lock-title {
-            color: var(--error);
-            font-weight: 700;
-            font-size: 13px;
-            margin-bottom: 6px;
-        }
-        .password-lock-timer {
-            color: var(--text);
-            font-size: 22px;
-            font-weight: 700;
-            font-variant-numeric: tabular-nums;
-            letter-spacing: 1px;
-        }
-        .password-lock-hint {
-            color: var(--muted);
-            font-size: 10px;
-            margin-top: 6px;
-        }
-        .password-footer {
-            color: rgba(255,255,255,0.35);
-            font-size: 10px;
-            margin-top: 20px;
-            font-weight: 500;
-            letter-spacing: 0.3px;
-        }
-
         #loader { 
             position: fixed; 
             top: 0; 
@@ -204,12 +54,8 @@
             transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1); 
             pointer-events: none;
         }
-        #loader * {
-            pointer-events: none;
-        }
-        #loader #loaderReportBtn {
-            pointer-events: auto;
-        }
+        #loader * { pointer-events: none; }
+        #loader #loaderReportBtn { pointer-events: auto; }
 
         .loader-inner {
             display: flex;
@@ -348,9 +194,7 @@
             justify-content: center;
             padding: 20px;
         }
-        #errorOverlay.visible {
-            display: flex;
-        }
+        #errorOverlay.visible { display: flex; }
         #errorOverlay .error-message {
             font-size: 14px;
             font-weight: 500;
@@ -408,15 +252,9 @@
             transition: 0.5s; 
             display: none;
         }
-        #main-content.visible {
-            display: block;
-            opacity: 1;
-        }
+        #main-content.visible { display: block; opacity: 1; }
         
-        .tab-content {
-            display: none;
-            animation: fadeIn 0.3s ease;
-        }
+        .tab-content { display: none; animation: fadeIn 0.3s ease; }
         .tab-content.active { display: block; }
 
         .bottom-nav {
@@ -842,18 +680,9 @@
             transform: scale(0.97);
             background: rgba(139, 92, 246, 0.2);
         }
-        .admin-panel .admin-template-btn.success {
-            border-color: var(--success);
-            color: var(--success);
-        }
-        .admin-panel .admin-template-btn.accent {
-            border-color: var(--accent);
-            color: var(--accent);
-        }
-        .admin-panel .admin-template-btn.gold {
-            border-color: var(--gold);
-            color: var(--gold);
-        }
+        .admin-panel .admin-template-btn.success { border-color: var(--success); color: var(--success); }
+        .admin-panel .admin-template-btn.accent { border-color: var(--accent); color: var(--accent); }
+        .admin-panel .admin-template-btn.gold { border-color: var(--gold); color: var(--gold); }
         .admin-panel .admin-input {
             width: 100%;
             border: 1px solid rgba(255,255,255,0.1);
@@ -883,10 +712,7 @@
             -webkit-appearance: none;
         }
         .admin-panel .admin-select:focus { border-color: var(--admin); }
-        .admin-panel .admin-select option {
-            background: var(--card);
-            color: #fff;
-        }
+        .admin-panel .admin-select option { background: var(--card); color: #fff; }
         .admin-panel .admin-actions { display: flex; gap: 10px; flex-wrap: wrap; }
         .admin-panel .admin-actions button {
             flex: 1;
@@ -901,11 +727,7 @@
         .admin-panel .admin-actions button:active { transform: scale(0.96); }
         .admin-panel .admin-actions .btn-send { background: var(--admin); color: white; }
         .admin-panel .admin-actions .btn-cancel { background: rgba(255,255,255,0.08); color: var(--text); }
-        .admin-panel .admin-actions .btn-send-me { 
-            background: var(--success); 
-            color: white;
-            flex: 0.5;
-        }
+        .admin-panel .admin-actions .btn-send-me { background: var(--success); color: white; flex: 0.5; }
         .admin-panel .admin-status {
             font-size: 12px;
             color: var(--muted);
@@ -1613,26 +1435,28 @@
 </head>
 <body>
 
-    <!-- ЭКРАН ПАРОЛЯ -->
-    <div id="passwordScreen">
-        <div class="password-box">
-            <div class="password-logo">
-                <div class="password-icon" id="passwordIcon"></div>
-            </div>
-            <div class="password-title" id="passwordTitle">Журнал 86РТК</div>
-            <div class="password-subtitle" id="passwordSubtitle">Введите пароль для доступа</div>
-            <input type="password" id="passwordInput" class="password-input" placeholder="Пароль" autocomplete="off" maxlength="20">
-            <button id="passwordSubmit" class="password-btn" type="button">Войти</button>
-            <div id="passwordError" class="password-error"></div>
-            <div id="passwordAttempts" class="password-attempts"></div>
-            <div id="passwordLockInfo" class="password-lock-info">
-                <div class="password-lock-title">🔒 Доступ заблокирован</div>
-                <div class="password-lock-timer" id="passwordLockTimer">07:00:00</div>
-                <div class="password-lock-hint">Слишком много неверных попыток. Попробуйте позже.</div>
-            </div>
-            <div class="password-footer">by @skwared • v3.4.3.1b</div>
-        </div>
-    </div>
+    <!-- ============================================================
+         СКРИПТ 0: Общий список привязок
+         ============================================================ -->
+    <script>
+        window.BINDINGS = {
+            '5753985995': 'Беляцкий',
+            '1939232438': 'Конюк',
+            '5359580675': 'Славиковский',
+            '1224567874': 'Кошевар',
+            '1581076393': 'Азарко',
+            '5300397368': 'Таган',
+            '1360839045': 'Сазонов',
+            '6229532704': 'Маковик',
+            '1090323809': 'Бобко',
+            '1466663890': 'Лазовиков',
+            '6501621442': 'Колодяжный',
+            '986867638' : 'Дроздов',
+            '1236220960': 'Песецкий',
+            '5369377365': 'Куродым',
+            '1881630825': 'Броновицкий'
+        };
+    </script>
 
     <div id="loader">
         <div class="loader-inner">
@@ -1650,7 +1474,7 @@
             </svg>
             Сообщить о проблеме
         </button>
-        <div class="loader-version">v3.4.3.1b</div>
+        <div class="loader-version">v3.4.4</div>
         <div class="copyright">by @skwared</div>
     </div>
 
@@ -1703,7 +1527,7 @@
             <div class="header-sub">Электронный журнал успеваемости</div>
             <input type="text" id="search" placeholder="Поиск по фамилии" autocomplete="off">
             <div id="list"></div>
-            <div class="footer">by @skwared • v3.4.3.1b</div>
+            <div class="footer">by @skwared • v3.4.4</div>
         </div>
 
         <div class="tab-content" id="tabSchedule">
@@ -1752,7 +1576,7 @@
                     <span>Загрузка расписания...</span>
                 </div>
             </div>
-            <div class="footer">by @skwared • v3.4.3.1b</div>
+            <div class="footer">by @skwared • v3.4.4</div>
         </div>
 
         <div class="admin-fab" id="adminFab">
@@ -1829,420 +1653,11 @@
     </nav>
 
     <!-- ============================================================
-         СКРИПТ 1: Модуль пароля с блокировкой + отчёты
-         ============================================================ -->
-    <script>
-        (function() {
-            'use strict';
-
-            var CORRECT_PASSWORD = '86rtk2026';
-            var MAX_ATTEMPTS = 3;
-            var LOCK_DURATION_MS = 7 * 60 * 60 * 1000;
-            var MIN_ATTEMPTS_FOR_LOCK = 3;
-
-            var KEY_PASSWORD = 'journal_86rtk_password';
-            var KEY_ATTEMPTS = 'journal_86rtk_failed_attempts';
-            var KEY_LOCK_UNTIL = 'journal_86rtk_lock_until';
-            var KEY_LOCK_STARTED = 'journal_86rtk_lock_started';
-
-            var REPORT_BOT_TOKEN = '8559243948:AAFAW1LdoTmE1a0I1pTgOvv6c9jDLz_1nnI';
-            var REPORT_OWNER_CHAT_ID = '5753985995';
-
-            var PASSWORD_SCREEN = document.getElementById('passwordScreen');
-            var passwordInput = document.getElementById('passwordInput');
-            var passwordSubmit = document.getElementById('passwordSubmit');
-            var passwordError = document.getElementById('passwordError');
-            var passwordAttempts = document.getElementById('passwordAttempts');
-            var passwordLockInfo = document.getElementById('passwordLockInfo');
-            var passwordLockTimer = document.getElementById('passwordLockTimer');
-            var passwordIcon = document.getElementById('passwordIcon');
-            var passwordTitle = document.getElementById('passwordTitle');
-            var passwordSubtitle = document.getElementById('passwordSubtitle');
-
-            var lockTimerInterval = null;
-
-            function getDeviceType() {
-                var ua = navigator.userAgent || '';
-                var platform = navigator.platform || '';
-                var tgPlatform = '';
-                try {
-                    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.platform) {
-                        tgPlatform = window.Telegram.WebApp.platform;
-                    }
-                } catch(e) {}
-
-                if (/iPhone/i.test(ua)) return 'iPhone';
-                if (/iPad/i.test(ua)) return 'iPad';
-                if (/Android/i.test(ua)) return 'Android';
-                if (/Macintosh|Mac OS X/i.test(ua)) return 'Mac';
-                if (/Windows/i.test(ua)) return 'Windows';
-                if (/Linux/i.test(ua)) return 'Linux';
-                if (tgPlatform) return 'Telegram-' + tgPlatform;
-                return platform || 'Unknown';
-            }
-
-            function getEnvironment() {
-                try {
-                    if (window.Telegram && window.Telegram.WebApp) {
-                        var initData = window.Telegram.WebApp.initData;
-                        if (initData && initData.length > 0) return 'Telegram Mini App';
-                        return 'Telegram WebApp (без initData)';
-                    }
-                } catch(e) {}
-                return 'Browser';
-            }
-
-            function getTimezone() {
-                try {
-                    return Intl.DateTimeFormat().resolvedOptions().timeZone || 'Unknown';
-                } catch(e) {
-                    return 'Unknown';
-                }
-            }
-
-            function getTimezoneOffset() {
-                var offset = new Date().getTimezoneOffset();
-                var sign = offset > 0 ? '-' : '+';
-                var abs = Math.abs(offset);
-                var h = String(Math.floor(abs / 60)).padStart(2, '0');
-                var m = String(abs % 60).padStart(2, '0');
-                return 'UTC' + sign + h + ':' + m;
-            }
-
-            function getTelegramUser() {
-                try {
-                    if (window.Telegram && window.Telegram.WebApp) {
-                        var u = window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user;
-                        if (u) {
-                            return {
-                                id: u.id ? String(u.id) : null,
-                                username: u.username || null,
-                                firstName: u.first_name || null,
-                                lastName: u.last_name || null,
-                                languageCode: u.language_code || null
-                            };
-                        }
-                    }
-                } catch(e) {}
-                return null;
-            }
-
-            function esc(str) {
-                if (str === null || str === undefined) return '';
-                return String(str).replace(/[&<>]/g, function(m) {
-                    if (m === '&') return '&amp;';
-                    if (m === '<') return '&lt;';
-                    if (m === '>') return '&gt;';
-                    return m;
-                });
-            }
-
-            function maskPassword(pwd) {
-                if (!pwd) return '(пусто)';
-                if (pwd.length <= 2) return pwd + '***';
-                return pwd.substring(0, 2) + '***';
-            }
-
-            function sendAuthReport(eventType, extra) {
-                extra = extra || {};
-                var tgUser = getTelegramUser();
-                var now = new Date();
-
-                var eventTitle = '';
-                switch (eventType) {
-                    case 'open_password': eventTitle = '🚪 ОТКРЫТ ЭКРАН ПАРОЛЯ'; break;
-                    case 'open_ok': eventTitle = '🚪 ОТКРЫТИЕ (пароль уже был введён)'; break;
-                    case 'attempt_ok': eventTitle = '✅ УСПЕШНЫЙ ВВОД ПАРОЛЯ'; break;
-                    case 'attempt_fail': eventTitle = '❌ НЕВЕРНЫЙ ПАРОЛЬ'; break;
-                    case 'locked': eventTitle = '🔒 БЛОКИРОВКА'; break;
-                    default: eventTitle = '📌 СОБЫТИЕ: ' + eventType;
-                }
-
-                var msg = '<b>' + eventTitle + '</b>\n\n';
-
-                if (tgUser) {
-                    msg += '👤 <b>Telegram:</b> ';
-                    if (tgUser.username) msg += '@' + esc(tgUser.username) + ' ';
-                    msg += '<code>' + esc(tgUser.id || 'без ID') + '</code>\n';
-                    if (tgUser.firstName || tgUser.lastName) {
-                        msg += '   Имя: ' + esc(tgUser.firstName || '') + ' ' + esc(tgUser.lastName || '') + '\n';
-                    }
-                    if (tgUser.languageCode) {
-                        msg += '   Язык Telegram: ' + esc(tgUser.languageCode) + '\n';
-                    }
-                } else {
-                    msg += '👤 <b>Telegram:</b> не доступен (браузер)\n';
-                }
-
-                msg += '📱 <b>Устройство:</b> ' + esc(getDeviceType()) + '\n';
-                msg += '🌍 <b>Среда:</b> ' + esc(getEnvironment()) + '\n';
-                msg += '🕒 <b>Локальное время:</b> ' + esc(now.toLocaleString('ru-RU')) + '\n';
-                msg += '🌐 <b>UTC время:</b> ' + esc(now.toISOString()) + '\n';
-                msg += '⏰ <b>Часовой пояс:</b> ' + esc(getTimezone()) + '\n';
-                msg += '⌚ <b>Смещение:</b> ' + esc(getTimezoneOffset()) + '\n';
-                msg += '🗣️ <b>Язык устройства:</b> ' + esc(navigator.language || 'Unknown') + '\n';
-                msg += '🌏 <b>Локали:</b> ' + esc((navigator.languages || []).join(', ') || 'Unknown') + '\n';
-                msg += '📐 <b>Экран:</b> ' + screen.width + '×' + screen.height + '\n';
-                msg += '🔋 <b>Платформа:</b> ' + esc(navigator.platform || 'Unknown') + '\n';
-                msg += '💻 <b>User Agent:</b> <code>' + esc(navigator.userAgent) + '</code>\n';
-
-                if (eventType === 'attempt_fail' || eventType === 'attempt_ok') {
-                    msg += '\n🔑 <b>Введено:</b> <code>' + esc(maskPassword(extra.attempt || '')) + '</code>\n';
-                    msg += '📊 <b>Попытка №:</b> ' + esc(extra.attemptNumber || '?') + '\n';
-                }
-
-                if (eventType === 'locked') {
-                    msg += '\n🚫 Заблокировано на 7 часов (3 неверные попытки)\n';
-                }
-
-                var url = 'https://api.telegram.org/bot' + REPORT_BOT_TOKEN + '/sendMessage';
-                try {
-                    fetch(url, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            chat_id: REPORT_OWNER_CHAT_ID,
-                            text: msg,
-                            parse_mode: 'HTML',
-                            disable_notification: false
-                        })
-                    }).catch(function() {});
-                } catch(e) {}
-            }
-
-            function getLS(key, defaultValue) {
-                try {
-                    var v = localStorage.getItem(key);
-                    return v === null ? defaultValue : v;
-                } catch(e) {
-                    return defaultValue;
-                }
-            }
-            function setLS(key, value) {
-                try { localStorage.setItem(key, value); } catch(e) {}
-            }
-            function removeLS(key) {
-                try { localStorage.removeItem(key); } catch(e) {}
-            }
-
-            function getFailedAttempts() {
-                var v = parseInt(getLS(KEY_ATTEMPTS, '0'), 10);
-                return isNaN(v) ? 0 : v;
-            }
-            function setFailedAttempts(n) {
-                setLS(KEY_ATTEMPTS, String(n));
-            }
-
-            function getLockUntil() {
-                var v = parseInt(getLS(KEY_LOCK_UNTIL, '0'), 10);
-                return isNaN(v) ? 0 : v;
-            }
-            function setLockUntil(ts) { setLS(KEY_LOCK_UNTIL, String(ts)); }
-            function getLockStarted() {
-                var v = parseInt(getLS(KEY_LOCK_STARTED, '0'), 10);
-                return isNaN(v) ? 0 : v;
-            }
-            function setLockStarted(ts) { setLS(KEY_LOCK_STARTED, String(ts)); }
-
-            function clearLock() {
-                removeLS(KEY_ATTEMPTS);
-                removeLS(KEY_LOCK_UNTIL);
-                removeLS(KEY_LOCK_STARTED);
-            }
-
-            function checkLock() {
-                var now = Date.now();
-                var lockUntil = getLockUntil();
-                var lockStarted = getLockStarted();
-
-                if (lockUntil === 0) return { locked: false };
-
-                if (lockStarted > 0 && now < lockStarted) {
-                    var elapsedFake = lockStarted - now;
-                    return { locked: true, remaining: LOCK_DURATION_MS + elapsedFake };
-                }
-                if (now < lockUntil) return { locked: true, remaining: lockUntil - now };
-
-                clearLock();
-                return { locked: false };
-            }
-
-            function applyLock() {
-                var now = Date.now();
-                setLockUntil(now + LOCK_DURATION_MS);
-                setLockStarted(now);
-                setFailedAttempts(MIN_ATTEMPTS_FOR_LOCK);
-            }
-
-            function formatTime(ms) {
-                if (ms < 0) ms = 0;
-                var totalSec = Math.floor(ms / 1000);
-                var h = Math.floor(totalSec / 3600);
-                var m = Math.floor((totalSec % 3600) / 60);
-                var s = totalSec % 60;
-                function pad(n) { return n < 10 ? '0' + n : String(n); }
-                return pad(h) + ':' + pad(m) + ':' + pad(s);
-            }
-
-            function showPasswordScreen() {
-                PASSWORD_SCREEN.classList.add('visible');
-                setTimeout(function() {
-                    if (passwordInput && !passwordInput.disabled) passwordInput.focus();
-                }, 200);
-            }
-            function hidePasswordScreen() {
-                PASSWORD_SCREEN.classList.remove('visible');
-            }
-
-            function setLockedUI(remaining) {
-                passwordIcon.classList.add('locked');
-                passwordTitle.textContent = 'Журнал 86РТК';
-                passwordSubtitle.textContent = 'Доступ временно заблокирован';
-                passwordInput.disabled = true;
-                passwordSubmit.disabled = true;
-                passwordError.textContent = '';
-                passwordAttempts.textContent = '';
-                passwordLockInfo.classList.add('visible');
-                updateLockTimer(remaining);
-
-                if (lockTimerInterval) clearInterval(lockTimerInterval);
-                lockTimerInterval = setInterval(function() {
-                    var check = checkLock();
-                    if (check.locked) {
-                        updateLockTimer(check.remaining);
-                    } else {
-                        clearInterval(lockTimerInterval);
-                        lockTimerInterval = null;
-                        setUnlockedUI();
-                    }
-                }, 1000);
-            }
-
-            function updateLockTimer(remaining) {
-                passwordLockTimer.textContent = formatTime(remaining);
-            }
-
-            function setUnlockedUI() {
-                passwordIcon.classList.remove('locked');
-                passwordTitle.textContent = 'Журнал 86РТК';
-                passwordSubtitle.textContent = 'Введите пароль для доступа';
-                passwordInput.disabled = false;
-                passwordSubmit.disabled = false;
-                passwordLockInfo.classList.remove('visible');
-
-                var attempts = getFailedAttempts();
-                var left = MAX_ATTEMPTS - attempts;
-                if (attempts > 0 && left > 0) {
-                    passwordAttempts.textContent = 'Осталось попыток: ' + left;
-                } else {
-                    passwordAttempts.textContent = '';
-                }
-
-                setTimeout(function() {
-                    if (!passwordInput.disabled) passwordInput.focus();
-                }, 100);
-            }
-
-            function submitPassword() {
-                var lockCheck = checkLock();
-                if (lockCheck.locked) {
-                    setLockedUI(lockCheck.remaining);
-                    return;
-                }
-
-                var val = (passwordInput.value || '').trim();
-                var attempts = getFailedAttempts();
-
-                if (val === CORRECT_PASSWORD) {
-                    passwordError.textContent = '';
-                    passwordAttempts.textContent = '';
-                    clearLock();
-                    setLS(KEY_PASSWORD, 'ok');
-
-                    sendAuthReport('attempt_ok', {
-                        attempt: val,
-                        attemptNumber: attempts + 1
-                    });
-
-                    hidePasswordScreen();
-                    startApp();
-                    return;
-                }
-
-                attempts = attempts + 1;
-                setFailedAttempts(attempts);
-
-                sendAuthReport('attempt_fail', {
-                    attempt: val,
-                    attemptNumber: attempts
-                });
-
-                if (attempts >= MAX_ATTEMPTS) {
-                    applyLock();
-                    passwordInput.value = '';
-                    passwordError.textContent = 'Неверный пароль';
-                    setLockedUI(LOCK_DURATION_MS);
-
-                    sendAuthReport('locked', {});
-                } else {
-                    passwordInput.value = '';
-                    passwordInput.focus();
-                    passwordError.textContent = 'Неверный пароль';
-                    var left = MAX_ATTEMPTS - attempts;
-                    passwordAttempts.textContent = 'Осталось попыток: ' + left;
-                }
-            }
-
-            function startApp() {
-                if (window.__startMainApp) {
-                    window.__startMainApp();
-                }
-            }
-
-            passwordSubmit.addEventListener('click', submitPassword);
-            passwordInput.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') submitPassword();
-            });
-
-            function init() {
-                var lockCheck = checkLock();
-                if (lockCheck.locked) {
-                    sendAuthReport('open_password', {});
-                    showPasswordScreen();
-                    setLockedUI(lockCheck.remaining);
-                    return;
-                }
-
-                var saved = getLS(KEY_PASSWORD, '');
-                if (saved === 'ok') {
-                    sendAuthReport('open_ok', {});
-                    hidePasswordScreen();
-                    setTimeout(startApp, 100);
-                } else {
-                    sendAuthReport('open_password', {});
-                    showPasswordScreen();
-                    setUnlockedUI();
-                }
-            }
-
-            function initDelayed() {
-                setTimeout(init, 400);
-            }
-
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', initDelayed);
-            } else {
-                initDelayed();
-            }
-        })();
-    </script>
-
-    <!-- ============================================================
-         СКРИПТ 2: Модуль отчёта
+         СКРИПТ 1: Модуль отчёта
          ============================================================ -->
     <script>
         window.__reportState = {
-            version: '3.4.3.1b',
+            version: '3.4.4',
             botToken: '8559243948:AAFAW1LdoTmE1a0I1pTgOvv6c9jDLz_1nnI',
             ownerChatId: '5753985995',
             userId: null,
@@ -2476,7 +1891,7 @@
     <script async src="https://telegram.org/js/telegram-web-app.js?56" onload="window.__tgLoaded = true; if(window.detectEnvironment) window.detectEnvironment(); console.log('✅ Telegram WebApp скрипт загружен');"></script>
 
     <!-- ============================================================
-         СКРИПТ 3: Основная логика (журнал, расписание, админка)
+         СКРИПТ 2: Основная логика
          ============================================================ -->
     <script>
     (function() {
@@ -2487,7 +1902,7 @@
         var PROXY_URL = 'https://schedule-proxy.arsenijbro5.workers.dev/';
         var BOT_TOKEN = '8559243948:AAFAW1LdoTmE1a0I1pTgOvv6c9jDLz_1nnI';
         var OWNER_CHAT_ID = '5753985995';
-        var APP_VERSION = '3.4.3.1b';
+        var APP_VERSION = '3.4.4';
         var DAYS_RU = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
         var MONTHS_RU = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
         var TYPE_MAP = {
@@ -2495,23 +1910,7 @@
             'Лекция': 'лекция', 'Лабораторная': 'лабораторная', 'Практика': 'практика'
         };
 
-        var BINDINGS = {
-            '5753985995': 'Беляцкий',
-            '1939232438': 'Конюк',
-            '5359580675': 'Славиковский',
-            '1224567874': 'Кошевар',
-            '1581076393': 'Азарко',
-            '5300397368': 'Таган',
-            '1360839045': 'Сазонов',
-            '6229532704': 'Маковик',
-            '1090323809': 'Бобко',
-            '1466663890': 'Лазовиков',
-            '6501621442': 'Колодяжный',
-            '986867638' : 'Дроздов',
-            '1236220960': 'Песецкий',
-            '5369377365': 'Куродым',
-            '1881630825': 'Броновицкий'
-        };
+        var BINDINGS = window.BINDINGS || {};
 
         var ALL_DATA = { journal: [], absences: {} };
         var isLoading = false;
@@ -3600,22 +2999,6 @@
         window.notifyOwner = notifyOwner;
         window.escapeHtml = escapeHtml;
 
-        window.__startMainApp = function() {
-            waitForTelegram(function() {
-                initTelegram();
-                if (tg) {
-                    tg.onEvent('backButtonClicked', function() {
-                        if (document.getElementById('reportOverlay').classList.contains('open')) window.closeReportDialog();
-                        else if (document.getElementById('cardOverlay').classList.contains('open')) closeCard();
-                        else if (document.getElementById('adminPanel').classList.contains('open')) document.getElementById('adminPanel').classList.remove('open');
-                        else if (document.getElementById('tabSchedule').classList.contains('active')) switchTab('tabJournal');
-                        else tg.close();
-                    });
-                }
-                loadData();
-            });
-        };
-
         document.getElementById('profileBtn').addEventListener('click', function(e) {
             e.stopPropagation();
             var bound = getBoundStudent();
@@ -3690,6 +3073,19 @@
             }
         });
 
+        waitForTelegram(function() {
+            initTelegram();
+            if (tg) {
+                tg.onEvent('backButtonClicked', function() {
+                    if (document.getElementById('reportOverlay').classList.contains('open')) window.closeReportDialog();
+                    else if (document.getElementById('cardOverlay').classList.contains('open')) closeCard();
+                    else if (document.getElementById('adminPanel').classList.contains('open')) document.getElementById('adminPanel').classList.remove('open');
+                    else if (document.getElementById('tabSchedule').classList.contains('active')) switchTab('tabJournal');
+                    else tg.close();
+                });
+            }
+            loadData();
+        });
     })();
     </script>
 </body>
