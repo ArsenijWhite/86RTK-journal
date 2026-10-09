@@ -499,7 +499,7 @@
         }
 
         .schedule-lesson {
-            padding: 10px 16px;
+            padding: 12px 16px;
             border-bottom: 1px solid rgba(255,255,255,0.03);
             display: flex;
             align-items: flex-start;
@@ -515,22 +515,34 @@
             color: var(--accent);
             min-width: 36px;
             padding-top: 2px;
+            flex-shrink: 0;
         }
         .schedule-lesson .lesson-info {
             flex: 1;
             min-width: 0;
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 10px;
         }
-        .schedule-lesson .lesson-name {
+        .lesson-sub {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding-left: 10px;
+            border-left: 2px solid rgba(56, 189, 248, 0.2);
+        }
+        .lesson-sub:first-child {
+            padding-left: 0;
+            border-left: none;
+        }
+        .lesson-sub .sub-name {
             font-size: 14px;
             font-weight: 600;
             color: var(--text);
             line-height: 1.3;
             word-break: break-word;
         }
-        .schedule-lesson .lesson-subgroup {
+        .lesson-sub .lesson-subgroup {
             font-size: 10px;
             font-weight: 600;
             color: var(--gold);
@@ -542,13 +554,13 @@
             width: auto;
             max-width: fit-content;
         }
-        .schedule-lesson .lesson-meta-row {
+        .lesson-sub .lesson-meta-row {
             display: flex;
             flex-wrap: wrap;
             align-items: center;
             gap: 6px;
         }
-        .schedule-lesson .lesson-meta-row .room-badge {
+        .lesson-sub .lesson-meta-row .room-badge {
             font-size: 9px;
             padding: 1px 8px;
             border-radius: 10px;
@@ -562,8 +574,8 @@
             align-items: center;
             gap: 4px;
         }
-        .schedule-lesson .lesson-meta-row .room-badge .icon { font-size: 10px; }
-        .schedule-lesson .lesson-meta-row .type-badge {
+        .lesson-sub .lesson-meta-row .room-badge .icon { font-size: 10px; }
+        .lesson-sub .lesson-meta-row .type-badge {
             font-size: 9px;
             padding: 1px 8px;
             border-radius: 10px;
@@ -574,23 +586,22 @@
             letter-spacing: 0.3px;
             border: 1px solid rgba(255,255,255,0.06);
         }
-        .schedule-lesson .lesson-meta-row .type-badge.lecture {
+        .lesson-sub .lesson-meta-row .type-badge.lecture {
             background: rgba(56, 189, 248, 0.12);
             color: var(--accent);
             border-color: rgba(56, 189, 248, 0.15);
         }
-        .schedule-lesson .lesson-meta-row .type-badge.practice {
+        .lesson-sub .lesson-meta-row .type-badge.practice {
             background: rgba(251, 191, 36, 0.12);
             color: var(--gold);
             border-color: rgba(251, 191, 36, 0.15);
         }
-        .schedule-lesson .lesson-meta-row .type-badge.lab {
+        .lesson-sub .lesson-meta-row .type-badge.lab {
             background: rgba(244, 114, 182, 0.12);
             color: #f472b6;
             border-color: rgba(244, 114, 182, 0.15);
         }
-
-        .schedule-lesson .lesson-teachers {
+        .lesson-sub .lesson-teachers {
             font-size: 12px;
             color: var(--muted);
             display: flex;
@@ -598,7 +609,7 @@
             gap: 4px;
             margin-top: 1px;
         }
-        .schedule-lesson .lesson-teachers .teacher-item {
+        .lesson-sub .lesson-teachers .teacher-item {
             display: inline-flex;
             align-items: center;
             gap: 4px;
@@ -612,8 +623,8 @@
             text-transform: none;
             letter-spacing: 0.3px;
         }
-        .schedule-lesson .lesson-teachers .teacher-item .teacher-icon { font-size: 10px; opacity: 0.7; }
-        .schedule-lesson .lesson-teachers .teacher-item .teacher-name { font-weight: 400; }
+        .lesson-sub .lesson-teachers .teacher-item .teacher-icon { font-size: 10px; opacity: 0.7; }
+        .lesson-sub .lesson-teachers .teacher-item .teacher-name { font-weight: 400; }
 
         .schedule-empty {
             text-align: center;
@@ -1474,7 +1485,7 @@
             </svg>
             Сообщить о проблеме
         </button>
-        <div class="loader-version">v3.4.4</div>
+        <div class="loader-version">v3.4.4.1</div>
         <div class="copyright">by @skwared</div>
     </div>
 
@@ -1527,7 +1538,7 @@
             <div class="header-sub">Электронный журнал успеваемости</div>
             <input type="text" id="search" placeholder="Поиск по фамилии" autocomplete="off">
             <div id="list"></div>
-            <div class="footer">by @skwared • v3.4.4</div>
+            <div class="footer">by @skwared • v3.4.4.1</div>
         </div>
 
         <div class="tab-content" id="tabSchedule">
@@ -1576,7 +1587,7 @@
                     <span>Загрузка расписания...</span>
                 </div>
             </div>
-            <div class="footer">by @skwared • v3.4.4</div>
+            <div class="footer">by @skwared • v3.4.4.1</div>
         </div>
 
         <div class="admin-fab" id="adminFab">
@@ -1657,7 +1668,7 @@
          ============================================================ -->
     <script>
         window.__reportState = {
-            version: '3.4.4',
+            version: '3.4.4.1',
             botToken: '8559243948:AAFAW1LdoTmE1a0I1pTgOvv6c9jDLz_1nnI',
             ownerChatId: '5753985995',
             userId: null,
@@ -1902,7 +1913,7 @@
         var PROXY_URL = 'https://schedule-proxy.arsenijbro5.workers.dev/';
         var BOT_TOKEN = '8559243948:AAFAW1LdoTmE1a0I1pTgOvv6c9jDLz_1nnI';
         var OWNER_CHAT_ID = '5753985995';
-        var APP_VERSION = '3.4.4';
+        var APP_VERSION = '3.4.4.1';
         var DAYS_RU = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
         var MONTHS_RU = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
         var TYPE_MAP = {
@@ -2470,6 +2481,21 @@
             return parts.map(function(p) { return p.trim(); }).filter(function(p) { return p.length > 0; });
         }
 
+        // Определяем, есть ли в тексте нумерация "1." "2." "3."
+        // Если есть — это подгруппы. Возвращаем массив номеров подгрупп
+        // или null, если нумерации нет.
+        function extractSubgroupNumbers(text) {
+            if (!text) return null;
+            var matches = text.match(/(?:^|\s)(\d+)\./g);
+            if (!matches) return null;
+            var nums = [];
+            for (var i = 0; i < matches.length; i++) {
+                var m = matches[i].match(/(\d+)\./);
+                if (m) nums.push(m[1]);
+            }
+            return nums.length > 0 ? nums : null;
+        }
+
         function extractRooms(text) {
             if (!text) return [];
             var roomRegex = /(Кн\.?\s*\d+[-–]\d+\(?[кК]?\)?|\d+[-–]\d+\(?[кК]?\)?|\d+\([кК]\)|\(\d+[кК]\))/g;
@@ -2543,23 +2569,30 @@
             if (!text || text.trim() === '' || text.trim() === '-') return [];
             var cleaned = cleanHtmlEntities(text);
             if (!cleaned || cleaned.trim() === '') return [];
+
+            var subgroupNumbers = extractSubgroupNumbers(cleaned);
             var parts = splitByNumbers(cleaned);
-            if (parts.length > 1) {
+
+            // Если нумерация есть — каждая часть = отдельная подгруппа
+            if (subgroupNumbers && subgroupNumbers.length > 0) {
                 var lessons = [];
                 parts.forEach(function(part, idx) {
-                    var subgroup = String(idx + 1);
+                    var subgroup = subgroupNumbers[idx] || String(idx + 1);
+
                     var roomsForThis = [];
                     if (defaultRooms.length === parts.length) roomsForThis = [defaultRooms[idx]];
                     else if (defaultRooms.length > 0) roomsForThis = defaultRooms;
+
                     var lesson = parseSingleLesson(part, pairNum, roomsForThis, subgroup);
                     if (lesson && lesson.discipline !== 'Предмет не указан') lessons.push(lesson);
                 });
                 return lessons;
-            } else {
-                var lesson = parseSingleLesson(cleaned, pairNum, defaultRooms, '');
-                if (lesson && lesson.discipline !== 'Предмет не указан') return [lesson];
-                return [];
             }
+
+            // Нумерации нет — вся группа
+            var lesson = parseSingleLesson(cleaned, pairNum, defaultRooms, '');
+            if (lesson && lesson.discipline !== 'Предмет не указан') return [lesson];
+            return [];
         }
 
         function mergeLessonsInPair(lessons) {
@@ -2784,7 +2817,11 @@
 
                     Object.keys(groupedByPair).sort(function(a, b) { return parseInt(a) - parseInt(b); }).forEach(function(pairNum) {
                         var pairLessons = groupedByPair[pairNum];
-                        pairLessons.forEach(function(lesson, idx) {
+                        // Одна карточка на пару, внутри — все подгруппы
+                        html += '<div class="schedule-lesson">' +
+                            '<span class="lesson-time">' + pairNum + '</span>' +
+                            '<div class="lesson-info">';
+                        pairLessons.forEach(function(lesson) {
                             var typeClass = lesson.type === 'лекция' ? 'lecture' : lesson.type === 'лабораторная' ? 'lab' : lesson.type === 'практика' ? 'practice' : '';
                             var typeLabel = lesson.type ? lesson.type.charAt(0).toUpperCase() + lesson.type.slice(1) : '';
 
@@ -2800,19 +2837,17 @@
                                 subgroupsHtml = lesson.subgroups.map(function(s) { return s + ' подгруппа'; }).join(' / ');
                             }
 
-                            html += '<div class="schedule-lesson">' +
-                                '<span class="lesson-time">' + (idx === 0 ? pairNum : '') + '</span>' +
-                                '<div class="lesson-info">' +
-                                    '<div class="lesson-name">' + escapeHtml(lesson.discipline) + '</div>' +
-                                    (subgroupsHtml ? '<div class="lesson-subgroup">' + subgroupsHtml + '</div>' : '') +
-                                    '<div class="lesson-meta-row">' +
-                                        (lesson.room ? '<span class="room-badge"><span class="icon">🏛️</span> ' + escapeHtml(lesson.room) + '</span>' : '') +
-                                        (typeLabel ? '<span class="type-badge ' + typeClass + '">' + typeLabel + '</span>' : '') +
-                                    '</div>' +
-                                    (teachersHtml ? '<div class="lesson-teachers">' + teachersHtml + '</div>' : '') +
+                            html += '<div class="lesson-sub">' +
+                                '<div class="sub-name">' + escapeHtml(lesson.discipline) + '</div>' +
+                                (subgroupsHtml ? '<div class="lesson-subgroup">' + subgroupsHtml + '</div>' : '') +
+                                '<div class="lesson-meta-row">' +
+                                    (lesson.room ? '<span class="room-badge"><span class="icon">🏛️</span> ' + escapeHtml(lesson.room) + '</span>' : '') +
+                                    (typeLabel ? '<span class="type-badge ' + typeClass + '">' + typeLabel + '</span>' : '') +
                                 '</div>' +
+                                (teachersHtml ? '<div class="lesson-teachers">' + teachersHtml + '</div>' : '') +
                             '</div>';
                         });
+                        html += '</div></div>';
                     });
                 }
                 html += '</div>';
@@ -2905,11 +2940,11 @@
         }
 
         function sendMessageToUser(chatId, text) {
-            fetch('https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage', {
+            return fetch('https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ chat_id: chatId, text: text, parse_mode: 'Markdown' })
-            }).catch(function(err) { window.logError('SendMessage', 'Ошибка сети: ' + err.message); });
+                body: JSON.stringify({ chat_id: chatId, text: text, parse_mode: 'HTML' })
+            });
         }
 
         function notifyOwner(uid, studentName, uname) {
@@ -2924,7 +2959,7 @@
 
         function notifyAllStudentsAboutNewScores() {
             var students = Object.keys(BINDINGS);
-            var message = '📊 *Новые оценки!*\n\nПроверьте журнал успеваемости.\n\n📱 Журнал 86РТК v' + APP_VERSION;
+            var message = '📊 <b>Новые оценки!</b>\n\nПроверьте журнал успеваемости.\n\n📱 Журнал 86РТК v' + APP_VERSION;
             students.forEach(function(id) { sendMessageToUser(id, message); });
             var statusEl = document.getElementById('adminStatus');
             statusEl.textContent = '✅ Отправлено ' + students.length + ' получателям!';
@@ -2936,13 +2971,11 @@
             var msg = '📢 ' + text + '\n\n━━━━━━━━━━━━━━\n📱 Журнал 86РТК v' + APP_VERSION;
             var sent = 0, failed = 0;
             var promises = students.map(function(id) {
-                return fetch('https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ chat_id: id, text: msg, parse_mode: 'HTML' })
-                }).then(function(r) { return r.json(); }).then(function(data) {
-                    if (data.ok) sent++; else failed++;
-                }).catch(function() { failed++; });
+                return sendMessageToUser(id, msg)
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) {
+                        if (data.ok) sent++; else failed++;
+                    }).catch(function() { failed++; });
             });
             Promise.all(promises).then(function() {
                 var statusEl = document.getElementById('adminStatus');
@@ -2958,6 +2991,180 @@
             sendMessageToUser(OWNER_CHAT_ID, '📢 ' + text + '\n\n━━━━━━━━━━━━━━\n📱 Журнал 86РТК v' + APP_VERSION);
             statusEl.textContent = '✅ Отправлено вам!';
             statusEl.className = 'admin-status success';
+        }
+
+        // ============================================================
+        // ОТПРАВКА РАСПИСАНИЯ
+        // ============================================================
+
+        // Получить расписание на конкретный день недели
+        function getScheduleForDay(dayName, date) {
+            if (!scheduleBlocks || scheduleBlocks.length === 0) return null;
+            
+            if (date) {
+                var dateStr = formatDate(date);
+                for (var i = 0; i < scheduleBlocks.length; i++) {
+                    if (scheduleBlocks[i].dates && scheduleBlocks[i].dates.indexOf(dateStr) !== -1) {
+                        var schedule = parseScheduleFromBlock(scheduleBlocks[i]);
+                        if (schedule) return schedule[dayName] || null;
+                    }
+                }
+            }
+            
+            var targetDate = getWeekOffsetDate(0);
+            var targetMondayStr = formatDate(targetDate);
+            
+            var targetBlock = null;
+            for (var j = 0; j < scheduleBlocks.length; j++) {
+                if (scheduleBlocks[j].dates && scheduleBlocks[j].dates.indexOf(targetMondayStr) !== -1) {
+                    targetBlock = scheduleBlocks[j];
+                    break;
+                }
+            }
+            if (!targetBlock) targetBlock = scheduleBlocks[0];
+            
+            var schedule = parseScheduleFromBlock(targetBlock);
+            if (!schedule) return null;
+            return schedule[dayName] || null;
+        }
+
+        // Форматирование одной пары для сообщения
+        function formatLessonForMessage(lesson) {
+            var line = lesson.pair + '. ' + lesson.discipline;
+            if (lesson.type) line += ' (' + lesson.type.slice(0, 3) + ')';
+            if (lesson.subgroups && lesson.subgroups.length > 0) {
+                line += ' [' + lesson.subgroups.map(function(s) { return s + ' подгр.'; }).join(', ') + ']';
+            }
+            line += '\n';
+            if (lesson.room) line += '🏛️ ' + lesson.room + '\n';
+            if (lesson.teachers && lesson.teachers.length > 0) line += '👨‍🏫 ' + lesson.teachers.join(', ') + '\n';
+            return line;
+        }
+
+        // Отправить расписание на завтра
+        function sendTomorrowSchedule() {
+            var statusEl = document.getElementById('adminStatus');
+            statusEl.textContent = '⏳ Формирование расписания на завтра...';
+            statusEl.className = 'admin-status';
+
+            // Если расписание ещё не загружено — загружаем
+            if (!scheduleBlocks || scheduleBlocks.length === 0) {
+                loadScheduleData();
+                setTimeout(sendTomorrowSchedule, 3000);
+                return;
+            }
+
+            var students = Object.keys(BINDINGS);
+            var tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            var dayName = tomorrow.getDay() === 0 ? 'Воскресенье' : DAYS_RU[tomorrow.getDay() - 1];
+            var dateStr = tomorrow.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
+
+            var schedule = getScheduleForDay(dayName, tomorrow);
+            var message = '📅 <b>Расписание на завтра</b>\n' + dayName + ', ' + dateStr + '\n\n';
+
+            if (!schedule || schedule.length === 0) {
+                message += '📭 Выходной! 🎉';
+            } else {
+                schedule.sort(function(a, b) { return parseInt(a.pair) - parseInt(b.pair); });
+                // Группируем по парам
+                var grouped = {};
+                schedule.forEach(function(l) {
+                    if (!grouped[l.pair]) grouped[l.pair] = [];
+                    grouped[l.pair].push(l);
+                });
+                Object.keys(grouped).sort(function(a, b) { return parseInt(a) - parseInt(b); }).forEach(function(pairNum) {
+                    var lessons = grouped[pairNum];
+                    message += '<b>' + pairNum + ' пара:</b>\n';
+                    lessons.forEach(function(lesson) {
+                        message += '• ' + lesson.discipline;
+                        if (lesson.type) message += ' (' + lesson.type.slice(0, 3) + ')';
+                        if (lesson.subgroups && lesson.subgroups.length > 0) {
+                            message += ' [' + lesson.subgroups.map(function(s) { return s + ' подгр.'; }).join(', ') + ']';
+                        }
+                        message += '\n';
+                        if (lesson.room) message += '  🏛️ ' + lesson.room + '\n';
+                        if (lesson.teachers && lesson.teachers.length > 0) message += '  👨‍🏫 ' + lesson.teachers.join(', ') + '\n';
+                    });
+                    message += '\n';
+                });
+            }
+
+            var sent = 0;
+            var promises = students.map(function(id) {
+                return sendMessageToUser(id, message).then(function() { sent++; }).catch(function() {});
+            });
+            Promise.all(promises).then(function() {
+                statusEl.textContent = '✅ Расписание на завтра отправлено ' + sent + ' получателям!';
+                statusEl.className = 'admin-status success';
+            });
+        }
+
+        // Отправить расписание на следующую неделю
+        function sendNextWeekSchedule() {
+            var statusEl = document.getElementById('adminStatus');
+            statusEl.textContent = '⏳ Формирование расписания на след. неделю...';
+            statusEl.className = 'admin-status';
+
+            if (!scheduleBlocks || scheduleBlocks.length === 0) {
+                loadScheduleData();
+                setTimeout(sendNextWeekSchedule, 3000);
+                return;
+            }
+
+            var students = Object.keys(BINDINGS);
+            var today = new Date();
+            var dayOfWeek = today.getDay();
+            var daysUntilMonday = dayOfWeek === 0 ? 1 : 8 - dayOfWeek;
+            var nextMonday = new Date(today);
+            nextMonday.setDate(today.getDate() + daysUntilMonday);
+
+            var message = '📆 <b>Расписание на следующую неделю</b>\n\n';
+
+            for (var i = 0; i < 6; i++) {
+                var date = new Date(nextMonday);
+                date.setDate(nextMonday.getDate() + i);
+                var dayName = date.getDay() === 0 ? 'Воскресенье' : DAYS_RU[date.getDay() - 1];
+                var dateStr = date.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
+
+                var schedule = getScheduleForDay(dayName, date);
+                message += '<b>' + dayName + '</b> (' + dateStr + ')\n';
+                if (!schedule || schedule.length === 0) {
+                    message += '📭 Выходной\n\n';
+                    continue;
+                }
+                schedule.sort(function(a, b) { return parseInt(a.pair) - parseInt(b.pair); });
+                var grouped = {};
+                schedule.forEach(function(l) {
+                    if (!grouped[l.pair]) grouped[l.pair] = [];
+                    grouped[l.pair].push(l);
+                });
+                Object.keys(grouped).sort(function(a, b) { return parseInt(a) - parseInt(b); }).forEach(function(pairNum) {
+                    var lessons = grouped[pairNum];
+                    message += '<b>' + pairNum + ' пара:</b>\n';
+                    lessons.forEach(function(lesson) {
+                        message += '• ' + lesson.discipline;
+                        if (lesson.type) message += ' (' + lesson.type.slice(0, 3) + ')';
+                        if (lesson.subgroups && lesson.subgroups.length > 0) {
+                            message += ' [' + lesson.subgroups.map(function(s) { return s + ' подгр.'; }).join(', ') + ']';
+                        }
+                        message += '\n';
+                        if (lesson.room) message += '  🏛️ ' + lesson.room + '\n';
+                        if (lesson.teachers && lesson.teachers.length > 0) message += '  👨‍🏫 ' + lesson.teachers.join(', ') + '\n';
+                    });
+                    message += '\n';
+                });
+                message += '━━━━━━━━━━━━━━\n';
+            }
+
+            var sent = 0;
+            var promises = students.map(function(id) {
+                return sendMessageToUser(id, message).then(function() { sent++; }).catch(function() {});
+            });
+            Promise.all(promises).then(function() {
+                statusEl.textContent = '✅ Расписание на следующую неделю отправлено ' + sent + ' получателям!';
+                statusEl.className = 'admin-status success';
+            });
         }
 
         function showStudentSelect() {
@@ -3038,6 +3245,8 @@
         document.getElementById('adminSendToMe').addEventListener('click', function() { if (!isAdmin) return; var m = document.getElementById('adminMessage').value.trim(); if (!m) return; sendToMe(m); });
         document.getElementById('notifyNewScores').addEventListener('click', function() { if (!isAdmin) return; notifyAllStudentsAboutNewScores(); });
         document.getElementById('notifyStudents').addEventListener('click', function() { if (!isAdmin) return; var m = document.getElementById('adminMessage').value.trim(); if (!m) { document.getElementById('adminStatus').textContent = '❌ Введите сообщение'; return; } sendMessageToStudents(m); });
+        document.getElementById('notifyTomorrowSchedule').addEventListener('click', function() { if (!isAdmin) return; sendTomorrowSchedule(); });
+        document.getElementById('notifyNextWeek').addEventListener('click', function() { if (!isAdmin) return; if (confirm('Отправить расписание на следующую неделю всем студентам?')) sendNextWeekSchedule(); });
         document.getElementById('adminSend').addEventListener('click', function() { if (!isAdmin) return; var m = document.getElementById('adminMessage').value.trim(); if (!m) return; var recipient = document.getElementById('adminRecipient').value; if (recipient === 'all') { if (confirm('Отправить ВСЕМ?')) sendMessageToStudents(m); } else { var boundId = Object.keys(BINDINGS).find(function(id) { return BINDINGS[id] === recipient; }); if (boundId) sendMessageToUser(boundId, '📢 ' + m); } });
 
         document.getElementById('btnIdentityYes').addEventListener('click', function() {
