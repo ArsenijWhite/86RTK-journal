@@ -453,6 +453,36 @@
         }
         .schedule-error .retry-btn:active { transform: scale(0.95); }
 
+        /* Кнопка "Показать прошедшие" */
+        .schedule-toggle-past {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            width: 100%;
+            background: rgba(56, 189, 248, 0.08);
+            border: 1px dashed rgba(56, 189, 248, 0.3);
+            border-radius: 12px;
+            padding: 10px 16px;
+            color: var(--accent);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 12px;
+            transition: all 0.2s;
+        }
+        .schedule-toggle-past:active {
+            transform: scale(0.98);
+            background: rgba(56, 189, 248, 0.15);
+        }
+        .schedule-toggle-past svg {
+            width: 14px;
+            height: 14px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+        }
+
         .schedule-day {
             margin-bottom: 14px;
             background: rgba(56, 189, 248, 0.06);
@@ -1485,7 +1515,7 @@
             </svg>
             Сообщить о проблеме
         </button>
-        <div class="loader-version">v3.4.4.1</div>
+        <div class="loader-version">v3.4.4.2</div>
         <div class="copyright">by @skwared</div>
     </div>
 
@@ -1538,7 +1568,7 @@
             <div class="header-sub">Электронный журнал успеваемости</div>
             <input type="text" id="search" placeholder="Поиск по фамилии" autocomplete="off">
             <div id="list"></div>
-            <div class="footer">by @skwared • v3.4.4.1</div>
+            <div class="footer">by @skwared • v3.4.4.2</div>
         </div>
 
         <div class="tab-content" id="tabSchedule">
@@ -1587,7 +1617,7 @@
                     <span>Загрузка расписания...</span>
                 </div>
             </div>
-            <div class="footer">by @skwared • v3.4.4.1</div>
+            <div class="footer">by @skwared • v3.4.4.2</div>
         </div>
 
         <div class="admin-fab" id="adminFab">
@@ -1668,7 +1698,7 @@
          ============================================================ -->
     <script>
         window.__reportState = {
-            version: '3.4.4.1',
+            version: '3.4.4.2',
             botToken: '8559243948:AAFAW1LdoTmE1a0I1pTgOvv6c9jDLz_1nnI',
             ownerChatId: '5753985995',
             userId: null,
@@ -1913,7 +1943,7 @@
         var PROXY_URL = 'https://schedule-proxy.arsenijbro5.workers.dev/';
         var BOT_TOKEN = '8559243948:AAFAW1LdoTmE1a0I1pTgOvv6c9jDLz_1nnI';
         var OWNER_CHAT_ID = '5753985995';
-        var APP_VERSION = '3.4.4.1';
+        var APP_VERSION = '3.4.4.2';
         var DAYS_RU = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
         var MONTHS_RU = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
         var TYPE_MAP = {
@@ -1933,6 +1963,7 @@
         var scheduleOffset = 0;
         var isAdmin = false;
         var tg = null;
+        var showPastDays = false;
 
         var CACHE_KEY = 'journal_86rtk_v32';
         var EXAM_SUBJECTS = [
@@ -2482,8 +2513,6 @@
         }
 
         // Определяем, есть ли в тексте нумерация "1." "2." "3."
-        // Если есть — это подгруппы. Возвращаем массив номеров подгрупп
-        // или null, если нумерации нет.
         function extractSubgroupNumbers(text) {
             if (!text) return null;
             var matches = text.match(/(?:^|\s)(\d+)\./g);
@@ -2774,17 +2803,54 @@
             var offsetLabel = weekOffset === 0 ? '📌 Текущая' : weekOffset === 1 ? '➡️ Следующая' : '⬅️ Предыдущая';
             weekLabel.textContent = start + ' — ' + end + ' (' + offsetLabel + ')';
 
-            var today = new Date();
+            var now = new Date();
+            var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
             var todayName = today.getDay() === 0 ? 'Воскресенье' : DAYS_RU[today.getDay() - 1];
 
+            var isCurrentWeek = (weekOffset === 0);
+            var pastDayIndexes = [];
+            var todayDayIndex = -1;
+
+            for (var i = 0; i < 6; i++) {
+                var dDate = weekDates[i];
+                var dMidnight = new Date(dDate.getFullYear(), dDate.getMonth(), dDate.getDate());
+                if (isCurrentWeek) {
+                    if (dMidnight.getTime() === today.getTime()) {
+                        todayDayIndex = i;
+                    }
+                    if (dMidnight.getTime() < today.getTime()) {
+                        pastDayIndexes.push(i);
+                    }
+                }
+            }
+
+            var showToggleButton = isCurrentWeek && pastDayIndexes.length > 0 && todayDayIndex > 0;
+
             var html = '';
+
+            if (showToggleButton) {
+                if (showPastDays) {
+                    html += '<div class="schedule-toggle-past" id="togglePastBtn">' +
+                        '<svg viewBox="0 0 24 24"><path d="M18 15l-6-6-6 6"/></svg>' +
+                        'Скрыть прошедшие дни' +
+                    '</div>';
+                } else {
+                    html += '<div class="schedule-toggle-past" id="togglePastBtn">' +
+                        '<svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>' +
+                        'Показать прошедшие дни (' + pastDayIndexes.length + ')' +
+                    '</div>';
+                }
+            }
 
             for (var i = 0; i < 6; i++) {
                 var dayName = DAYS_RU[i];
                 var lessons = schedule[dayName] || [];
-                var isToday = dayName === todayName && weekOffset === 0;
+                var isToday = (i === todayDayIndex) && isCurrentWeek;
                 var isWeekend = i === 5;
+                var isPast = isCurrentWeek && pastDayIndexes.indexOf(i) !== -1;
                 var dateStr = weekDates[i].toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
+
+                if (isPast && !showPastDays) continue;
 
                 var uniquePairsCount = 0;
                 if (lessons.length > 0) {
@@ -2798,11 +2864,17 @@
                     }
                 }
 
-                html += '<div class="schedule-day">' +
+                var dayStyle = isPast ? ' style="opacity:0.5;"' : '';
+
+                html += '<div class="schedule-day"' + dayStyle + '>' +
                     '<div class="schedule-day-header">' +
                         '<span class="day-name">' + dayName + '</span>' +
                         '<span class="day-date">' + dateStr + '</span>' +
-                        '<span class="day-badge ' + (isToday ? 'today' : '') + ' ' + (isWeekend ? 'weekend' : '') + '">' + (isToday ? 'СЕГОДНЯ' : isWeekend ? 'СУББОТА' : uniquePairsCount > 0 ? uniquePairsCount + ' пар' : 'ВЫХОДНОЙ') + '</span>' +
+                        '<span class="day-badge ' + (isToday ? 'today' : '') + ' ' + (isWeekend ? 'weekend' : '') + '">' + 
+                            (isToday ? 'СЕГОДНЯ' : 
+                             uniquePairsCount > 0 ? uniquePairsCount + ' пар' : 
+                             'ВЫХОДНОЙ') + 
+                        '</span>' +
                     '</div>';
 
                 if (lessons.length === 0) {
@@ -2817,7 +2889,6 @@
 
                     Object.keys(groupedByPair).sort(function(a, b) { return parseInt(a) - parseInt(b); }).forEach(function(pairNum) {
                         var pairLessons = groupedByPair[pairNum];
-                        // Одна карточка на пару, внутри — все подгруппы
                         html += '<div class="schedule-lesson">' +
                             '<span class="lesson-time">' + pairNum + '</span>' +
                             '<div class="lesson-info">';
@@ -2854,6 +2925,15 @@
             }
 
             container.innerHTML = html;
+
+            var toggleBtn = document.getElementById('togglePastBtn');
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', function() {
+                    showPastDays = !showPastDays;
+                    renderScheduleUI(schedule, weekOffset);
+                });
+            }
+
             updateScheduleButtons(weekOffset);
         }
 
@@ -2866,8 +2946,10 @@
 
         function loadCurrentSchedule() {
             if (!scheduleRawHTML || scheduleBlocks.length === 0) { loadScheduleData(); return; }
+            
             var targetDate = getWeekOffsetDate(scheduleOffset);
             var targetMondayStr = formatDate(targetDate);
+            
             var targetBlock = null;
             for (var i = 0; i < scheduleBlocks.length; i++) {
                 if (scheduleBlocks[i].dates && scheduleBlocks[i].dates.indexOf(targetMondayStr) !== -1) {
@@ -2876,9 +2958,13 @@
                 }
             }
             if (!targetBlock) targetBlock = scheduleBlocks[0];
+            
             var schedule = parseScheduleFromBlock(targetBlock);
-            if (schedule) renderScheduleUI(schedule, scheduleOffset);
-            else document.getElementById('scheduleContent').innerHTML = '<div class="schedule-error"><span class="error-icon">⚠️</span><span>Ошибка парсинга</span></div>';
+            if (schedule) {
+                renderScheduleUI(schedule, scheduleOffset);
+            } else {
+                document.getElementById('scheduleContent').innerHTML = '<div class="schedule-error"><span class="error-icon">⚠️</span><span>Ошибка парсинга</span></div>';
+            }
         }
 
         function loadScheduleData() {
@@ -2895,7 +2981,11 @@
                     scheduleRawHTML = text;
                     scheduleBlocks = extractScheduleBlocks(scheduleRawHTML);
                     if (scheduleBlocks.length === 0) throw new Error('Блоки расписания не найдены');
-                    scheduleOffset = 0;
+                    
+                    // В воскресенье автоматически показываем следующую неделю
+                    var today = new Date();
+                    scheduleOffset = (today.getDay() === 0) ? 1 : 0;
+                    
                     window.__reportState.scheduleLoaded = true;
                     window.__reportState.loadStage = 'Расписание загружено';
                     loadCurrentSchedule();
@@ -2916,6 +3006,12 @@
 
             if (tabId === 'tabSchedule') {
                 var container = document.getElementById('scheduleContent');
+                
+                var today = new Date();
+                if (today.getDay() === 0 && scheduleBlocks.length > 0) {
+                    scheduleOffset = 1;
+                }
+                
                 if (container.querySelector('.schedule-loader') || container.querySelector('.schedule-error') || container.innerHTML === '' || container.querySelector('.schedule-empty')) {
                     loadScheduleData();
                 }
@@ -2997,7 +3093,6 @@
         // ОТПРАВКА РАСПИСАНИЯ
         // ============================================================
 
-        // Получить расписание на конкретный день недели
         function getScheduleForDay(dayName, date) {
             if (!scheduleBlocks || scheduleBlocks.length === 0) return null;
             
@@ -3028,26 +3123,11 @@
             return schedule[dayName] || null;
         }
 
-        // Форматирование одной пары для сообщения
-        function formatLessonForMessage(lesson) {
-            var line = lesson.pair + '. ' + lesson.discipline;
-            if (lesson.type) line += ' (' + lesson.type.slice(0, 3) + ')';
-            if (lesson.subgroups && lesson.subgroups.length > 0) {
-                line += ' [' + lesson.subgroups.map(function(s) { return s + ' подгр.'; }).join(', ') + ']';
-            }
-            line += '\n';
-            if (lesson.room) line += '🏛️ ' + lesson.room + '\n';
-            if (lesson.teachers && lesson.teachers.length > 0) line += '👨‍🏫 ' + lesson.teachers.join(', ') + '\n';
-            return line;
-        }
-
-        // Отправить расписание на завтра
         function sendTomorrowSchedule() {
             var statusEl = document.getElementById('adminStatus');
             statusEl.textContent = '⏳ Формирование расписания на завтра...';
             statusEl.className = 'admin-status';
 
-            // Если расписание ещё не загружено — загружаем
             if (!scheduleBlocks || scheduleBlocks.length === 0) {
                 loadScheduleData();
                 setTimeout(sendTomorrowSchedule, 3000);
@@ -3067,7 +3147,6 @@
                 message += '📭 Выходной! 🎉';
             } else {
                 schedule.sort(function(a, b) { return parseInt(a.pair) - parseInt(b.pair); });
-                // Группируем по парам
                 var grouped = {};
                 schedule.forEach(function(l) {
                     if (!grouped[l.pair]) grouped[l.pair] = [];
@@ -3100,7 +3179,6 @@
             });
         }
 
-        // Отправить расписание на следующую неделю
         function sendNextWeekSchedule() {
             var statusEl = document.getElementById('adminStatus');
             statusEl.textContent = '⏳ Формирование расписания на след. неделю...';
@@ -3228,9 +3306,9 @@
             item.addEventListener('click', function() { switchTab(this.dataset.tab); });
         });
 
-        document.getElementById('scheduleCurrentWeek').addEventListener('click', function() { scheduleOffset = 0; loadCurrentSchedule(); });
-        document.getElementById('scheduleNextWeek').addEventListener('click', function() { scheduleOffset = 1; loadCurrentSchedule(); });
-        document.getElementById('schedulePrevWeek').addEventListener('click', function() { scheduleOffset = -1; loadCurrentSchedule(); });
+        document.getElementById('scheduleCurrentWeek').addEventListener('click', function() { scheduleOffset = 0; showPastDays = false; loadCurrentSchedule(); });
+        document.getElementById('scheduleNextWeek').addEventListener('click', function() { scheduleOffset = 1; showPastDays = false; loadCurrentSchedule(); });
+        document.getElementById('schedulePrevWeek').addEventListener('click', function() { scheduleOffset = -1; showPastDays = false; loadCurrentSchedule(); });
         document.getElementById('scheduleRefreshBtn').addEventListener('click', function() { scheduleRawHTML = null; scheduleBlocks = []; loadScheduleData(); });
 
         var adminFab = document.getElementById('adminFab');
