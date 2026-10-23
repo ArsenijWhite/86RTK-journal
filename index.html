@@ -36,6 +36,7 @@
         }
         body { 
             padding: 16px; 
+            padding-top: calc(16px + env(safe-area-inset-top)); 
             padding-bottom: 100px; 
         }
 
@@ -453,7 +454,6 @@
         }
         .schedule-error .retry-btn:active { transform: scale(0.95); }
 
-        /* Кнопка "Показать прошедшие" */
         .schedule-toggle-past {
             display: flex;
             align-items: center;
@@ -805,6 +805,7 @@
             align-items: center;
             justify-content: space-between;
             margin-bottom: 4px;
+            gap: 8px;
         }
         .header-title {
             font-size: 22px;
@@ -812,6 +813,7 @@
             letter-spacing: -0.3px;
             display: flex;
             align-items: center;
+            min-width: 0;
         }
         .header-logo {
             display: inline-flex;
@@ -819,6 +821,7 @@
             justify-content: center;
             margin-right: 8px;
             vertical-align: middle;
+            flex-shrink: 0;
         }
         .mini-journal-icon {
             width: 28px;
@@ -838,6 +841,41 @@
             background: rgba(255,255,255,0.6);
             border-radius: 1px;
             box-shadow: 0 7px 0 rgba(255,255,255,0.6), 0 14px 0 rgba(255,255,255,0.6);
+        }
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        .changelog-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+            color: var(--muted);
+        }
+        .changelog-btn:active {
+            transform: scale(0.92);
+            background: rgba(56, 189, 248, 0.1);
+            border-color: rgba(56, 189, 248, 0.3);
+            color: var(--accent);
+        }
+        .changelog-btn svg {
+            width: 20px;
+            height: 20px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
         }
         .profile-btn {
             width: 44px;
@@ -1008,40 +1046,6 @@
             font-weight: 800;
             flex-shrink: 0;
             pointer-events: none;
-        }
-        .exam-tooltip {
-            display: none;
-            background: rgba(15, 23, 42, 0.95);
-            backdrop-filter: blur(10px);
-            border: 1px solid var(--exam-color);
-            border-radius: 10px;
-            padding: 10px 14px;
-            font-size: 11px;
-            color: var(--text);
-            line-height: 1.5;
-            max-width: 100%;
-            margin-top: 6px;
-            animation: fadeIn 0.25s ease;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.5);
-            cursor: pointer;
-            transition: opacity 0.2s;
-        }
-        .exam-tooltip.open { display: block; }
-        .exam-tooltip .tooltip-title {
-            color: var(--exam-color);
-            font-weight: 600;
-            font-size: 12px;
-            margin-bottom: 4px;
-        }
-        .exam-tooltip .tooltip-text { color: var(--muted); }
-        .exam-tooltip .tooltip-text strong { color: var(--text); }
-        .exam-tooltip .tooltip-hint {
-            font-size: 9px;
-            color: rgba(255,255,255,0.25);
-            margin-top: 6px;
-            text-align: center;
-            border-top: 1px solid rgba(255,255,255,0.05);
-            padding-top: 6px;
         }
         .marks-box {
             display: none;
@@ -1457,6 +1461,106 @@
         .report-status.success { color: var(--success); }
         .report-status.error { color: var(--error); }
 
+        /* ===== Список обновлений ===== */
+        .changelog-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 2600;
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .changelog-overlay.open { display: flex; align-items: center; justify-content: center; }
+        .changelog-panel {
+            background: var(--card);
+            border-radius: 20px;
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+            max-width: 420px;
+            width: 100%;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            animation: slideUp 0.3s ease;
+        }
+        .changelog-header {
+            padding: 18px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+        .changelog-header .changelog-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .changelog-header .changelog-close {
+            margin-left: auto;
+            color: var(--muted);
+            font-size: 22px;
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.04);
+        }
+        .changelog-header .changelog-close:active { transform: scale(0.92); }
+        .changelog-body {
+            padding: 16px 20px 20px;
+            overflow-y: auto;
+        }
+        .changelog-entry { margin-bottom: 18px; }
+        .changelog-entry:last-child { margin-bottom: 0; }
+        .changelog-version {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 8px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid rgba(56, 189, 248, 0.15);
+        }
+        .changelog-section { margin-bottom: 10px; }
+        .changelog-section:last-child { margin-bottom: 0; }
+        .changelog-section-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 6px;
+            letter-spacing: 0.2px;
+        }
+        .changelog-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        .changelog-list li {
+            font-size: 12px;
+            color: var(--muted);
+            line-height: 1.5;
+            padding: 3px 0 3px 14px;
+            position: relative;
+        }
+        .changelog-list li::before {
+            content: "•";
+            position: absolute;
+            left: 2px;
+            color: var(--accent);
+            font-weight: 700;
+        }
+
         .search-hidden #search,
         .search-hidden .header-sub {
             display: none;
@@ -1476,9 +1580,6 @@
 </head>
 <body>
 
-    <!-- ============================================================
-         СКРИПТ 0: Общий список привязок
-         ============================================================ -->
     <script>
         window.BINDINGS = {
             '5753985995': 'Беляцкий',
@@ -1546,6 +1647,16 @@
         </div>
     </div>
 
+    <div class="changelog-overlay" id="changelogOverlay">
+        <div class="changelog-panel">
+            <div class="changelog-header">
+                <div class="changelog-title">📋 Что нового</div>
+                <div class="changelog-close" id="changelogClose">✕</div>
+            </div>
+            <div class="changelog-body" id="changelogBody"></div>
+        </div>
+    </div>
+
     <div id="main-content">
         
         <div class="tab-content active" id="tabJournal">
@@ -1554,15 +1665,25 @@
                     <span class="header-logo"><span class="mini-journal-icon"></span></span>
                     Журнал 86РТК
                 </div>
-                <div class="profile-btn" id="profileBtn">
-                    <span class="ring"></span>
-                    <span class="profile-icon" id="profileIcon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                            <circle cx="12" cy="7" r="4"/>
+                <div class="header-actions">
+                    <div class="changelog-btn" id="changelogBtn" title="Что нового">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+                            <rect x="9" y="3" width="6" height="4" rx="1" ry="1"/>
+                            <line x1="9" y1="12" x2="15" y2="12"/>
+                            <line x1="9" y1="16" x2="13" y2="16"/>
                         </svg>
-                    </span>
-                    <span class="mode-label" id="modeLabel">ЖУРНАЛ</span>
+                    </div>
+                    <div class="profile-btn" id="profileBtn">
+                        <span class="ring"></span>
+                        <span class="profile-icon" id="profileIcon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                <circle cx="12" cy="7" r="4"/>
+                            </svg>
+                        </span>
+                        <span class="mode-label" id="modeLabel">ЖУРНАЛ</span>
+                    </div>
                 </div>
             </div>
             <div class="header-sub">Электронный журнал успеваемости</div>
@@ -1693,9 +1814,6 @@
         </button>
     </nav>
 
-    <!-- ============================================================
-         СКРИПТ 1: Модуль отчёта
-         ============================================================ -->
     <script>
         window.__reportState = {
             version: '3.4.4.2',
@@ -1931,9 +2049,6 @@
 
     <script async src="https://telegram.org/js/telegram-web-app.js?56" onload="window.__tgLoaded = true; if(window.detectEnvironment) window.detectEnvironment(); console.log('✅ Telegram WebApp скрипт загружен');"></script>
 
-    <!-- ============================================================
-         СКРИПТ 2: Основная логика
-         ============================================================ -->
     <script>
     (function() {
         'use strict';
@@ -1950,6 +2065,48 @@
             'Лек': 'лекция', 'ЛР': 'лабораторная', 'ПР': 'практика',
             'Лекция': 'лекция', 'Лабораторная': 'лабораторная', 'Практика': 'практика'
         };
+
+        // ============================================================
+        // СПИСОК ОБНОВЛЕНИЙ — редактируй здесь
+        // ============================================================
+        var CHANGELOG = [
+            {
+                version: '3.4.4.2',
+                sections: [
+                    {
+                        title: '✨ Новое',
+                        items: [
+                            'Кнопка «Список обновлений» — все изменения бота в одном месте',
+                            'Полноэкранный режим с корректным отображением на устройствах с «вырезом»',
+                            'Кнопка «Сообщить о проблеме» доступна прямо с экрана загрузки'
+                        ]
+                    },
+                    {
+                        title: '📅 Расписание',
+                        items: [
+                            'Автопоказ следующей недели по воскресеньям',
+                            'Кнопка «Показать прошедшие дни» — не теряйте прошедшие пары',
+                            'Улучшено распознавание подгрупп, кабинетов и преподавателей',
+                            'Корректное отображение пар с несколькими подгруппами'
+                        ]
+                    },
+                    {
+                        title: '📊 Журнал',
+                        items: [
+                            'Экзаменационные предметы выделены цветом и значком «!»',
+                            'Показ вашей карточки по клику на аватар'
+                        ]
+                    },
+                    {
+                        title: '🛠️ Исправлено',
+                        items: [
+                            'Обрезка текста в верхней части экрана',
+                            'Мелкие баги парсера расписания'
+                        ]
+                    }
+                ]
+            }
+        ];
 
         var BINDINGS = window.BINDINGS || {};
 
@@ -2162,16 +2319,9 @@
 
                         var avgDisplay = sub.avg && sub.avg !== '—' ? sub.avg : '—';
                         var examClass = isExam ? 'exam-subject' : '';
-                        var tooltipId = 'tooltip_' + Math.random().toString(36).substr(2, 9);
                         var examIcon = isExam ? '<span class="exam-icon">!</span>' : '';
-                        var tooltipHtml = isExam ?
-                            '<div class="exam-tooltip" id="' + tooltipId + '">' +
-                                '<div class="tooltip-title">📝 Экзаменационный предмет</div>' +
-                                '<div class="tooltip-text">Итоговая отметка может <strong>отличаться</strong> от текущей успеваемости.</div>' +
-                                '<div class="tooltip-hint">Нажмите, чтобы скрыть</div>' +
-                            '</div>' : '';
 
-                        return '<div class="sub-item ' + examClass + '" data-tooltip="' + tooltipId + '" data-tooltip-shown="false">' +
+                        return '<div class="sub-item ' + examClass + '">' +
                             '<div class="sub-row">' +
                                 '<div class="subject-name-wrapper">' +
                                     '<span>' + escapeHtml(sub.subject || 'Без названия') + '</span>' +
@@ -2182,7 +2332,6 @@
                             '<div class="marks-box">' +
                                 '<div class="marks-row">' + marksHtml + '</div>' +
                             '</div>' +
-                            tooltipHtml +
                         '</div>';
                     }).join('');
                 } else {
@@ -2219,19 +2368,6 @@
                     e.stopPropagation();
                     var marksBox = this.querySelector('.marks-box');
                     if (marksBox) marksBox.classList.toggle('open');
-
-                    if (this.classList.contains('exam-subject')) {
-                        var tooltipId = this.dataset.tooltip;
-                        var tooltip = document.getElementById(tooltipId);
-                        if (tooltip && this.dataset.tooltipShown === 'false') {
-                            tooltip.classList.add('open');
-                            this.dataset.tooltipShown = 'true';
-                            tooltip.onclick = function(e) {
-                                e.stopPropagation();
-                                this.classList.remove('open');
-                            };
-                        }
-                    }
                 });
             });
 
@@ -2512,7 +2648,6 @@
             return parts.map(function(p) { return p.trim(); }).filter(function(p) { return p.length > 0; });
         }
 
-        // Определяем, есть ли в тексте нумерация "1." "2." "3."
         function extractSubgroupNumbers(text) {
             if (!text) return null;
             var matches = text.match(/(?:^|\s)(\d+)\./g);
@@ -2602,7 +2737,6 @@
             var subgroupNumbers = extractSubgroupNumbers(cleaned);
             var parts = splitByNumbers(cleaned);
 
-            // Если нумерация есть — каждая часть = отдельная подгруппа
             if (subgroupNumbers && subgroupNumbers.length > 0) {
                 var lessons = [];
                 parts.forEach(function(part, idx) {
@@ -2618,7 +2752,6 @@
                 return lessons;
             }
 
-            // Нумерации нет — вся группа
             var lesson = parseSingleLesson(cleaned, pairNum, defaultRooms, '');
             if (lesson && lesson.discipline !== 'Предмет не указан') return [lesson];
             return [];
@@ -2982,7 +3115,6 @@
                     scheduleBlocks = extractScheduleBlocks(scheduleRawHTML);
                     if (scheduleBlocks.length === 0) throw new Error('Блоки расписания не найдены');
                     
-                    // В воскресенье автоматически показываем следующую неделю
                     var today = new Date();
                     scheduleOffset = (today.getDay() === 0) ? 1 : 0;
                     
@@ -3088,10 +3220,6 @@
             statusEl.textContent = '✅ Отправлено вам!';
             statusEl.className = 'admin-status success';
         }
-
-        // ============================================================
-        // ОТПРАВКА РАСПИСАНИЯ
-        // ============================================================
 
         function getScheduleForDay(dayName, date) {
             if (!scheduleBlocks || scheduleBlocks.length === 0) return null;
@@ -3271,6 +3399,39 @@
             popup.classList.add('open');
         }
 
+        // ============================================================
+        // СПИСОК ОБНОВЛЕНИЙ — рендер и открытие
+        // ============================================================
+        function renderChangelog() {
+            var body = document.getElementById('changelogBody');
+            if (!body) return;
+            var html = '';
+            CHANGELOG.forEach(function(entry) {
+                html += '<div class="changelog-entry">';
+                html += '<div class="changelog-version">v' + escapeHtml(entry.version) + '</div>';
+                entry.sections.forEach(function(section) {
+                    html += '<div class="changelog-section">';
+                    html += '<div class="changelog-section-title">' + escapeHtml(section.title) + '</div>';
+                    html += '<ul class="changelog-list">';
+                    section.items.forEach(function(item) {
+                        html += '<li>' + escapeHtml(item) + '</li>';
+                    });
+                    html += '</ul></div>';
+                });
+                html += '</div>';
+            });
+            body.innerHTML = html;
+        }
+
+        function openChangelog() {
+            renderChangelog();
+            document.getElementById('changelogOverlay').classList.add('open');
+        }
+
+        function closeChangelog() {
+            document.getElementById('changelogOverlay').classList.remove('open');
+        }
+
         window.openCard = openCard;
         window.closeCard = closeCard;
         window.toggleMarks = function(id) { var el = document.getElementById(id); if (el) el.classList.toggle('open'); };
@@ -3283,6 +3444,8 @@
         window.sendToMe = sendToMe;
         window.notifyOwner = notifyOwner;
         window.escapeHtml = escapeHtml;
+        window.openChangelog = openChangelog;
+        window.closeChangelog = closeChangelog;
 
         document.getElementById('profileBtn').addEventListener('click', function(e) {
             e.stopPropagation();
@@ -3292,6 +3455,17 @@
             } else {
                 showStudentSelect();
             }
+        });
+
+        document.getElementById('changelogBtn').addEventListener('click', function(e) {
+            e.stopPropagation();
+            openChangelog();
+        });
+
+        document.getElementById('changelogClose').addEventListener('click', closeChangelog);
+
+        document.getElementById('changelogOverlay').addEventListener('click', function(e) {
+            if (e.target === this) closeChangelog();
         });
 
         document.getElementById('cardOverlay').addEventListener('click', function(e) {
@@ -3365,6 +3539,7 @@
             if (tg) {
                 tg.onEvent('backButtonClicked', function() {
                     if (document.getElementById('reportOverlay').classList.contains('open')) window.closeReportDialog();
+                    else if (document.getElementById('changelogOverlay').classList.contains('open')) closeChangelog();
                     else if (document.getElementById('cardOverlay').classList.contains('open')) closeCard();
                     else if (document.getElementById('adminPanel').classList.contains('open')) document.getElementById('adminPanel').classList.remove('open');
                     else if (document.getElementById('tabSchedule').classList.contains('active')) switchTab('tabJournal');
