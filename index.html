@@ -36,7 +36,8 @@
         }
         body { 
             padding: 16px; 
-            padding-top: calc(16px + env(safe-area-inset-top)); 
+            /* Увеличенный отступ сверху, чтобы не перекрывало кнопками Telegram */
+            padding-top: calc(60px + env(safe-area-inset-top)); 
             padding-bottom: 100px; 
         }
 
@@ -2066,9 +2067,6 @@
             'Лекция': 'лекция', 'Лабораторная': 'лабораторная', 'Практика': 'практика'
         };
 
-        // ============================================================
-        // СПИСОК ОБНОВЛЕНИЙ — редактируй здесь
-        // ============================================================
         var CHANGELOG = [
             {
                 version: '3.4.4.2',
@@ -2230,7 +2228,8 @@
         function initTelegram() {
             if (window.Telegram && window.Telegram.WebApp) {
                 tg = window.Telegram.WebApp;
-                try { tg.ready(); tg.expand(); } catch(e) {}
+                // try { tg.ready(); tg.expand(); } catch(e) {} // Отключено, чтобы не перекрывало контент
+                try { tg.ready(); } catch(e) {}
                 
                 var user = tg.initDataUnsafe && tg.initDataUnsafe.user;
                 if (user) {
@@ -3399,9 +3398,6 @@
             popup.classList.add('open');
         }
 
-        // ============================================================
-        // СПИСОК ОБНОВЛЕНИЙ — рендер и открытие
-        // ============================================================
         function renderChangelog() {
             var body = document.getElementById('changelogBody');
             if (!body) return;
