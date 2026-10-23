@@ -2405,13 +2405,22 @@
             if (document.getElementById('cardOverlay').classList.contains('open')) return;
             isCardMode = true;
             document.body.classList.add('search-hidden');
-            document.getElementById('cardOverlay').classList.add('open');
+            
+            var overlay = document.getElementById('cardOverlay');
+            // Принудительный отступ сверху для карточки (обходим кнопки Telegram)
+            overlay.style.paddingTop = 'calc(60px + env(safe-area-inset-top, 0px))';
+            
+            overlay.classList.add('open');
             renderCard(name);
             updateProfileButton();
         }
 
         function closeCard() {
-            document.getElementById('cardOverlay').classList.remove('open');
+            var overlay = document.getElementById('cardOverlay');
+            overlay.classList.remove('open');
+            // Сбрасываем инлайн-стиль, чтобы не ломать другие элементы
+            overlay.style.paddingTop = '';
+            
             isCardMode = false;
             document.body.classList.remove('search-hidden');
             updateProfileButton();
