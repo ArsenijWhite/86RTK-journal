@@ -20,7 +20,6 @@
             --tab-inactive: #334155;
             --report: #f59e0b;
             
-            /* Переменные для безопасных зон Telegram */
             --tg-safe-area-top: 0px;
             --tg-content-safe-area-top: 0px;
         }
@@ -40,7 +39,6 @@
         }
         body { 
             padding: 16px; 
-            /* Безопасный отступ сверху для главного экрана */
             padding-top: calc(16px + var(--tg-safe-area-top) + var(--tg-content-safe-area-top)); 
             padding-bottom: 100px; 
         }
@@ -1077,7 +1075,6 @@
             margin-right: 2px;
         }
         
-        /* ИСПРАВЛЕНИЕ: Добавлен padding-top для карточки */
         .card-overlay {
             display: none;
             position: fixed;
@@ -2400,6 +2397,7 @@
             updateProfileButton();
         }
 
+        // ОБНОВЛЕННЫЕ ФУНКЦИИ ОТКРЫТИЯ И ЗАКРЫТИЯ КАРТОЧКИ
         function openCard(name) {
             if (!ALL_DATA.journal || ALL_DATA.journal.length === 0) return;
             if (document.getElementById('cardOverlay').classList.contains('open')) return;
@@ -2407,7 +2405,7 @@
             document.body.classList.add('search-hidden');
             
             var overlay = document.getElementById('cardOverlay');
-            // Принудительный отступ сверху для карточки (обходим кнопки Telegram)
+            // Принудительно опускаем карточку ниже кнопок Telegram
             overlay.style.paddingTop = 'calc(60px + env(safe-area-inset-top, 0px))';
             
             overlay.classList.add('open');
@@ -2418,7 +2416,7 @@
         function closeCard() {
             var overlay = document.getElementById('cardOverlay');
             overlay.classList.remove('open');
-            // Сбрасываем инлайн-стиль, чтобы не ломать другие элементы
+            // Сбрасываем стиль, чтобы не ломать другие элементы при повторном открытии
             overlay.style.paddingTop = '';
             
             isCardMode = false;
@@ -2441,11 +2439,20 @@
             var absCount = ALL_DATA.absences[student.studentName] || '0';
             var totalAvg = student.totalAverage || '—';
             var avgNum = parseFloat(String(totalAvg).replace(',', '.'));
+            
+            // ИСПРАВЛЕНИЕ: Правильный расчет цвета в зависимости от оценки
             var avgClass = 'gold';
-            if (isNaN(avgNum)) avgClass = 'gold';
-            else if (avgNum >= 7.5) avgClass = 'gold';
-            else if (avgNum >= 5) avgClass = 'orange';
-            else avgClass = 'red';
+            if (isNaN(avgNum) || avgNum <= 0) {
+                avgClass = 'gold'; // Для пустых оценок
+            } else if (avgNum >= 9.5) {
+                avgClass = 'gold'; // Отлично (желтый/золотой)
+            } else if (avgNum >= 7.5) {
+                avgClass = 'green'; // Хорошо (зеленый)
+            } else if (avgNum >= 5) {
+                avgClass = 'orange'; // Удовлетворительно (оранжевый)
+            } else {
+                avgClass = 'red'; // Плохо (красный)
+            }
 
             var sorted = ALL_DATA.journal.filter(function(s) { return s && s.studentName; }).sort(function(a, b) { return a.studentName.localeCompare(b.studentName); });
             var idx = sorted.findIndex(function(s) { return s.studentName === student.studentName; }) + 1;
@@ -2487,7 +2494,7 @@
             }
 
             var subjectsCount = student.subjects ? student.subjects.length : 0;
-            var statusText = avgNum >= 9 ? '🏆 Отлично' : avgNum >= 7.5 ? '✅ Хорошо' : avgNum >= 5 ? '⚠️ Удовлетворительно' : '❌ Требуется внимание';
+            var statusText = avgNum >= 9.5 ? '🏆 Отлично' : avgNum >= 7.5 ? '✅ Хорошо' : avgNum >= 5 ? '⚠️ Удовлетворительно' : '❌ Требуется внимание';
             var badge = isBound ? '<span class="card-user-badge">✅ Вы</span>' : '';
 
             container.innerHTML =
