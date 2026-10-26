@@ -1191,15 +1191,18 @@
             inset: -3px;
             border-radius: 50%;
             padding: 2px;
-            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            /* Цвет кольца наследуется от текущего цвета текста (color) */
+            background: currentColor; 
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask-composite: xor;
             mask-composite: exclude;
+            opacity: 0.8;
         }
         .stat-circle.gold { background: linear-gradient(135deg, rgba(251, 191, 36, 0.2), rgba(245, 158, 11, 0.1)); color: #fbbf24; }
         .stat-circle.green { background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.1)); color: #10b981; }
         .stat-circle.orange { background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(217, 119, 6, 0.1)); color: #f59e0b; }
         .stat-circle.red { background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(220, 38, 38, 0.1)); color: #ef4444; }
+        .stat-circle.blue { background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(14, 165, 233, 0.1)); color: #38bdf8; }
         .stat-info { flex: 1; }
         .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
         .stat-value { font-size: 14px; font-weight: 600; color: var(--text); }
@@ -2397,7 +2400,6 @@
             updateProfileButton();
         }
 
-        // ОБНОВЛЕННЫЕ ФУНКЦИИ ОТКРЫТИЯ И ЗАКРЫТИЯ КАРТОЧКИ
         function openCard(name) {
             if (!ALL_DATA.journal || ALL_DATA.journal.length === 0) return;
             if (document.getElementById('cardOverlay').classList.contains('open')) return;
@@ -2405,7 +2407,6 @@
             document.body.classList.add('search-hidden');
             
             var overlay = document.getElementById('cardOverlay');
-            // Принудительно опускаем карточку ниже кнопок Telegram
             overlay.style.paddingTop = 'calc(60px + env(safe-area-inset-top, 0px))';
             
             overlay.classList.add('open');
@@ -2416,7 +2417,6 @@
         function closeCard() {
             var overlay = document.getElementById('cardOverlay');
             overlay.classList.remove('open');
-            // Сбрасываем стиль, чтобы не ломать другие элементы при повторном открытии
             overlay.style.paddingTop = '';
             
             isCardMode = false;
@@ -2440,18 +2440,12 @@
             var totalAvg = student.totalAverage || '—';
             var avgNum = parseFloat(String(totalAvg).replace(',', '.'));
             
-            // ИСПРАВЛЕНИЕ: Правильный расчет цвета в зависимости от оценки
-            var avgClass = 'gold';
-            if (isNaN(avgNum) || avgNum <= 0) {
-                avgClass = 'gold'; // Для пустых оценок
-            } else if (avgNum >= 9.5) {
-                avgClass = 'gold'; // Отлично (желтый/золотой)
-            } else if (avgNum >= 7.5) {
-                avgClass = 'green'; // Хорошо (зеленый)
-            } else if (avgNum >= 5) {
-                avgClass = 'orange'; // Удовлетворительно (оранжевый)
-            } else {
-                avgClass = 'red'; // Плохо (красный)
+            var avgClass = 'blue';
+            if (!isNaN(avgNum) && avgNum > 0) {
+                if (avgNum >= 9.5) avgClass = 'gold';
+                else if (avgNum >= 7.5) avgClass = 'green';
+                else if (avgNum >= 5) avgClass = 'orange';
+                else avgClass = 'red';
             }
 
             var sorted = ALL_DATA.journal.filter(function(s) { return s && s.studentName; }).sort(function(a, b) { return a.studentName.localeCompare(b.studentName); });
