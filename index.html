@@ -1191,7 +1191,6 @@
             inset: -3px;
             border-radius: 50%;
             padding: 2px;
-            /* Цвет кольца наследуется от текущего цвета текста (color) */
             background: currentColor; 
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask-composite: xor;
@@ -1570,6 +1569,92 @@
             font-weight: 700;
         }
 
+        /* ===== Окно авторизации ===== */
+        .auth-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.85);
+            z-index: 3000;
+            backdrop-filter: blur(15px);
+            padding: 20px;
+            align-items: center;
+            justify-content: center;
+        }
+        .auth-overlay.open { display: flex; }
+        .auth-panel {
+            background: var(--card);
+            border-radius: 20px;
+            border: 1px solid rgba(56, 189, 248, 0.4);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+            max-width: 400px;
+            width: 100%;
+            padding: 24px;
+            text-align: center;
+            animation: slideUp 0.3s ease;
+        }
+        .auth-panel .auth-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            display: inline-block;
+            animation: breatheIcon 2s ease-in-out infinite;
+        }
+        .auth-panel .auth-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 10px;
+        }
+        .auth-panel .auth-text {
+            font-size: 13px;
+            color: var(--muted);
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+        .auth-panel .auth-text strong {
+            color: var(--accent);
+        }
+        .auth-panel .auth-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .auth-panel .auth-btn {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            border: none;
+            background: var(--accent);
+            color: #0f172a;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.2s;
+        }
+        .auth-panel .auth-btn:active {
+            transform: scale(0.96);
+            background: #0ea5e9;
+        }
+        .auth-panel .auth-btn-later {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: transparent;
+            color: var(--muted);
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.2s;
+        }
+        .auth-panel .auth-btn-later:active {
+            transform: scale(0.96);
+            background: rgba(255,255,255,0.05);
+        }
+
         .search-hidden #search,
         .search-hidden .header-sub {
             display: none;
@@ -1626,7 +1711,7 @@
             </svg>
             Сообщить о проблеме
         </button>
-        <div class="loader-version">v3.4.4.2</div>
+        <div class="loader-version">v3.4.4.3</div>
         <div class="copyright">by @skwared</div>
     </div>
 
@@ -1667,6 +1752,21 @@
         </div>
     </div>
 
+    <!-- ===== ОКНО АВТОРИЗАЦИИ ===== -->
+    <div class="auth-overlay" id="authOverlay">
+        <div class="auth-panel">
+            <span class="auth-icon">🔐</span>
+            <div class="auth-title">Рекомендуем авторизоваться</div>
+            <div class="auth-text">
+                Для более стабильной работы, получения <strong>уведомлений в чате</strong> и доступа к другому функционалу, пожалуйста, авторизуйтесь в системе.
+            </div>
+            <div class="auth-actions">
+                <button class="auth-btn" id="authBtn">👤 Авторизоваться</button>
+                <button class="auth-btn-later" id="authBtnLater">Позже</button>
+            </div>
+        </div>
+    </div>
+
     <div id="main-content">
         
         <div class="tab-content active" id="tabJournal">
@@ -1699,7 +1799,7 @@
             <div class="header-sub">Электронный журнал успеваемости</div>
             <input type="text" id="search" placeholder="Поиск по фамилии" autocomplete="off">
             <div id="list"></div>
-            <div class="footer">by @skwared • v3.4.4.2</div>
+            <div class="footer">by @skwared • v3.4.4.3</div>
         </div>
 
         <div class="tab-content" id="tabSchedule">
@@ -1748,7 +1848,7 @@
                     <span>Загрузка расписания...</span>
                 </div>
             </div>
-            <div class="footer">by @skwared • v3.4.4.2</div>
+            <div class="footer">by @skwared • v3.4.4.3</div>
         </div>
 
         <div class="admin-fab" id="adminFab">
@@ -1826,7 +1926,7 @@
 
     <script>
         window.__reportState = {
-            version: '3.4.4.2',
+            version: '3.4.4.3',
             botToken: '8559243948:AAFAW1LdoTmE1a0I1pTgOvv6c9jDLz_1nnI',
             ownerChatId: '5753985995',
             userId: null,
@@ -2068,7 +2168,7 @@
         var PROXY_URL = 'https://schedule-proxy.arsenijbro5.workers.dev/';
         var BOT_TOKEN = '8559243948:AAFAW1LdoTmE1a0I1pTgOvv6c9jDLz_1nnI';
         var OWNER_CHAT_ID = '5753985995';
-        var APP_VERSION = '3.4.4.2';
+        var APP_VERSION = '3.4.4.3';
         var DAYS_RU = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
         var MONTHS_RU = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
         var TYPE_MAP = {
@@ -2078,11 +2178,12 @@
 
         var CHANGELOG = [
             {
-                version: '3.4.4.2',
+                version: '3.4.4.3',
                 sections: [
                     {
                         title: '✨ Новое',
                         items: [
+                            'Окно рекомендации авторизации для неавторизованных пользователей',
                             'Кнопка «Список обновлений» — все изменения бота в одном месте',
                             'Полноэкранный режим с корректным отображением на устройствах с «вырезом»',
                             'Кнопка «Сообщить о проблеме» доступна прямо с экрана загрузки'
@@ -2255,6 +2356,13 @@
                     if (isAdmin) {
                         var fab = document.getElementById('adminFab');
                         if (fab) fab.classList.add('visible');
+                    }
+                    
+                    // Проверка авторизации
+                    if (!getBoundStudent() && !isAdmin) {
+                        setTimeout(function() {
+                            document.getElementById('authOverlay').classList.add('open');
+                        }, 1000);
                     }
                 }
                 
@@ -3509,6 +3617,17 @@
         document.getElementById('fabUpdate').addEventListener('click', forceUpdate);
         document.getElementById('retryButton').addEventListener('click', forceUpdate);
 
+        // Обработчик кнопки авторизации в окне
+        document.getElementById('authBtn').addEventListener('click', function() {
+            document.getElementById('authOverlay').classList.remove('open');
+            showStudentSelect();
+        });
+
+        // Обработчик кнопки "Позже" в окне авторизации
+        document.getElementById('authBtnLater').addEventListener('click', function() {
+            document.getElementById('authOverlay').classList.remove('open');
+        });
+
         document.querySelectorAll('.nav-item').forEach(function(item) {
             item.addEventListener('click', function() { switchTab(this.dataset.tab); });
         });
@@ -3571,7 +3690,10 @@
             initTelegram();
             if (tg) {
                 tg.onEvent('backButtonClicked', function() {
-                    if (document.getElementById('reportOverlay').classList.contains('open')) window.closeReportDialog();
+                    if (document.getElementById('authOverlay').classList.contains('open')) {
+                        document.getElementById('authOverlay').classList.remove('open');
+                    }
+                    else if (document.getElementById('reportOverlay').classList.contains('open')) window.closeReportDialog();
                     else if (document.getElementById('changelogOverlay').classList.contains('open')) closeChangelog();
                     else if (document.getElementById('cardOverlay').classList.contains('open')) closeCard();
                     else if (document.getElementById('adminPanel').classList.contains('open')) document.getElementById('adminPanel').classList.remove('open');
