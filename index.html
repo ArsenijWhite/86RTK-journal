@@ -266,17 +266,19 @@
         .ios-tab-bar {
             position: fixed;
             bottom: calc(16px + var(--tg-safe-area-bottom));
-            left: 16px;
-            right: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 85%;
+            max-width: 320px;
             z-index: 1000;
             display: flex;
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(25px) saturate(180%);
-            -webkit-backdrop-filter: blur(25px) saturate(180%);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 24px;
-            padding: 6px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            background: rgba(30, 41, 59, 0.5);
+            backdrop-filter: blur(30px) saturate(180%);
+            -webkit-backdrop-filter: blur(30px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 30px;
+            padding: 4px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255,255,255,0.2);
             overflow: hidden;
             transition: transform 0.3s;
         }
@@ -284,9 +286,9 @@
             content: '';
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0) 100%);
+            background: linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0) 100%);
             pointer-events: none;
-            border-radius: 24px;
+            border-radius: 30px;
         }
         .ios-tab-btn {
             flex: 1;
@@ -297,7 +299,7 @@
             font-size: 10px;
             font-weight: 600;
             cursor: pointer;
-            border-radius: 18px;
+            border-radius: 26px;
             position: relative;
             z-index: 1;
             transition: color 0.3s ease;
@@ -305,14 +307,14 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 4px;
+            gap: 2px;
         }
         .ios-tab-btn.active {
             color: var(--accent);
         }
         .ios-tab-btn svg {
-            width: 22px;
-            height: 22px;
+            width: 20px;
+            height: 20px;
             stroke: currentColor;
             fill: none;
             stroke-width: 2;
@@ -324,18 +326,29 @@
 
         .ios-tab-indicator {
             position: absolute;
-            top: 6px;
-            bottom: 6px;
-            left: 6px;
-            width: calc(50% - 6px);
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 18px;
+            top: 4px;
+            bottom: 4px;
+            left: 4px;
+            width: calc(50% - 4px);
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 26px;
             z-index: 0;
             transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: inset 0 1px 1px rgba(255,255,255,0.15), 0 2px 8px rgba(0,0,0,0.3);
+            box-shadow: inset 0 1px 1px rgba(255,255,255,0.2), 0 2px 8px rgba(0,0,0,0.3);
         }
         .ios-tab-indicator.schedule {
             transform: translateX(100%);
+        }
+
+        /* ===== ФУТЕР ===== */
+        .footer {
+            text-align: center;
+            padding: 20px 0 10px;
+            color: rgba(255,255,255,0.3);
+            font-size: 10px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
         }
 
         /* ===== ОСТАЛЬНЫЕ СТИЛИ ===== */
@@ -544,7 +557,7 @@
         .admin-panel .admin-status { font-size: 12px; color: var(--muted); margin-top: 8px; text-align: center; white-space: pre-wrap; word-break: break-word; }
         .admin-panel .admin-status.success { color: var(--success); }
         .admin-panel .admin-status.error { color: var(--error); }
-        .admin-fab { display: none; position: fixed; bottom: 140px; right: 16px; width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, #8b5cf6, #7c3aed); border: 1px solid rgba(139, 92, 246, 0.3); align-items: center; justify-content: center; z-index: 998; cursor: pointer; box-shadow: 0 0 20px rgba(139, 92, 246, 0.3); }
+        .admin-fab { display: none; position: fixed; bottom: 160px; right: 16px; width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, #8b5cf6, #7c3aed); border: 1px solid rgba(139, 92, 246, 0.3); align-items: center; justify-content: center; z-index: 998; cursor: pointer; box-shadow: 0 0 20px rgba(139, 92, 246, 0.3); }
         .admin-fab:active { transform: scale(0.92); }
         .admin-fab.visible { display: flex; }
         .admin-fab svg { width: 22px; height: 22px; stroke: white; fill: none; stroke-width: 2; }
@@ -572,7 +585,7 @@
         
         .changelog-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 2600; backdrop-filter: blur(10px); padding: 20px; overflow-y: auto; }
         .changelog-overlay.open { display: flex; align-items: center; justify-content: center; }
-        .changelog-panel { background: var(--card); border-radius: 20px; border: 1px solid rgba(56, 189, 248, 0.3); box-shadow: 0 10px 40px rgba(0,0,0,0.6); max-width: 420px; width: 100%; max-height: 85vh; display: flex; flex-direction: column; animation: slideUp 0.3s ease; margin-top: 50px; /* Сдвигаем ниже кнопки "Закрыть" */ }
+        .changelog-panel { background: var(--card); border-radius: 20px; border: 1px solid rgba(56, 189, 248, 0.3); box-shadow: 0 10px 40px rgba(0,0,0,0.6); max-width: 420px; width: 100%; max-height: 85vh; display: flex; flex-direction: column; animation: slideUp 0.3s ease; margin-top: 50px; }
         .changelog-header { padding: 18px 20px; border-bottom: 1px solid rgba(255,255,255,0.06); display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
         .changelog-header .changelog-title { font-size: 16px; font-weight: 700; color: var(--accent); display: flex; align-items: center; gap: 8px; }
         .changelog-header .changelog-close { margin-left: auto; color: var(--muted); font-size: 22px; cursor: pointer; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: rgba(255,255,255,0.04); }
@@ -1325,7 +1338,6 @@
                     var contentSafeArea = tg.contentSafeAreaInset || {};
                     root.style.setProperty('--tg-safe-area-top', (safeArea.top || 0) + 'px');
                     root.style.setProperty('--tg-content-safe-area-top', (contentSafeArea.top || 0) + 'px');
-                    // Добавил отслеживание нижней безопасной зоны
                     root.style.setProperty('--tg-safe-area-bottom', (safeArea.bottom || 0) + 'px');
                 };
                 
@@ -2618,7 +2630,7 @@
                 startX = touch.clientX;
                 startY = touch.clientY;
                 isDragging = false;
-                barWidth = bar.offsetWidth - 12; // вычитаем паддинги (6px с каждой стороны)
+                barWidth = bar.offsetWidth - 12;
                 maxTranslate = barWidth / 2;
                 currentTranslate = indicator.classList.contains('schedule') ? barWidth / 2 : 0;
             }, { passive: true });
@@ -2629,18 +2641,15 @@
                 var dx = touch.clientX - startX;
                 var dy = touch.clientY - startY;
 
-                // Если движение по вертикали больше, чем по горизонтали, игнорируем (не мешаем скроллу)
                 if (Math.abs(dy) > Math.abs(dx)) return;
 
                 if (Math.abs(dx) > 5) {
                     isDragging = true;
-                    e.preventDefault(); // Блокируем прокрутку при горизонтальном свайпе
+                    e.preventDefault();
                     var newTranslate = currentTranslate + dx;
-                    // Ограничиваем в пределах
                     if (newTranslate < 0) newTranslate = 0;
                     if (newTranslate > maxTranslate) newTranslate = maxTranslate;
                     
-                    // Убираем transition на время перетаскивания
                     indicator.style.transition = 'none';
                     indicator.style.transform = 'translateX(' + newTranslate + 'px)';
                 }
@@ -2648,36 +2657,29 @@
 
             bar.addEventListener('touchend', function(e) {
                 if (!isDragging) {
-                    // Если это был просто тап, transition вернётся автоматически
                     indicator.style.transition = '';
                     indicator.style.transform = '';
                     return;
                 }
                 var touch = e.changedTouches[0];
                 var dx = touch.clientX - startX;
-                var threshold = 30; // Порог свайпа в пикселях
+                var threshold = 30;
 
-                // Возвращаем transition
                 indicator.style.transition = '';
 
                 if (dx > threshold) {
-                    // Свайп вправо (с Журнала на Расписание)
                     if (indicator.classList.contains('schedule')) {
-                        // Уже на расписании, некуда идти
                         indicator.style.transform = 'translateX(' + (barWidth / 2) + 'px)';
                     } else {
                         switchTab('tabSchedule');
                     }
                 } else if (dx < -threshold) {
-                    // Свайп влево (с Расписания на Журнал)
                     if (!indicator.classList.contains('schedule')) {
-                        // Уже на журнале, некуда идти
                         indicator.style.transform = 'translateX(0px)';
                     } else {
                         switchTab('tabJournal');
                     }
                 } else {
-                    // Недостаточный свайп — возвращаем на место
                     if (indicator.classList.contains('schedule')) {
                         indicator.style.transform = 'translateX(' + (barWidth / 2) + 'px)';
                     } else {
