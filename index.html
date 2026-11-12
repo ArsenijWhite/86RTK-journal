@@ -262,7 +262,7 @@
         .tab-content { display: none; animation: fadeIn 0.3s ease; }
         .tab-content.active { display: block; }
 
-        /* ===== НИЖНИЙ ПЛАВАЮЩИЙ ТАБ-БАР (iOS STYLE) ===== */
+        /* ===== НИЖНИЙ ПЛАВАЮЩИЙ ТАБ-БАР (FLOATING / GRAPHITE) ===== */
         .ios-tab-bar {
             position: fixed;
             bottom: calc(16px + var(--tg-safe-area-bottom));
@@ -272,14 +272,14 @@
             max-width: 320px;
             z-index: 1000;
             display: flex;
-            /* Более прозрачный фон с большим blur */
-            background: rgba(30, 41, 59, 0.4);
-            backdrop-filter: blur(35px) saturate(200%);
-            -webkit-backdrop-filter: blur(35px) saturate(200%);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            /* Стеклянный эффект Floating/Graphite */
+            background: rgba(30, 41, 59, 0.5);
+            backdrop-filter: blur(30px) saturate(200%);
+            -webkit-backdrop-filter: blur(30px) saturate(200%);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 30px;
             padding: 4px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255,255,255,0.3);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255,255,255,0.2);
             overflow: hidden;
             transition: transform 0.3s;
         }
@@ -287,7 +287,7 @@
             content: '';
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 100%);
+            background: linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0) 100%);
             pointer-events: none;
             border-radius: 30px;
         }
@@ -348,9 +348,8 @@
             padding: 20px 0 10px;
             color: rgba(255,255,255,0.35);
             font-size: 10px;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
+            font-weight: 500;
+            letter-spacing: 0.3px;
         }
 
         /* ===== ОСТАЛЬНЫЕ СТИЛИ ===== */
@@ -763,7 +762,7 @@
             <div class="header-sub">Электронный журнал успеваемости</div>
             <input type="text" id="search" placeholder="Поиск по фамилии" autocomplete="off">
             <div id="list"></div>
-            <div class="footer">by @skwared • v3.4.4.4</div>
+            <div class="footer">v3.4.4.4</div>
         </div>
 
         <div class="tab-content" id="tabSchedule">
@@ -812,7 +811,7 @@
                     <span>Загрузка расписания...</span>
                 </div>
             </div>
-            <div class="footer">by @skwared • v3.4.4.4</div>
+            <div class="footer">v3.4.4.4</div>
         </div>
 
         <div class="admin-fab" id="adminFab">
@@ -2613,7 +2612,7 @@
             });
         });
 
-        // СВАЙП ПО ТАБ-БАРУ (с улучшенной физикой)
+        // СВАЙП ПО ТАБ-БАРУ
         (function() {
             var bar = document.getElementById('iosTabBar');
             var indicator = document.getElementById('iosTabIndicator');
@@ -2667,7 +2666,6 @@
                 var dx = touch.clientX - startX;
                 var threshold = 30;
 
-                // Возвращаем плавную анимацию
                 indicator.style.transition = '';
 
                 if (dx > threshold) {
