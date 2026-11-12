@@ -2607,10 +2607,14 @@
         document.getElementById('retryButton').addEventListener('click', forceUpdate);
 
         // Обработчик кнопки авторизации в окне
-        document.getElementById('authBtn').addEventListener('click', function() {
-            document.getElementById('authOverlay').classList.remove('open');
-            showStudentSelect();
-        });
+document.getElementById('authBtn').addEventListener('click', function() {
+    document.getElementById('authOverlay').classList.remove('open');
+    
+    // Небольшая задержка, чтобы окно авторизации успело закрыться
+    setTimeout(function() {
+        showStudentSelect();
+    }, 200); // 200 мс достаточно для завершения анимации
+});
 
         // Обработчик кнопки "Позже" в окне авторизации
         document.getElementById('authBtnLater').addEventListener('click', function() {
